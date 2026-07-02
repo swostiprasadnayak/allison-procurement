@@ -1,0 +1,19 @@
+# secrets — never commit
+.env
+.env.local
+*.key
+
+# local data + caches (anchored to repo root so a frontend/src/data dir isn't caught)
+/data/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# generated outputs — contain real client vendor names + spend; regenerated from data/
+/reports/
+*.xlsx
+*.xlsb
+
+# misc
+.DS_Store
+.ipynb_checkpoints/

@@ -1,0 +1,238 @@
+# Engine parameter seed — Feature Spec Appendix A.2 / Methodology Spec 'Parameters'.
+# Single source of truth for every tunable threshold. Admin-editable, versioned;
+# applied on the NEXT engine run (no code edit). Scalars -> value_numeric;
+# lists / ranges / strings -> value_json.
+#
+# Each param carries:
+#   key      - canonical id (matches Appendix A.2 + the CDM; referenced in code) — do NOT rename
+#   label    - human-friendly display name (shown in review artifacts / in-product)
+#   category - grouping for display
+#   desc     - plain-English definition (-> engine_parameter.description; powers
+#              the in-product "how is this calculated?" + the copilot)
+#
+# NOTE on savings rates: the methodology workbook (our anchor fixture) computes
+# savings as movable x [savings_rate_low, savings_rate_high] = [0.05, 0.08] (flat).
+# Feature Spec A.6 generalizes to LEVER-TIERED rates. We seed BOTH plus a
+# `savings_rate_policy` switch: 'flat' reproduces the $594,411-$951,058 anchor;
+# 'lever_tiered' is the go-forward default. Movable $11,888,233 is rate-independent.
+
+methodology_version: mro-layer0-v1
+formula_set_ref: "Feature Spec Appendix A (ported from Allison_MRO_Methodology_Spec.xlsx)"
+notes: "Layer-0 (pre part-master). Reproduces the Industrial Supplies discovery."
+
+params:
+  # ----------------------------- Scan scoring (A.3) -----------------------------
+  - key: prov_exponent
+    label: "Provability weighting (exponent)"
+    category: "Scan scoring (A.3)"
+    numeric: 2
+    unit: exponent
+    desc: "How heavily evidence strength dominates which categories rank first. The scan score is Prize x Feasibility x Provability^(this); a value of 2 squares provability, so well-evidenced categories rank far above speculative ones (the engagement is outcome-based)."
+
+  - key: feas_frag_weight
+    label: "Feasibility: fragmentation weight"
+    category: "Scan scoring (A.3)"
+    numeric: 0.5
+    unit: weight
+    desc: "Share of a category's Feasibility score driven by how fragmented its supplier base is (more fragmentation = more room to consolidate). Pairs with the cross-division weight; the two sum to 1.0."
+
+  - key: feas_xbu_weight
+    label: "Feasibility: cross-division weight"
+    category: "Scan scoring (A.3)"
+    numeric: 0.5
+    unit: weight
+    desc: "Share of a category's Feasibility score driven by overlapping AT + AOH demand (cross-business-unit leverage potential). Pairs with the fragmentation weight; the two sum to 1.0."
+
+  - key: services_threshold
+    label: "Services-spend penalty trigger"
+    category: "Scan scoring (A.3)"
+    numeric: 0.40
+    unit: share
+    desc: "If more than this share of a category's spend is services-coded (hard to validate like-for-like with current data), its Provability is penalized. 0.40 = 40%."
+
+  - key: services_penalty
+    label: "Services Provability multiplier"
+    category: "Scan scoring (A.3)"
+    numeric: 0.60
+    unit: factor
+    desc: "How much Provability is cut when the services trigger is exceeded. 0.60 means provability is multiplied by 0.6 (a 40% reduction), pushing services-heavy categories down the ranking."
+
+  - key: scan_xbu_norm_min_spend
+    label: "Cross-BU normalization floor"
+    category: "Scan scoring (A.3)"
+    numeric: 1000000
+    unit: usd
+    desc: "When scaling the cross-BU headroom (xbu) across sub-categories for the Feasibility score, only sub-categories with at least this much spend anchor the maximum. Prevents a tiny near-50/50 category (e.g. a $400k category split evenly across AT/AOH) from distorting the 0-1 scale and deflating everyone else."
+
+  # ------------------------ Opportunity / play generation (A.5) ------------------------
+  - key: play_min_spend
+    label: "Minimum pocket spend to act"
+    category: "Opportunity generation (A.5)"
+    numeric: 300000
+    unit: usd
+    desc: "A spend pocket (one L3 category in one country) must have at least this much spend to surface as an opportunity. Filters out immaterial pockets."
+
+  - key: play_min_vendors
+    label: "Minimum vendors to act"
+    category: "Opportunity generation (A.5)"
+    numeric: 4
+    unit: count
+    desc: "A pocket must have at least this many suppliers to qualify as a consolidation/RFP opportunity — with fewer suppliers there is little to consolidate."
+
+  - key: scan_deep_dive_top_n
+    label: "Deep-dive scope (top-N categories)"
+    category: "Opportunity generation (A.5)"
+    numeric: 6
+    unit: count
+    desc: "Only the top-N MRO sub-categories by scan score generate individual opportunities (the deep-dive scope). Set to 6 for now = the discovery's top 5 PLUS Electrical & Electronics (rank 5, which the current scan edges above Industrial Gas #6 on feasibility) — both surfaced pending a client call on the final scope. Lower-ranked categories are still scored on the cockpit but don't spawn plays until promoted. Set to 0 to disable the cap entirely."
+
+  - key: winner_share_consolidate
+    label: "Consolidate-vs-RFP threshold"
+    category: "Opportunity generation (A.5)"
+    numeric: 0.50
+    unit: share
+    desc: "If the largest non-OEM supplier already holds at least this share of a pocket, the recommended play is 'Consolidate to incumbent' (move the tail to them); below it, the whole non-OEM base is contested via a 'Competitive RFP'. 0.50 = 50%."
+
+  - key: engineered_segments
+    label: "Engineered carve-out segments"
+    category: "Opportunity generation (A.5)"
+    json: ["Machine parts", "Machine Parts"]
+    unit: list
+    desc: "Category segments treated as equipment-specific spares a broad-line distributor cannot supply — carved OUT of consolidation into an OEM/engineering should-cost track. Currently the two case variants of 'Machine parts'."
+
+  - key: oem_definition
+    label: "OEM/sole-source classification set"
+    category: "Opportunity generation (A.5)"
+    json: "verified_web"
+    unit: enum
+    desc: "Which OEM/sole-source list to carve out of addressable spend. 'substring' = the crude vendor-name proxy that reproduces the validated discovery anchor ($11,888,233 IS movable) — kept as the methodology-fidelity baseline. 'verified_web' = citation-backed web-verified OEM verdicts supersede the proxy (Allison's adopted go-forward set; IS ~$11.52M, MRO ~$67.4M). 'verified_all' = web + model-knowledge verdicts. Client-configurable; applied on the next run."
+
+  # ------------------------ Vendor rationalization tiers (A.4) ------------------------
+  - key: tier_keep_spend
+    label: "'Keep - strategic' spend floor"
+    category: "Vendor tiers (A.4)"
+    numeric: 500000
+    unit: usd
+    desc: "A supplier at or above this annual spend is classified 'Keep - strategic' — an anchor / candidate lane winner, not a consolidation target."
+
+  - key: tier_keep_segs
+    label: "'Keep - broad' segment count"
+    category: "Vendor tiers (A.4)"
+    numeric: 5
+    unit: count
+    desc: "A supplier serving at least this many distinct L3 segments is classified 'Keep - broad' (broad-line, strategically useful) regardless of spend."
+
+  - key: tier_leverage_spend
+    label: "'Leverage - negotiate' spend floor"
+    category: "Vendor tiers (A.4)"
+    numeric: 100000
+    unit: usd
+    desc: "A supplier at or above this spend (but below the Keep floor) is classified 'Leverage - negotiate' — retain, but renegotiate price/terms."
+
+  - key: tier_consolidate_spend
+    label: "'Consolidate' spend floor"
+    category: "Vendor tiers (A.4)"
+    numeric: 25000
+    unit: usd
+    desc: "A supplier at or above this spend (but below the Leverage floor) is a 'Consolidate - fold to winner' candidate; below it the supplier is 'Exit - tail/maverick'."
+
+  # ------------------------------ Maverick & tail (A.8 / A.9) ------------------------------
+  - key: mav_micro_spend
+    label: "Micro-supplier spend ceiling"
+    category: "Maverick & tail (A.8 / A.9)"
+    numeric: 10000
+    unit: usd
+    desc: "A supplier with less than this total spend AND at most a few lines is flagged micro/maverick (off-catalog) and routed to a catalog/integrator. Pairs with the micro line ceiling."
+
+  - key: mav_micro_lines
+    label: "Micro-supplier line ceiling"
+    category: "Maverick & tail (A.8 / A.9)"
+    numeric: 2
+    unit: count
+    desc: "Maximum number of invoice lines for the micro/maverick flag, combined with the micro spend ceiling — i.e. tiny spend over very few transactions."
+
+  - key: tail_t1
+    label: "Long-tail threshold 1"
+    category: "Maverick & tail (A.8 / A.9)"
+    numeric: 100000
+    unit: usd
+    desc: "Reporting cut-off for the long tail — count of suppliers below this spend ($100k). Used in fragmentation / cockpit views."
+
+  - key: tail_t2
+    label: "Long-tail threshold 2"
+    category: "Maverick & tail (A.8 / A.9)"
+    numeric: 25000
+    unit: usd
+    desc: "Second long-tail reporting cut-off — count of suppliers below this spend ($25k)."
+
+  # --------------------------------- Savings rates (A.6) ---------------------------------
+  - key: savings_rate_policy
+    label: "Savings-rate policy"
+    category: "Savings rates (A.6)"
+    json: "lever_tiered"
+    unit: enum
+    desc: "Which rate set is applied to movable spend. 'flat' reproduces the discovery workbook (5-8% across the board); 'lever_tiered' applies a different band per lever (the go-forward default)."
+
+  - key: savings_rate_low
+    label: "Flat savings rate - low"
+    category: "Savings rates (A.6)"
+    numeric: 0.05
+    unit: rate
+    desc: "Low end of the flat savings band applied to movable spend under the 'flat' policy. Reproduces the workbook anchor ($594,411). 5%."
+
+  - key: savings_rate_high
+    label: "Flat savings rate - high"
+    category: "Savings rates (A.6)"
+    numeric: 0.08
+    unit: rate
+    desc: "High end of the flat savings band under the 'flat' policy. Reproduces the workbook anchor ($951,058). 8%."
+
+  - key: "savings_rate.consolidate_incumbent"
+    label: "Savings: consolidate-to-incumbent"
+    category: "Savings rates (A.6)"
+    json: [0.04, 0.07]
+    unit: rate_range
+    desc: "Expected savings band when a fragmented tail is folded into a dominant incumbent supplier. 4-7%."
+
+  - key: "savings_rate.competitive_rfp"
+    label: "Savings: competitive RFP"
+    category: "Savings rates (A.6)"
+    json: [0.05, 0.08]
+    unit: rate_range
+    desc: "Expected savings band when the whole non-OEM base is contested via a competitive RFP. 5-8%."
+
+  - key: "savings_rate.fragmented_tail"
+    label: "Savings: fragmented tail"
+    category: "Savings rates (A.6)"
+    json: [0.06, 0.10]
+    unit: rate_range
+    desc: "Expected savings band for a highly fragmented tail consolidated to a lead supplier plus a panel. 6-10%."
+
+  - key: "savings_rate.services_ratecard"
+    label: "Savings: services rate-card"
+    category: "Savings rates (A.6)"
+    json: [0.05, 0.08]
+    unit: rate_range
+    desc: "Expected savings band for services spend addressed via a labor rate-card panel (e.g. Machine Repairs). 5-8%."
+
+  - key: "savings_rate.cross_division"
+    label: "Savings: cross-division leverage"
+    category: "Savings rates (A.6)"
+    json: [0.05, 0.08]
+    unit: rate_range
+    desc: "Expected savings band on genuine AT + AOH overlap volume combined within a region. 5-8%."
+
+  # --------------------------------- Benchmark (A.7) ---------------------------------
+  - key: cost_of_capital
+    label: "Cost of capital (working-capital benchmark)"
+    category: "Benchmark (A.7)"
+    numeric: 0.10
+    unit: rate
+    desc: "Annual cost of capital used to value a payment-terms gap as working capital: wc_value = annual_spend x (target_terms_days - current_terms_days)/365 x cost_of_capital. The payment-terms benchmark is computable now from the cube; index should-cost is staged for the part master."
+
+  - key: payment_terms_best_min_share
+    label: "Best-in-class terms: minimum demonstrated spend share"
+    category: "Benchmark (A.7)"
+    numeric: 0.05
+    unit: rate
+    desc: "Guards the payment-terms benchmark against thin outliers. Best-in-class DPO is the LONGEST payment term already demonstrated on at least this share of the sub-category's spend (not the single max). At 0.05, a term must cover >=5% of spend to count as the target. The target term is then max(best_demonstrated, current_weighted) so the working-capital value is never negative. Raising it is more conservative (target moves toward the dominant term); 0 reverts to raw max. Example: Industrial Supplies has a 150-day term on 6 invoices (1.7% of spend) -> at 0.05 the target is Net 60 (the dominant term), not 150."

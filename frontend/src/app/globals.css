@@ -1,0 +1,282 @@
+@import "tailwindcss";
+
+/* Generate utilities for the design system's own class names in OUR sheet.
+ * Both this file and the DS's precompiled styles.css emit Tailwind utilities;
+ * since this sheet loads later, any utility we re-declare (e.g. `.hidden`)
+ * would otherwise override a DS responsive variant (e.g. SideNav's `md:flex`)
+ * that only existed in the earlier DS sheet — which is exactly what kept the
+ * collapsed nav rail invisible. Scanning the DS bundle makes this sheet
+ * authoritative and internally ordered (variants after base utilities). */
+@source "../../node_modules/@navanta-ai/design-system/dist/index.mjs";
+
+/* Core color + font tokens (`--background`, `--foreground`, `--muted`, etc.)
+ * come from `@navanta-ai/design-system/styles.css`, imported ahead of this
+ * file in layout.tsx. We only map them into Tailwind's theme here. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  /* Lock the app to light. The DS supports dark only via a `.dark` class (which
+   * we never apply), but without an explicit color-scheme the browser still
+   * renders native chrome — scrollbars, inputs, <select> menus, the canvas —
+   * dark when the OS is in dark mode. Pin it to light. */
+  color-scheme: light;
+
+  /* DS ships --sidebar-active-bg: var(--muted) (#f4f4f5) vs hover #f5f5f5 —
+   * visually indistinguishable. Strengthen the active fill so the current
+   * route reads at a glance (our sheet loads after the DS sheet, so this
+   * override wins). */
+  --sidebar-active-bg: #e8e8ec;
+
+  /* The DS control family is split on radius: Button and the TableShell search
+   * input are hardcoded rounded-[8px], but Input / Textarea / Select trigger +
+   * content and the facet triggers use rounded-md (--radius-md = 6px) — so the
+   * Select reads sharper than the controls beside it. Bump --radius-md to 8px
+   * to unify the family. We use no rounded-md ourselves, and Select items keep
+   * rounded-sm (4px), so this is scoped to the control chrome. */
+  --radius-md: 0.5rem;
+}
+
+/* Lock to light, part 2 — the DS is precompiled with media-based `dark:`
+ * utilities that fire on the OS dark preference (independent of the .dark class
+ * and of color-scheme). Most reference semantic tokens that stay light (KPI
+ * badges/track), but a few hard-code palette near-blacks that genuinely darken:
+ * the Dialog footer and the Toast variants. We can't recompile the DS, so these
+ * unlayered overrides (unlayered beats the DS's layered utilities) re-assert the
+ * light sibling values whenever the OS is dark. Drop this if the DS ever ships a
+ * proper light lock. */
+@media (prefers-color-scheme: dark) {
+  /* Dialog footer: bg-[#f9f9f9] dark:bg-zinc-950 */
+  .dark\:bg-zinc-950 {
+    background-color: #f9f9f9;
+  }
+  /* Toast info / success / error / warning — revert to the light siblings
+     (border-*-200 bg-*-50 text-*-900). */
+  .dark\:bg-blue-950 {
+    background-color: var(--color-blue-50);
+  }
+  .dark\:border-blue-800 {
+    border-color: var(--color-blue-200);
+  }
+  .dark\:text-blue-200 {
+    color: var(--color-blue-900);
+  }
+  .dark\:bg-green-950 {
+    background-color: var(--color-green-50);
+  }
+  .dark\:border-green-800 {
+    border-color: var(--color-green-200);
+  }
+  .dark\:text-green-200 {
+    color: var(--color-green-900);
+  }
+  .dark\:bg-red-950 {
+    background-color: var(--color-red-50);
+  }
+  .dark\:border-red-800 {
+    border-color: var(--color-red-200);
+  }
+  .dark\:text-red-200 {
+    color: var(--color-red-900);
+  }
+  .dark\:bg-yellow-950 {
+    background-color: var(--color-yellow-50);
+  }
+  .dark\:border-yellow-800 {
+    border-color: var(--color-yellow-200);
+  }
+  .dark\:text-yellow-200 {
+    color: var(--color-yellow-900);
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * KPI info tooltips — the DS KpiBreakdownCard hard-codes the Tooltip
+ * `default` (light popover) variant with no passthrough. KPI rows carry
+ * `.kpi-dark-tips`, and this unlayered rule (which beats Tailwind's layered
+ * `bg-popover`/`text-popover-foreground` utilities) flips the bubble to the
+ * dark `inverse` look used by the SideNav rail tooltips.
+ * ───────────────────────────────────────────────────────────────────────── */
+.kpi-dark-tips [role="tooltip"] {
+  background: var(--surface-inverse, #18181b);
+  color: #ffffff;
+  box-shadow: var(--shadow-dropdown, 0px 4px 15px 0px rgba(0, 0, 0, 0.25));
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Search input parity — the TableShell toolbar search renders the DS `Input`
+ * with type="search". WebKit then layers its native search chrome on top: the
+ * `searchfield` appearance box plus a `::-webkit-search-cancel-button` that
+ * sits next to the DS `clearable` ×, so the field reads as a browser search
+ * box rather than the DS Input. Strip the native affordances so a
+ * type="search" Input renders identically to every other DS Input — the DS
+ * border/radius/clear button are all class-driven and unaffected.
+ * ───────────────────────────────────────────────────────────────────────── */
+input[type="search"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Mercer motion system — adapted from the IRIS recipes (iris-* → mercer-*).
+ * Every animation here is clamped by the reduced-motion media query below.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+/* Generic entrance for panels / bands surfacing Mercer content. */
+@keyframes mercer-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.mercer-fade-up {
+  animation: mercer-fade-up 0.22s ease-out both;
+}
+
+/* Commit success band entrance — the lavender recommendation band swaps to
+   the green CommittedBand wrapped in this class. */
+@keyframes mercer-commit-success {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.mercer-commit-success {
+  animation: mercer-commit-success 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Success check-mark scale-in — used inside the committed band so the
+   duotone CheckCircle pops alongside the band entrance. */
+@keyframes mercer-check-burst {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.mercer-check-burst {
+  animation: mercer-check-burst 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: 80ms;
+  transform-origin: center;
+}
+
+/* Brief "Committing…" pulse on the Commit button between click and the band
+   swapping to the success state. */
+@keyframes mercer-btn-committing {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.96);
+  }
+}
+.mercer-btn-committing {
+  animation: mercer-btn-committing 220ms ease-in-out both;
+}
+
+/* Row resolve choreography — a committed row flashes green for 2s, then fades
+   out over 200ms before leaving the feed. Dismissed rows get a neutral amber
+   wash instead: dismissal is calibration feedback, not a success state. */
+.row-resolved {
+  background: #ecfdf5;
+}
+.row-dismissed {
+  background: #fef9ec;
+}
+.row-fading {
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
+
+/* "How this surfaced" uses the DS PanelTimeline, whose marker is status-driven
+   (green check / blue dot / hollow ring) with no neutral filled-dot option. A
+   surfacing event is just an origin marker, not a success — so within this one
+   timeline we swap the status icon for a plain neutral dot (DS token, no hex). */
+.opp-surfaced-timeline svg {
+  display: none;
+}
+.opp-surfaced-timeline .shrink-0::after {
+  content: "";
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: 9999px;
+  background: var(--text-secondary);
+}
+
+/* Ask Mercer slide-over — the copilot drawer enters from the right edge. */
+@keyframes mercer-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Soft pulse for the MercerStar while the copilot is thinking. */
+@keyframes mercer-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+.mercer-pulse {
+  animation: mercer-pulse 1.1s ease-in-out infinite;
+}
+
+/* Universal reduced-motion clamp — kills every animation/transition above. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

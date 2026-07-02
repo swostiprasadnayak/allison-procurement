@@ -1,0 +1,432 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import {
+  Button,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Textarea,
+  useToast,
+} from "@navanta-ai/design-system";
+import {
+  CheckCircle,
+  Circle,
+  ClipboardText,
+  PaperPlaneTilt,
+  Path,
+} from "@phosphor-icons/react";
+import type { Opportunity } from "@/types/opportunity";
+import { resolveSavings } from "@/lib/savings";
+import { fmtCompact, fmtRange, pct } from "@/lib/format";
+import { MercerStar } from "@/components/mercer";
+import { CURRENT_USER } from "@/lib/session";
+import { useOpportunityStore } from "@/context/OpportunityStoreContext";
+import { EvidenceBlock } from "./EvidenceBlock";
+
+type Resolved = ReturnType<typeof resolveSavings>;
+
+/** Next N fiscal quarters from the current one — the commit-timing options. */
+function upcomingQuarters(count = 8): string[] {
+  const now = new Date();
+  let q = Math.floor(now.getMonth() / 3) + 1; // 1–4
+  let y = now.getFullYear();
+  const out: string[] = [];
+  for (let i = 0; i < count; i++) {
+    out.push(`Q${q} ${y}`);
+    if (++q > 4) {
+      q = 1;
+      y += 1;
+    }
+  }
+  return out;
+}
+
+/** What the committed value is grounded in — the commit-basis options. */
+const COMMIT_BASES = [
+  "Signed contract",
+  "RFP awarded",
+  "Terms agreed with supplier",
+  "Budget-approved plan",
+  "Verbal / in principle",
+] as const;
+
+/**
+ * Fast, deterministic drafts filled with the play's real data (category, country,
+ * addressable, savings, and the actual supplier roster). Instant — no live model
+ * call. The client's own template format drops in here later.
+ */
+function outreachDraft(opp: Opportunity, resolved: Resolved, anchorName?: string): string {
+  const lead = anchorName ?? "[supplier contact]";
+  const count = opp.vendorCount ?? opp.vendorRoster?.length ?? 0;
+  return `Subject: ${opp.l2} — ${opp.country} supply review
+
+Hi ${lead},
+
+As part of the Allison (AT + AOH) combination, we're reviewing our ${opp.l2} spend in ${opp.country} — roughly ${fmtCompact(resolved.addressable)} addressable across ${count} suppliers. Your program is well positioned to anchor this scope.
+
+We're targeting ${fmtRange(resolved.low, resolved.high)} in savings and would like to align on scope and terms. Could we set up a 30-minute call this week?
+
+Best regards,
+${CURRENT_USER.name} · Commodity Manager, MRO
+
+[Template — review & customize before sending]`;
+}
+
+function rfpDraft(opp: Opportunity, resolved: Resolved): string {
+  const roster = opp.vendorRoster ?? [];
+  const table = roster.length
+    ? [
+        "| Supplier | Annual spend | Share |",
+        "|---|---|---|",
+        ...roster.map((v) => `| ${v.name} | ${fmtCompact(v.spend)} | ${(v.share * 100).toFixed(1)}% |`),
+      ].join("\n")
+    : "[supplier list — confirm from the spend cube]";
+  const top3 = roster.slice(0, 3).reduce((s, v) => s + v.share, 0);
+  return `RFP Scaffold — ${opp.l2} (${opp.country})
+[DRAFT — internal review before issue]
+
+1. Background
+Allison (AT + AOH) is running a competitive sourcing event for ${opp.l2} spend in ${opp.country}, part of the MRO optimization program.
+
+2. Scope
+- Category: ${opp.l2}
+- Geography: ${opp.country}
+- Estimated spend in scope: ~${fmtCompact(resolved.addressable)} (upper estimate — confirm against the part master)
+- Delivery points: [list Allison ${opp.country} sites]
+- Excluded: OEM / sole-source items
+
+3. Current state (${roster.length} active suppliers${top3 ? `; top 3 hold ${(top3 * 100).toFixed(0)}%` : ""})
+${table}
+
+4. Requirements
+- Itemized pricing against the Allison SKU list
+- Payment terms (state net days; target per benchmark)
+- Delivery lead times & service SLAs to each site
+- Quality / compliance certifications
+- Incumbent transition plan
+
+5. Evaluation criteria (weighted)
+- Total cost / pricing competitiveness
+- Service & operational capability
+- Quality & compliance
+- Commercial terms (incl. payment terms)
+
+6. Timeline
+- RFP issued: [date]   - Bids due: [date]   - Award: [date]
+
+Target savings (internal only): ${fmtRange(resolved.low, resolved.high)} — provisional pending part-master confirmation. Do not quote to suppliers.
+
+[Template — customize / replace with the client's RFP format]`;
+}
+
+/** Execution-approach template — served from ref.playbook via /api/playbooks
+ *  (admin-adjustable per client), keyed to the engine lever it's recommended for. */
+interface Playbook {
+  id: string;
+  label: string;
+  sub: string;
+  tasks: string[];
+  recommendedRoutes: string[];
+}
+
+interface ActStepProps {
+  opp: Opportunity;
+  anchorVendorName?: string;
+  /** Commit inputs — owned by RunPlayModal so the footer's Commit button can read them. */
+  timing: string;
+  basis: string;
+  onTimingChange: (v: string) => void;
+  onBasisChange: (v: string) => void;
+}
+
+/**
+ * Run-the-play step (Act). Reached from Qualify via Approve. Lightweight POC:
+ * the playbook pick + task checks are in-session working state; the drafts are
+ * generated by the Mercer copilot (`/api/copilot` draft — grounded + cited), and
+ * the value commitment is captured via the footer's "Commit value" (timing +
+ * basis flow into the commit event). The full play-instance data model is
+ * deferred to the lifecycle remodel.
+ */
+export function ActStep({
+  opp,
+  anchorVendorName,
+  timing,
+  basis,
+  onTimingChange,
+  onBasisChange,
+}: ActStepProps) {
+  const { savePlay } = useOpportunityStore();
+  const { addToast } = useToast();
+  const resolved = resolveSavings(opp);
+  const [playbooks, setPlaybooks] = useState<Playbook[]>([]);
+  // Restore the persisted approach + task checks so progress survives reopen/reload.
+  const [playbookId, setPlaybookId] = useState<string | null>(opp.approach ?? null);
+  const [done, setDone] = useState<Set<string>>(new Set(opp.doneTasks ?? []));
+  const [draftKind, setDraftKind] = useState<"outreach" | "rfp" | null>(null);
+  const [draftText, setDraftText] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/playbooks")
+      .then((r) => r.json())
+      .then((d) => {
+        if (alive && Array.isArray(d)) setPlaybooks(d);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // Mercer recommends the approach whose config lists this opportunity's lever.
+  const recommendedId = useMemo(() => {
+    const route = opp.playRoute ?? "";
+    return (
+      playbooks.find((p) => p.recommendedRoutes.includes(route))?.id ??
+      playbooks[0]?.id ??
+      null
+    );
+  }, [playbooks, opp.playRoute]);
+
+  const selectedId = playbookId ?? recommendedId;
+  const playbook = playbooks.find((p) => p.id === selectedId) ?? null;
+  const quarters = useMemo(() => upcomingQuarters(), []);
+
+  const handleSave = () => {
+    savePlay(opp.id, { approach: selectedId ?? undefined, doneTasks: [...done] });
+    addToast("Progress saved", "success");
+  };
+
+  const toggleTask = (task: string) =>
+    setDone((prev) => {
+      const next = new Set(prev);
+      if (next.has(task)) next.delete(task);
+      else next.add(task);
+      return next;
+    });
+
+  // Drafts are generated instantly from a template filled with the play's real
+  // data (category, country, addressable, savings, supplier roster).
+  const openDraft = (kind: "outreach" | "rfp") => {
+    setDraftKind(kind);
+    setDraftText(
+      kind === "outreach" ? outreachDraft(opp, resolved, anchorVendorName) : rfpDraft(opp, resolved),
+    );
+  };
+
+  return (
+    <>
+      {/* Shared context recap — what she's acting on, carried from Qualify. */}
+      <div className="flex flex-col gap-2 rounded-[12px] p-3" style={{ background: "#F5EFFF" }}>
+        <div className="flex items-center gap-1.5">
+          <MercerStar size={14} />
+          <span className="text-[12px] font-semibold" style={{ color: "#59349C" }}>
+            Executing · Confidence {pct(opp.confidencePct)}
+          </span>
+        </div>
+        <p className="text-[14px] font-medium leading-snug" style={{ color: "#181A1B" }}>
+          {opp.recommendedAction}
+        </p>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px]" style={{ color: "#1E1E1E" }}>
+          <span>
+            Addressable{" "}
+            <span style={{ fontVariantNumeric: "tabular-nums" }}>{fmtCompact(resolved.addressable)}</span>
+          </span>
+          <span>
+            Target savings{" "}
+            <span style={{ fontVariantNumeric: "tabular-nums" }}>{fmtRange(resolved.low, resolved.high)}</span>
+          </span>
+          {anchorVendorName && <span>Lead · {anchorVendorName}</span>}
+        </div>
+      </div>
+
+      {/* 1 · Approach picker — prefilled to the approach Mercer recommends (the lever). */}
+      <EvidenceBlock icon={Path} title="Choose an approach">
+        <div className="flex flex-wrap gap-2">
+          {playbooks.map((p) => {
+            const active = p.id === selectedId;
+            const recommended = p.id === recommendedId;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setPlaybookId(p.id)}
+                className="flex min-w-[160px] flex-1 flex-col items-start gap-1 rounded-[8px] px-3 py-2 text-left transition-colors"
+                style={{
+                  background: active ? "#F5EFFF" : "#FFFFFF",
+                  border: `1px solid ${active ? "#8C5DE1" : "#E2E8F0"}`,
+                }}
+              >
+                {/* Label left, Recommended badge pinned top-right so a two-line
+                    label never wraps around the badge. */}
+                <div className="flex w-full items-start justify-between gap-1.5">
+                  <span className="text-[13px] font-medium leading-snug" style={{ color: "#181A1B" }}>
+                    {p.label}
+                  </span>
+                  {recommended && (
+                    <span
+                      className="shrink-0 rounded-[4px] px-1.5 py-0.5 text-[10px] font-medium"
+                      style={{ background: "#EDE6FB", color: "#59349C" }}
+                    >
+                      Recommended
+                    </span>
+                  )}
+                </div>
+                <span className="text-[11px] leading-snug" style={{ color: "#71717A" }}>
+                  {p.sub}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </EvidenceBlock>
+
+      {/* 2 · Task checklist — in-session for the POC. */}
+      <EvidenceBlock
+        icon={ClipboardText}
+        title="Task checklist"
+        headerRight={
+          <div className="flex items-center gap-2">
+            <span className="text-[12px]" style={{ color: "var(--text-secondary)" }}>
+              {done.size}/{playbook?.tasks.length ?? 0} done
+            </span>
+            <Button variant="outline" size="sm" onClick={handleSave}>
+              Save progress
+            </Button>
+          </div>
+        }
+      >
+        <div className="flex flex-col">
+          {(playbook?.tasks ?? []).map((task, i) => {
+            const isDone = done.has(task);
+            return (
+              <button
+                key={task}
+                type="button"
+                onClick={() => toggleTask(task)}
+                className="flex items-center gap-2.5 py-2 text-left"
+                style={{ borderTop: i > 0 ? "1px solid var(--border-light)" : undefined }}
+              >
+                {isDone ? (
+                  <CheckCircle size={18} weight="fill" color="#008234" className="shrink-0" />
+                ) : (
+                  <Circle size={18} weight="bold" color="#94A3B8" className="shrink-0" />
+                )}
+                <span
+                  className="text-[13px]"
+                  style={{
+                    color: isDone ? "var(--text-secondary)" : "var(--text-primary)",
+                    textDecoration: isDone ? "line-through" : undefined,
+                  }}
+                >
+                  {task}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </EvidenceBlock>
+
+      {/* 3 · Drafts — instant templates filled with the play's real data, editable,
+          never auto-sent. Client's own template format drops in here later. */}
+      <EvidenceBlock icon={PaperPlaneTilt} title="Draft with Mercer">
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={draftKind === "outreach" ? "primary" : "outline"}
+              size="sm"
+              iconLeft={<MercerStar size={12} />}
+              onClick={() => openDraft("outreach")}
+            >
+              Supplier outreach
+            </Button>
+            <Button
+              variant={draftKind === "rfp" ? "primary" : "outline"}
+              size="sm"
+              iconLeft={<MercerStar size={12} />}
+              onClick={() => openDraft("rfp")}
+            >
+              RFP scaffold
+            </Button>
+          </div>
+          {draftKind && draftText && (
+            <div className="flex flex-col gap-2">
+              <span
+                className="inline-flex w-fit items-center gap-1.5 rounded-[4px] px-2 py-0.5 text-[11px] font-medium"
+                style={{ background: "var(--pill-warning-bg, #FFFBEA)", color: "var(--pill-warning-fg, #9E3900)" }}
+              >
+                Template — customize before sending
+              </span>
+              <Textarea
+                rows={draftKind === "rfp" ? 12 : 8}
+                value={draftText}
+                onChange={(e) => setDraftText(e.target.value)}
+              />
+            </div>
+          )}
+        </div>
+      </EvidenceBlock>
+
+      {/* 4 · Commit value recap — the actual commit is the footer's "Commit value"
+          (timing + basis flow into the commit event and show in Tracking). */}
+      <EvidenceBlock icon={CheckCircle} title="Commit the value">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-baseline justify-between">
+            <span className="text-[13px]" style={{ color: "var(--text-secondary)" }}>
+              Committing target
+            </span>
+            <span
+              className="text-[15px] font-semibold"
+              style={{ color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}
+            >
+              {fmtRange(resolved.low, resolved.high)}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <div className="flex min-w-[180px] flex-1 flex-col gap-1.5">
+              <span className="text-[12px] font-medium" style={{ color: "var(--text-secondary)" }}>
+                Expected timing
+              </span>
+              <Select value={timing || undefined} onValueChange={onTimingChange}>
+                <SelectTrigger size="md">
+                  <SelectValue placeholder="Select a quarter" />
+                </SelectTrigger>
+                <SelectContent>
+                  {quarters.map((q) => (
+                    <SelectItem key={q} value={q}>
+                      {q}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex min-w-[180px] flex-1 flex-col gap-1.5">
+              <span className="text-[12px] font-medium" style={{ color: "var(--text-secondary)" }}>
+                Commitment basis
+              </span>
+              <Select value={basis || undefined} onValueChange={onBasisChange}>
+                <SelectTrigger size="md">
+                  <SelectValue placeholder="What it's based on" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COMMIT_BASES.map((b) => (
+                    <SelectItem key={b} value={b}>
+                      {b}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <p className="text-[11px]" style={{ color: "var(--text-secondary)" }}>
+            Use “Commit value” below to book this into Value Realization — the realized figure then
+            tracks against the ERP as the contract executes.
+          </p>
+        </div>
+      </EvidenceBlock>
+    </>
+  );
+}

@@ -1,0 +1,35 @@
+# Vendor-capability master (config — maintained by analyst/admin, NOT hardcoded).
+# Feature Spec A.1 / §10.4. Drives is_oem, capability_class, and (Stage 4) the
+# category -> recommended-lead map. Extend as research/data reveal more.
+
+# OEM / sole-source brands. is_oem = TRUE if the cleaned vendor name contains any
+# of these (case-insensitive substring) -> carved out of consolidation. Reproduces
+# the discovery's 16 OEM vendors / $2,018,901 in Industrial Supplies.
+oem_brands:
+  - Fanuc
+  - Gleason
+  - Okuma
+  - Mazak
+  - Siemens
+  - DMG
+  - Haas
+  - ABB
+  - Fronius
+  - Heidenhain
+  - Kuka
+
+# Capability classification per vendor (matched by case-insensitive substring of the
+# cleaned vendor name). class in {broad-line, specialist, oem}. Informs the recommended
+# lead (a flag — winner_share decides the lever, not capability). Researched in discovery.
+capabilities:
+  - {match: "Cline Tool",          class: broad-line, lanes: [metalworking, cutting tools], geographies: [US]}
+  - {match: "Hp Products",         class: broad-line, lanes: [safety, janitorial, MRO], geographies: [US]}
+  - {match: "Motion Industries",   class: broad-line, lanes: [bearings, power transmission], geographies: [US]}
+  - {match: "Kirby Risk",          class: specialist, lanes: [electrical], geographies: [US]}
+  - {match: "R L Guimont",         class: specialist, lanes: [metrology], geographies: [US]}
+  - {match: "United Tool Supply",  class: specialist, lanes: [tooling], geographies: [US]}
+  - {match: "Rubix",               class: broad-line, lanes: [MRO], geographies: [Europe]}
+  - {match: "Instant Procurement", class: broad-line, lanes: [MRO], geographies: [India]}
+  - {match: "Moglix",              class: broad-line, lanes: [MRO], geographies: [India], status: net-new}
+  - {match: "Procmart",            class: broad-line, lanes: [MRO], geographies: [India], status: net-new}
+  - {match: "Bulkmro",             class: broad-line, lanes: [MRO], geographies: [India], status: net-new}

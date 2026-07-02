@@ -1,0 +1,23 @@
+# Local CDM — Postgres standing in for Databricks Lakebase (managed Postgres).
+# Same schema target as production; swap the connection string for Lakebase later.
+#   docker compose up -d        # start
+#   python jobs/load_cdm_postgres.py   # load the real Gold opp.*/cim.*/ref.* into it
+services:
+  postgres:
+    image: postgres:16
+    container_name: navanta-cdm
+    environment:
+      POSTGRES_USER: navanta
+      POSTGRES_PASSWORD: navanta
+      POSTGRES_DB: navanta
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U navanta -d navanta"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  pgdata:

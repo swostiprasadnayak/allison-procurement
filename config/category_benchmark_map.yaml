@@ -1,0 +1,9 @@
+# category -> external benchmark series (A.7). The engine joins categories to a price index
+# via this map; swapping providers (BLS -> Beroe/S&P) requires no engine change. Keyed by L2/L3
+# sub-category name. Series IDs are BLS PPI (free) for the POC.
+mappings:
+  - {category: "First Fill Oils (Lubricants)", provider: BLS, series_id: "WPU05790303", note: "PPI lubricating oils & greases"}
+  - {category: "Industrial Gas",               provider: BLS, series_id: "WPU0613",     note: "PPI industrial gases"}
+  - {category: "Chemicals",                    provider: BLS, series_id: "WPU061",      note: "PPI industrial chemicals"}
+  - {category: "Abrasives",                    provider: BLS, series_id: "WPU1017",     note: "PPI abrasive products (metals proxy)"}
+  - {category: "Welding Supplies",             provider: BLS, series_id: "WPU107506",   note: "PPI welding products"}

@@ -1,0 +1,8 @@
+{
+  "_note": "Offline BLS PPI fixture for the POC so the BenchmarkSource adapter is testable without the live API. Replace with live BLS REST pulls in production (same shape). Values are illustrative monthly index points, not authoritative.",
+  "WPU061":      {"name": "PPI industrial chemicals",        "unit": "index", "observations": [{"period": "2025-01", "value": 281.4}, {"period": "2025-06", "value": 285.9}, {"period": "2025-12", "value": 288.7}]},
+  "WPU05790303": {"name": "PPI lubricating oils & greases",  "unit": "index", "observations": [{"period": "2025-01", "value": 312.0}, {"period": "2025-06", "value": 318.6}, {"period": "2025-12", "value": 321.1}]},
+  "WPU0613":     {"name": "PPI industrial gases",            "unit": "index", "observations": [{"period": "2025-01", "value": 268.2}, {"period": "2025-06", "value": 271.0}, {"period": "2025-12", "value": 274.5}]},
+  "WPU1017":     {"name": "PPI abrasive products",           "unit": "index", "observations": [{"period": "2025-01", "value": 245.7}, {"period": "2025-06", "value": 248.3}, {"period": "2025-12", "value": 250.9}]},
+  "WPU107506":   {"name": "PPI welding products",            "unit": "index", "observations": [{"period": "2025-01", "value": 258.1}, {"period": "2025-06", "value": 260.4}, {"period": "2025-12", "value": 262.0}]}
+}

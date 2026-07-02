@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Navanta Lens — Opportunity Flow: Journey &amp; Pain-Point Audit</title>
+<style>
+  :root{
+    --ink:#1a1d23; --ink-2:#4a4f5a; --ink-3:#7a808c;
+    --bg:#ffffff; --bg-2:#f6f7f9; --bg-3:#eef0f3;
+    --line:#e2e5ea;
+    --accent:#0f5c8c; --accent-soft:#e8f1f7;
+    --good:#1e7d4f; --good-soft:#e7f4ed;
+    --warn:#9a6b00; --warn-soft:#faf3e0;
+    --bad:#a13232; --bad-soft:#f9ecec;
+    --purple:#59349C; --purple-soft:#f3f0fe;
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;color:var(--ink);background:var(--bg);line-height:1.55;font-size:15px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 32px 110px}
+  header.doc{padding:52px 0 26px;border-bottom:3px solid var(--ink)}
+  header.doc .kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:10px}
+  header.doc h1{font-size:31px;line-height:1.18;letter-spacing:-.01em}
+  header.doc .sub{margin-top:12px;color:var(--ink-2);max-width:880px}
+  header.doc .meta{margin-top:16px;font-size:12.5px;color:var(--ink-3)}
+  nav.toc{margin:26px 0 8px;padding:18px 22px;background:var(--bg-2);border:1px solid var(--line);border-radius:10px}
+  nav.toc .t{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:700;margin-bottom:9px}
+  nav.toc ol{margin-left:20px;columns:2;column-gap:40px}
+  nav.toc li{margin:4px 0;font-size:14px}
+  nav.toc a{color:var(--accent);text-decoration:none}
+  nav.toc a:hover{text-decoration:underline}
+  section{margin-top:58px}
+  .snum{display:inline-block;font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:700;margin-bottom:6px}
+  h2{font-size:24px;letter-spacing:-.01em;padding-bottom:12px;border-bottom:2px solid var(--ink);margin-bottom:8px}
+  .lede{color:var(--ink-2);margin:14px 0 8px;max-width:880px}
+  h3{font-size:18px;margin:30px 0 4px}
+  h3 .stagesub{font-weight:500;color:var(--ink-3);font-size:13.5px;margin-left:8px}
+  p{margin:10px 0;max-width:880px}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px}
+  th{text-align:left;background:var(--ink);color:#fff;padding:9px 12px;font-weight:600;font-size:12.5px}
+  td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:nth-child(even) td{background:var(--bg-2)}
+  .tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;padding:2px 9px;border-radius:99px;margin:1px 4px 1px 0;white-space:nowrap}
+  .tag.green{background:var(--good-soft);color:var(--good)}
+  .tag.amber{background:var(--warn-soft);color:var(--warn)}
+  .tag.red{background:var(--bad-soft);color:var(--bad)}
+  .tag.blue{background:var(--accent-soft);color:var(--accent)}
+  .tag.gray{background:var(--bg-3);color:var(--ink-2)}
+  .tag.purple{background:var(--purple-soft);color:var(--purple)}
+  .callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:14px 18px;border-radius:0 8px 8px 0;margin:18px 0;font-size:14px;max-width:900px}
+  .callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+  .callout.risk{border-color:var(--bad);background:var(--bad-soft)}
+  .callout.good{border-color:var(--good);background:var(--good-soft)}
+  .callout b{display:block;margin-bottom:4px}
+  code{font-family:var(--mono);font-size:12.5px;background:var(--bg-3);padding:1px 6px;border-radius:4px}
+  .sev{font-family:var(--mono);font-weight:700}
+  .sev.s4{color:var(--bad)} .sev.s3{color:#c25a00} .sev.s2{color:var(--warn)} .sev.s1{color:var(--ink-3)}
+
+  /* Journey rail — stage cards, two columns (as-is / to-be) */
+  .journey{display:flex;flex-direction:column;gap:18px;margin-top:16px}
+  .stagegrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:880px){.stagegrid{grid-template-columns:1fr}}
+  .stagecard{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--bg)}
+  .stagecard .sch{padding:11px 16px;font-weight:700;font-size:13px;display:flex;align-items:center;gap:8px}
+  .stagecard.asis .sch{background:var(--bad-soft);color:var(--bad)}
+  .stagecard.tobe .sch{background:var(--good-soft);color:var(--good)}
+  .stagecard .scb{padding:14px 16px;font-size:13.5px}
+  .stagecard .row{margin:8px 0}
+  .stagecard .row b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:2px}
+  .stagecard img{width:100%;border-radius:8px;border:1px solid var(--line);margin-top:8px;display:block}
+  .painlist{margin:6px 0 0 0;padding:0;list-style:none}
+  .painlist li{padding:7px 0 7px 22px;position:relative;border-top:1px solid var(--line);font-size:13px}
+  .painlist li:first-child{border-top:none}
+  .painlist li::before{content:"⚠";position:absolute;left:0;top:7px;color:var(--bad);font-size:12px}
+  .painlist li.minor::before{content:"•";color:var(--warn)}
+  .winlist{margin:6px 0 0 0;padding:0;list-style:none}
+  .winlist li{padding:7px 0 7px 22px;position:relative;border-top:1px solid var(--line);font-size:13px}
+  .winlist li:first-child{border-top:none}
+  .winlist li::before{content:"✓";position:absolute;left:0;top:7px;color:var(--good);font-size:12px;font-weight:700}
+
+  .legend{font-size:12.5px;color:var(--ink-3);margin:8px 0}
+  footer{margin-top:70px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-3)}
+  .imgcap{font-size:11px;color:var(--ink-3);margin-top:4px;text-align:center}
+  .qopen{border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:10px 0}
+  .qopen .qh{font-weight:700;font-size:14px;margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <div class="kicker">Experience Audit · Journey Mapping</div>
+  <h1>Opportunity Flow — User Journey &amp; Pain-Point Audit</h1>
+  <p class="sub">Scope: the Commodity Manager's end-to-end path through an opportunity — <b>Feed → Qualify → Decide → Act → Commit → handoff to Value Realization</b>. Two journeys are mapped stage-by-stage: the <b>current deployed build</b> (allison-procurement-931u.vercel.app, "as-is") and the <b>prototype v2.1</b> (the to-be reference this session produced). This is the input document for the next step — deciding, together, what the target production experience should actually be.</p>
+  <div class="meta">Sources: full read of <code>frontend/src/app/(portal)/opportunities</code> at HEAD + live <code>/api/opportunities</code> data (deployed build) · <code>navanta_lens_prototype_v2.html</code> source + headless-Chromium screenshots (prototype v2.1) · prior sessions' verification audit. Severity scale: 4 = trust/decision-breaking · 3 = major friction · 2 = minor friction · 1 = cosmetic.</div>
+</header>
+
+<nav class="toc">
+  <div class="t">Contents</div>
+  <ol>
+    <li><a href="#m1">How to read this</a></li>
+    <li><a href="#m2">Journey map — stage by stage</a></li>
+    <li><a href="#m3">Pain-point register (as-is, prioritized)</a></li>
+    <li><a href="#m4">What v2.1 already resolves — and what it doesn't</a></li>
+    <li><a href="#m5">Open questions for the next design pass</a></li>
+  </ol>
+</nav>
+
+<!-- ============ 1 ============ -->
+<section id="m1">
+  <div class="snum">PART 01</div>
+  <h2>How to Read This</h2>
+  <p class="lede">Each stage below shows two cards side by side: <span class="tag red">As-is</span> what a Commodity Manager actually experiences today in the deployed build, sourced from reading the live source code and pulling real data from its API — not a screenshot (headless-browser access to the hydrated deployed app is blocked in this sandbox, so the as-is column is evidenced by code + data, not pixels). <span class="tag green">To-be</span> is prototype v2.1, illustrated with real screenshots.</p>
+  <div class="callout">
+    <b>This is a diagnostic, not a decision.</b>
+    Nothing here is a final design. The point of this document is to put the actual current friction and the prototype's proposed resolution next to each other so we can decide, stage by stage, what's worth building, what needs a different answer than the prototype gives, and what's genuinely out of scope for now (e.g. the prototype's "Mercer analyzes your evidence" is a keyword heuristic standing in for a real LLM call — that's a build decision, not a UX one, and it's flagged in §5).
+  </div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section id="m2">
+  <div class="snum">PART 02</div>
+  <h2>Journey Map — Stage by Stage</h2>
+  <p class="legend">Both journeys are the SAME persona (Maria Vance, Commodity Manager · MRO) and the SAME task ("triage this week's sweep, decide, and move value into execution").</p>
+
+  <div class="journey">
+
+    <!-- STAGE 0 -->
+    <h3>Stage 0 — Arrive &amp; orient <span class="stagesub">"What needs me today?"</span></h3>
+    <div class="stagegrid">
+      <div class="stagecard asis"><div class="sch">⚠ As-is · Deployed build</div><div class="scb">
+        <div class="row"><b>Goal</b>Know what's changed and what deserves attention first.</div>
+        <div class="row"><b>What happens</b>Lands on the Command Center. A prose paragraph ("Mercer synthesis") narrates totals; five KPI tiles restate some of the same numbers. No single "what needs me" surface — the CM has to read the paragraph, scan the tiles, then click into Opportunities to actually see anything actionable.</div>
+        <ul class="painlist">
+          <li>No prioritized "act on this" surface — everything is narrated prose or passive KPI tiles, nothing is a queue.</li>
+          <li>No way to tell what's <i>new</i> since the last visit before opening the feed.</li>
+          <li class="minor">The synthesis paragraph and KPI tiles fetch independently — during a slow load they can transiently disagree (no shared loading gate).</li>
+        </ul>
+      </div></div>
+      <div class="stagecard tobe"><div class="sch">✓ To-be · Prototype v2.1</div><div class="scb">
+        <div class="row"><b>Goal</b>Same.</div>
+        <div class="row"><b>What happens</b>An "attention strip" of four titled, denominated cards sits above the narrative: Awaiting triage (5 of 7), Drift alerts (1 of 2 committed), Ready to qualify (5 of 5 in feed), New or changed (2 since last sweep). Each is a one-click route into the exact queue it names.</div>
+        <img src="img/20-dashboard-v21.png" alt="Prototype dashboard with titled attention cards">
+        <div class="imgcap">Attention strip: title, count, denominator, and a plain-language caption on every card.</div>
+      </div></div>
+    </div>
+
+    <!-- STAGE 1 -->
+    <h3>Stage 1 — Scan the feed &amp; triage <span class="stagesub">"Which one do I open first?"</span></h3>
+    <div class="stagegrid">
+      <div class="stagecard asis"><div class="sch">⚠ As-is · Deployed build</div><div class="scb">
+        <div class="row"><b>Goal</b>Pick the highest-value item to work next; clear out anything that isn't worth qualifying.</div>
+        <div class="row"><b>What happens</b>A table, default-sorted by <code>confidencePct</code> descending. Rows show sub-category, country, lever, spend, addressable, vendor count, confidence, savings range. Decisions (park/reject) happen one row at a time, inside the Qualify panel.</div>
+        <ul class="painlist">
+          <li><span class="tag red">SEV 4</span> Default sort is confidence-only — pulled live data confirms OPP-003/005 (76% conf, ~$267–331K) rank <i>above</i> OPP-001 (71% conf, <b>$339K</b> — the largest pocket in the feed). The CM works top-down and triages the smaller opportunity first, purely because size is invisible to the ranking.</li>
+          <li><span class="tag amber">SEV 3</span> The feed's own narrative claims "Ranked by evidence strength" — that sentence doesn't match the actual sort key, so the CM is told a rule that isn't the rule being applied.</li>
+          <li><span class="tag amber">SEV 3</span> No bulk triage. Parking or rejecting five similar tail items means opening five modals, five times through the same dialog.</li>
+          <li><span class="tag amber">SEV 3</span> No new/changed signal at row level — a CM returning after a week can't tell what's different without re-reading every row.</li>
+          <li class="minor">Every row repeats an "upper bound" implication with no shared explanation of why — a CM has to already know the methodology to know it's not a firm number.</li>
+        </ul>
+      </div></div>
+      <div class="stagecard tobe"><div class="sch">✓ To-be · Prototype v2.1</div><div class="scb">
+        <div class="row"><b>Goal</b>Same.</div>
+        <div class="row"><b>What happens</b>Sort is declared and defaults to <b>Impact = addressable × confidence</b> (an explicit control, not silent). Rows group by sub-category with a Σ-addressable subtotal per group. New/Changed chips sit on the row. Checkboxes enable a sticky bulk bar (Park…/Reject…, one shared dialog, reason still required per the product's own rule). One shared note above the table explains the upper-bound caveat once, with a "why?" link, instead of a chip on every row.</div>
+        <img src="img/21-feed-v21.png" alt="Prototype feed grouped by sub-category with declared sort">
+        <div class="imgcap">Declared "Ranked by: Impact" control; grouped rows; one upper-bound note, not a chip storm.</div>
+      </div></div>
+    </div>
+
+    <!-- STAGE 2 -->
+    <h3>Stage 2 — Open &amp; qualify <span class="stagesub">"Do I trust this number enough to act on it?"</span></h3>
+    <div class="stagegrid">
+      <div class="stagecard asis"><div class="sch">⚠ As-is · Deployed build</div><div class="scb">
+        <div class="row"><b>Goal</b>Understand the play, verify the math, decide if it's real.</div>
+        <div class="row"><b>What happens</b>A well-built modal: Mercer summary + 4 tiles, a recommendation band, data caveats, vendor roster (correctly labeled "Share of pocket"), functional fit, savings derivation, surfacing history. Confidence renders as a raw percentage with no ceiling.</div>
+        <ul class="painlist">
+          <li><span class="tag red">SEV 4</span> <code>WhatDroveThisCard</code> — the three-factor confidence breakdown (fit × fragmentation multiplier) — exists fully built in the codebase but is <b>never imported into the Qualify panel</b>. A CM sees a bare "76%" with zero way to see what produced it.</li>
+          <li><span class="tag red">SEV 4</span> Confidence has no display ceiling and no band word. Nothing stops a future well-evidenced category from showing "100%" next to an upper-bound caveat — the exact contradiction the original screenshot audit flagged, now unguarded in the actual component.</li>
+          <li><span class="tag amber">SEV 3</span> Two Approve buttons exist on one modal (the recommendation band and the footer) with no visible precedence rule.</li>
+          <li><span class="tag amber">SEV 3</span> "Terms vs benchmark" prints a hardcoded "no payment-terms data" sentence for every opportunity — even ones whose roster includes vendors that DO have terms on file (confirmed against the vendor data). The methodology-honesty pattern the product is built on is undercut by its own static copy.</li>
+          <li class="minor">Confidence math, when it exists in a future build, is buried below the roster and derivation rather than up front where the trust question is actually being asked.</li>
+        </ul>
+      </div></div>
+      <div class="stagecard tobe"><div class="sch">✓ To-be · Prototype v2.1</div><div class="scb">
+        <div class="row"><b>Goal</b>Same.</div>
+        <div class="row"><b>What happens</b>Confidence is capped at 99%, always shown with a band word (High/Medium/Directional), and an ⓘ opens the exact formula + live parameters. "What drove this · confidence math" is a real, visible card between the caveat and the roster — visible for every opportunity, including the analyst-adjusted ones where the sweep formula and the final number differ. One Approve, in the footer, always in the same position; the recommendation band only holds "Add context" and "Override figures." Terms vs benchmark is computed from whichever roster vendors actually have terms on file, and stages honestly only the remainder.</div>
+        <img src="img/22-qualify-v21.png" alt="Prototype Qualify panel with wired confidence math card">
+        <div class="imgcap">Confidence math card wired into the flow; banded/capped confidence; single Approve in the footer.</div>
+      </div></div>
+    </div>
+
+    <!-- STAGE 3 -->
+    <h3>Stage 3 — Decide <span class="stagesub">"Approve, park, or reject — and can I change my mind?"</span></h3>
+    <div class="stagegrid">
+      <div class="stagecard asis"><div class="sch">⚠ As-is · Deployed build</div><div class="scb">
+        <div class="row"><b>Goal</b>Make a defensible decision and move on.</div>
+        <div class="row"><b>What happens</b>Reject requires a reason (good). Park requires a revisit trigger — date or condition (good). Approve is blocked while an override or unsaved input is pending (good guardrail). Once parked, the panel re-opens read-only with only "Return to feed" available.</div>
+        <ul class="painlist">
+          <li><span class="tag amber">SEV 3</span> Parking is a dead end: if the CM changes their mind and wants to approve or reject a parked item, they must first return it to the feed, then reopen it, then decide — a two-step round trip for what should be a one-click change of mind.</li>
+        </ul>
+        <div class="row"><b>What's already right here</b></div>
+        <ul class="winlist">
+          <li>Reason/trigger requirements are real, not decorative — confirmed in the dialog code.</li>
+          <li>Approve genuinely blocks on unsaved state, preventing a stray click from committing half-finished figures.</li>
+        </ul>
+      </div></div>
+      <div class="stagecard tobe"><div class="sch">✓ To-be · Prototype v2.1</div><div class="scb">
+        <div class="row"><b>Goal</b>Same.</div>
+        <div class="row"><b>What happens</b>Same reason/trigger requirements, same approve guardrails — plus: opening a Parked item's panel shows Reject / Return to feed / <b>Approve</b> together in the footer. A change of mind is one click, not a three-step round trip.</div>
+        <div class="callout good" style="margin-top:10px"><b>Small fix, real friction removed.</b> This was a one-line footer change once identified — the kind of thing that's invisible until you actually try to change your mind on a parked item.</div>
+      </div></div>
+    </div>
+
+    <!-- STAGE 4 -->
+    <h3>Stage 4 — Act: run the play <span class="stagesub">"Turn the decision into supplier-facing work"</span></h3>
+    <div class="stagegrid">
+      <div class="stagecard asis"><div class="sch">⚠ As-is · Deployed build</div><div class="scb">
+        <div class="row"><b>Goal</b>Pick an approach, work the checklist, produce outreach/RFP material, commit a number.</div>
+        <div class="row"><b>What happens</b>A genuinely strong workspace: Mercer-recommended playbook, a persisted task checklist, one-shot draft generation (real vendor names and figures, not lorem ipsum), and a commit step.</div>
+        <ul class="painlist">
+          <li><span class="tag amber">SEV 3</span> The checklist is entirely manual — there's no way to attach a quote, a contract excerpt, or a supplier note and have anything happen with it. Whatever the CM learns while working the play stays in their head or an external email; the draft never updates.</li>
+          <li><span class="tag amber">SEV 3</span> Drafts are one-shot: click "Supplier outreach," get one version of the text, edit it in place. There's no history — if the CM's edit turns out wrong, or a colleague overwrites it, the original Mercer draft is gone.</li>
+          <li><span class="tag red">SEV 4</span> "Commit value" has no validation — timing and basis are optional selects. A CM can book a number into the committed pipeline with no stated basis for it, which undercuts the exact auditability the commit step exists to provide.</li>
+        </ul>
+      </div></div>
+      <div class="stagecard tobe"><div class="sch">✓ To-be · Prototype v2.1</div><div class="scb">
+        <div class="row"><b>Goal</b>Same.</div>
+        <div class="row"><b>What happens</b>An "Evidence &amp; context" block sits above the drafts: attach a document or paste a note → Mercer analyzes it, saves the insight to the play, and re-issues every existing draft as a new version with the evidence folded in. Every draft is versioned (v1 Mercer-generated, v2 "folded in [evidence]", v3 "manual edit" …) — all selectable, none overwritten. Timing and basis are both required before "Commit value" enables.</div>
+        <img src="img/23-act-evidence-v21.png" alt="Prototype Act screen with evidence analysis and versioned drafts">
+        <div class="imgcap">Evidence in → Mercer analyzes → drafts re-issue as a new version, never overwriting an edit.</div>
+      </div></div>
+    </div>
+
+    <!-- STAGE 5 -->
+    <h3>Stage 5 — Commit &amp; hand off <span class="stagesub">"Where does this go now?"</span></h3>
+    <div class="stagegrid">
+      <div class="stagecard asis"><div class="sch">⚠ As-is · Deployed build</div><div class="scb">
+        <div class="row"><b>Goal</b>Confirm the commitment landed and know where to track it.</div>
+        <div class="row"><b>What happens</b>A toast reads "<span style="font-family:var(--mono);font-size:12px">{id} committed — tracking in Value Realization</span>." It is plain text — there's no click-through. The CM either remembers to navigate to Value Realization themselves or loses the thread.</div>
+        <ul class="painlist">
+          <li><span class="tag amber">SEV 2</span> The exact moment the CM would most want a forward link — right after committing a number — is a dead-end toast.</li>
+        </ul>
+      </div></div>
+      <div class="stagecard tobe"><div class="sch">✓ To-be · Prototype v2.1</div><div class="scb">
+        <div class="row"><b>Goal</b>Same.</div>
+        <div class="row"><b>What happens</b>Same toast text, but "Track in Value Realization" renders as a clickable link inside it that jumps straight to the committed play's tracking panel.</div>
+      </div></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ 3 ============ -->
+<section id="m3">
+  <div class="snum">PART 03</div>
+  <h2>Pain-Point Register — As-Is, Prioritized</h2>
+  <p class="lede">The same findings as Part 2, pulled into one sortable-by-eye list so the next conversation can pick a cut line (fix everything above SEV 3? Just the SEV 4s first?).</p>
+  <table>
+    <thead><tr><th style="width:5%">Sev</th><th style="width:18%">Stage</th><th>Pain point</th><th style="width:16%">v2.1 status</th></tr></thead>
+    <tbody>
+      <tr><td class="sev s4">4</td><td>Qualify</td><td>Confidence score-decomposition card built in code, never rendered — CM sees a bare % with no reasoning</td><td><span class="tag green">Resolved</span></td></tr>
+      <tr><td class="sev s4">4</td><td>Qualify</td><td>Confidence has no display ceiling / band — can show 100% next to an upper-bound caveat</td><td><span class="tag green">Resolved</span></td></tr>
+      <tr><td class="sev s4">4</td><td>Act</td><td>Commit value has no validation — timing/basis optional, number bookable with no stated basis</td><td><span class="tag green">Resolved</span></td></tr>
+      <tr><td class="sev s4">4</td><td>Feed</td><td>Default sort is confidence-only — larger opportunities can rank below smaller ones</td><td><span class="tag green">Resolved</span></td></tr>
+      <tr><td class="sev s3">3</td><td>Feed</td><td>Feed's own narrative claims a ranking rule that doesn't match the actual sort key</td><td><span class="tag green">Resolved</span></td></tr>
+      <tr><td class="sev s3">3</td><td>Feed</td><td>No bulk triage — park/reject is one row, one modal, at a time</td><td><span class="tag green">Resolved</span></td></tr>
+      <tr><td class="sev s3">3</td><td>Feed</td><td>No new/changed signal at row level</td><td><span class="tag green">Resolved</span></td></tr>
+      <tr><td class="sev s3">3</td><td>Qualify</td><td>Two Approve buttons on one modal, no precedence rule</td><td><span class="tag green">Resolved</span></td></tr>
+      <tr><td class="sev s3">3</td><td>Qualify</td><td>Terms-vs-benchmark hardcodes "no data" even when roster vendors have terms on file</td><td><span class="tag green">Resolved</span></td></tr>
+      <tr><td class="sev s3">3</td><td>Decide</td><td>Parking is a dead end — approving/rejecting a parked item needs a return-to-feed round trip</td><td><span class="tag green">Resolved</span></td></tr>
+      <tr><td class="sev s3">3</td><td>Act</td><td>No way to feed supplier evidence back into the drafts; checklist is fully manual</td><td><span class="tag green">Resolved</span></td></tr>
+      <tr><td class="sev s3">3</td><td>Act</td><td>Drafts are one-shot — no version history, edits can be lost</td><td><span class="tag green">Resolved</span></td></tr>
+      <tr><td class="sev s2">2</td><td>Arrive</td><td>No prioritized "what needs me" surface on the dashboard</td><td><span class="tag green">Resolved</span></td></tr>
+      <tr><td class="sev s2">2</td><td>Commit</td><td>Commit toast has no click-through to Value Realization</td><td><span class="tag green">Resolved</span></td></tr>
+      <tr><td class="sev s2">2</td><td>Arrive</td><td>Synthesis paragraph and KPI tiles fetch independently, can transiently disagree</td><td><span class="tag amber">Not addressed</span></td></tr>
+      <tr><td class="sev s1">1</td><td>Feed</td><td>Upper-bound caveat repeated per-row with no shared explanation</td><td><span class="tag green">Resolved</span></td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn">
+    <b>Read this table for what it is.</b>
+    "Resolved" means v2.1's prototype demonstrates a working answer — not that it's shipped, not that it's the <i>right</i> answer for every stakeholder, and not that it's been validated against real Allison data. That's exactly the conversation Part 5 sets up.
+  </div>
+</section>
+
+<!-- ============ 4 ============ -->
+<section id="m4">
+  <div class="snum">PART 04</div>
+  <h2>What v2.1 Already Resolves — and What It Doesn't</h2>
+  <div class="stagegrid">
+    <div class="stagecard tobe"><div class="sch">✓ Genuinely demonstrated</div><div class="scb">
+      <ul class="winlist">
+        <li>Declared, size-aware ranking (Impact) replacing a silent confidence-only sort</li>
+        <li>Confidence trust chain: banded, capped, with the math visible on demand</li>
+        <li>Bulk triage with the same reason/trigger rules the single-row flow already enforced</li>
+        <li>Change-of-mind path out of Parked without a round trip</li>
+        <li>Evidence-in → analysis → versioned-draft loop for Act</li>
+        <li>Required commit basis, closing the auditability gap</li>
+        <li>Restyled onto the real <code>@navanta-ai/design-system</code> tokens (not an approximation)</li>
+      </ul>
+    </div></div>
+    <div class="stagecard asis"><div class="sch">⚠ Still open / not this document's job</div><div class="scb">
+      <ul class="painlist">
+        <li>"Mercer analyzes your evidence" is a keyword heuristic in the prototype, not a real model call — the UX pattern is validated, the AI behavior behind it is not.</li>
+        <li>File attachment in the prototype accepts a filename only — no real upload, storage, or retrieval design yet.</li>
+        <li>No altitude scope switcher (Plant/Region/Enterprise-BU) — both journeys are stuck at category scope.</li>
+        <li>No exec/CPO read-only rollup path — this audit is CM-only, by design, since that's the flow in scope.</li>
+        <li>Grouped-by-sub-category feed view hasn't been tested against a much larger feed (hundreds of rows) — the pattern may need pagination-per-group or virtualization at scale.</li>
+      </ul>
+    </div></div>
+  </div>
+</section>
+
+<!-- ============ 5 ============ -->
+<section id="m5">
+  <div class="snum">PART 05</div>
+  <h2>Open Questions for the Next Design Pass</h2>
+  <p class="lede">These are the decisions this audit surfaces but doesn't make. Worth resolving before more prototype iteration.</p>
+
+  <div class="qopen"><div class="qh">1 · Is Impact (addressable × confidence) the right default ranking, or a placeholder?</div>
+  The prototype uses it as a declared, honest stand-in until the engine exposes true Prize × Feasibility × Provability² per pocket. Do we ship the proxy now, or wait?</div>
+
+  <div class="qopen"><div class="qh">2 · How real does "Mercer analyzes your evidence" need to be for a v1?</div>
+  Keyword-heuristic (cheap, deterministic, ships fast) vs. an actual grounded LLM call against the uploaded document (the real value proposition, more integration work). This changes the Act screen's build estimate significantly.</div>
+
+  <div class="qopen"><div class="qh">3 · What's the real document-storage story?</div>
+  Uploaded quotes/contracts need to land somewhere real (S3-equivalent, linked to the opportunity record) before "attach a document" is more than a filename in the prototype.</div>
+
+  <div class="qopen"><div class="qh">4 · Does grouped-by-sub-category hold up at real scale?</div>
+  Five opportunities in five groups reads clean. What does it look like at 80 opportunities across 15 sub-categories — collapsed groups by default? A count threshold before grouping kicks in?</div>
+
+  <div class="qopen"><div class="qh">5 · Bulk triage — reject reasons per-item or one shared reason for the whole batch?</div>
+  The prototype applies one reason to the whole selection (matches the existing single-reason dialog). Is that acceptable, or does compliance need a reason per opportunity even in bulk?</div>
+
+  <div class="qopen"><div class="qh">6 · Where does the "return a parked item to feed" affordance still matter, if approve/reject now happens directly from Parked?</div>
+  Keep both paths, or is "Return to feed" now just for genuine re-triage (not a decision)?</div>
+
+  <div class="qopen"><div class="qh">7 · Priority order for what actually ships first.</div>
+  Given the SEV-4/SEV-3 register in Part 3 — is the build sequence: (a) confidence trust chain, (b) declared ranking, (c) bulk triage, (d) evidence loop — or does the team see it differently?</div>
+
+</section>
+
+<footer>
+  Navanta Lens · Opportunity Flow journey audit · sources: <code>frontend/src</code> at HEAD + live API data (deployed build), <code>navanta_lens_prototype_v2.html</code> (prototype v2.1). Prepared as the working input for the next design session — not a final spec.
+</footer>
+</div>
+</body>
+</html>

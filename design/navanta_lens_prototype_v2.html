@@ -3,25 +3,65 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Navanta Lens — Prototype v2 · Updated Experience</title>
+<title>Navanta Lens — Prototype v2.1 · Updated Experience</title>
 <style>
-/* ── Navanta Lens design tokens (from the deployed build / IRIS chrome) ── */
+/* ══ Navanta Design System tokens — verbatim from @navanta-ai/design-system
+      v0.4.13 src/tokens.css (the source of truth), plus Lens-specific
+      aliases derived only via color-mix from DS tokens. ══ */
 :root{
-  --bg:#F6F7F9; --card:#FFFFFF;
-  --line:#E8EAF0; --line2:#E2E8F0;
-  --ink:#181A1B; --ink2:#52525C; --ink3:#71717A; --ink4:#94A3B8;
-  --indigo:#2F2B6E; --indigo-h:#3D3790;
-  --merc:#59349C; --merc-deep:#4A2B82; --merc-bg:#F5EFFF; --merc-bg2:#F3F0FE; --merc-line:#E3D2FF; --merc-chip:#EDE6FB;
-  --blue:#2563EB; --blue-bg:#E8F0FE;
-  --amber:#B45309; --amber-bg:#FDF0E0;
-  --green:#008234; --green2:#16A34A; --green-bg:#ECFDF5;
-  --warn:#9E3900; --warn-bg:#FFFBEA; --warn-line:#F0E3BB;
-  --red:#C22F2F; --red-bg:#FDECEC;
-  --muted:#F4F4F5; --raised:#FAFAFB;
-  --r:12px; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  --sh:0 0 1px rgba(0,0,0,.22),0 1px 4px rgba(0,0,0,.06);
-  --sh2:0 4px 24px rgba(24,26,64,.14),0 0 1px rgba(0,0,0,.3);
-  --bar-grad:linear-gradient(to right,#89A9E5,#234687);
+  --background:#ffffff; --foreground:#09090b;
+  --primary:#232122; --primary-foreground:#ffffff;
+  --secondary:#f4f4f5; --muted:#f4f4f5; --muted-foreground:#4b5563;
+  --destructive:#dc2626; --success:#16a34a; --warning:#f59e0b; --info:#0ea5e9;
+  --border:#e4e4e7; --ring:#c4c4c8;
+  --chart-1:#232122; --chart-2:#3b82f6; --chart-4:#16a34a;
+  --radius:0.5rem; --radius-xl:0.75rem;
+  --kds-color-brand-accent:#6440b6; --brand-purple-deep:#3b0764;
+  --surface-raised:#f8fafc;
+  --text-primary:var(--foreground); --text-secondary:var(--muted-foreground);
+  --text-neutral:#94a3b8; --text-heading:#1e1e1e; --text-link:#005b89;
+  --border-light:#f1f3f5; --border-strong:#71717b; --border-control:#9f9fa9;
+  --ai-star-from:#8a49be; --ai-star-to:#396eb6;
+  --sidebar-active-bg:var(--muted); --surface-inverse:#18181b;
+  --info-strong:#004b71; --info-subtle:#f0f9ff;
+  --pill-info-bg:#eff6ff; --pill-info-fg:#1e40af;
+  --pill-danger-bg:#fff1f2; --pill-danger-fg:#a7000f;
+  --pill-warning-bg:#fffbeb; --pill-warning-fg:#92400e;
+  --pill-neutral-bg:#f4f4f5; --pill-neutral-fg:#18181b;
+  --shadow-card:0 1px 3px 0 rgb(0 0 0 / 0.1),0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-modal:0 20px 25px -5px rgb(0 0 0 / 0.1),0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-dropdown:0px 4px 15px 0px rgba(0,0,0,0.25);
+  --shadow-focus:0 0 0 3px color-mix(in srgb, var(--ring) 35%, transparent);
+  --btn-primary-bg:var(--primary); --btn-primary-bg-hover:#000000;
+  --btn-primary-disabled-bg:#e2e8f0; --btn-primary-disabled-text:#94a3b8;
+  --gradient-christy:linear-gradient(154.42deg,#1d4a86 1.66%,#3d348b 83.4%);
+  --gradient-christy-hover:linear-gradient(154.42deg,#153664 1.66%,#2b2566 83.4%);
+  --progress-track:#e4e4e7;
+  --gradient-progress-blue:linear-gradient(90deg,#89a9e5 0%,#89a9e5 54%,#234687 100%);
+  --gradient-progress-green:linear-gradient(90deg,#86efac 0%,#86efac 54%,#166534 100%);
+  --gradient-progress-amber:linear-gradient(90deg,#fcd34d 0%,#fcd34d 54%,#b45309 100%);
+  --gradient-progress-neutral:linear-gradient(90deg,#a1a1aa 0%,#a1a1aa 54%,#232122 100%);
+  --kpi-card-pad:16px;
+
+  /* ── Lens aliases (all derived from DS tokens) ── */
+  --bg:var(--secondary); --card:var(--background);
+  --line:var(--border); --line2:var(--border);
+  --ink:var(--foreground); --ink2:var(--muted-foreground); --ink3:#71717a; --ink4:var(--text-neutral);
+  --merc:var(--kds-color-brand-accent);
+  --merc-deep:color-mix(in oklab, var(--kds-color-brand-accent) 80%, black);
+  --merc-bg:color-mix(in oklab, var(--kds-color-brand-accent) 9%, var(--background));
+  --merc-bg2:color-mix(in oklab, var(--kds-color-brand-accent) 6%, var(--background));
+  --merc-line:color-mix(in oklab, var(--kds-color-brand-accent) 24%, var(--background));
+  --merc-chip:color-mix(in oklab, var(--kds-color-brand-accent) 14%, var(--background));
+  --green:#166534; --green2:var(--success); --green-bg:#ecfdf5;
+  --amber:var(--pill-warning-fg); --amber-bg:var(--pill-warning-bg);
+  --blue:var(--pill-info-fg); --blue-bg:var(--pill-info-bg);
+  --warn:var(--pill-warning-fg); --warn-bg:var(--pill-warning-bg); --warn-line:#fde68a;
+  --red:var(--pill-danger-fg); --red-bg:var(--pill-danger-bg);
+  --raised:var(--surface-raised);
+  --r:var(--radius-xl); --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sh:var(--shadow-card); --sh2:var(--shadow-modal);
+  --bar-grad:var(--gradient-progress-blue);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -34,32 +74,32 @@ input,select,textarea{font:inherit;color:var(--ink)}
 /* ── App shell ── */
 #app{display:flex;height:100vh;width:100%}
 .rail{width:64px;background:var(--card);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:14px 0 12px;gap:5px;flex-shrink:0;z-index:30}
-.rail .logo{width:34px;height:34px;border-radius:9px;background:var(--indigo);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;letter-spacing:.02em;margin-bottom:12px}
+.rail .logo{width:34px;height:34px;border-radius:9px;background:var(--primary);color:var(--primary-foreground);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;letter-spacing:.02em;margin-bottom:12px}
 .rail .sep{width:32px;height:1px;background:var(--line);margin:6px 0}
 .rail .grp{font-size:8.5px;font-weight:700;letter-spacing:.1em;color:var(--ink4);text-transform:uppercase;margin:2px 0 1px}
 .rail .spacer{flex:1}
-.rail .avatar{width:34px;height:34px;border-radius:50%;background:var(--indigo);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.rail .avatar{width:34px;height:34px;border-radius:50%;background:var(--info-strong);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
 .nbtn{position:relative;width:44px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--ink3)}
-.nbtn:hover{background:var(--bg)}
-.nbtn.on{background:var(--merc-bg);color:var(--merc)}
-.nbtn.dim{color:#C4C9D4}
+.nbtn:hover{background:#f5f5f5}
+.nbtn.on{background:var(--sidebar-active-bg);color:var(--merc)}
+.nbtn.dim{color:#c4c9d4}
 .nbtn svg{width:20px;height:20px}
 .nbtn .bdg{position:absolute;top:2px;right:2px;background:var(--merc);color:#fff;font-size:9.5px;font-weight:700;border-radius:99px;padding:1px 5px;line-height:1.3}
-.nbtn .bdg.red{background:var(--red)}
-.nbtn .tip{position:absolute;left:54px;top:50%;transform:translateY(-50%);background:var(--ink);color:#fff;font-size:11.5px;padding:4px 9px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s;z-index:80}
+.nbtn .bdg.red{background:var(--destructive)}
+.nbtn .tip{position:absolute;left:54px;top:50%;transform:translateY(-50%);background:var(--surface-inverse);color:#fff;font-size:11.5px;padding:4px 9px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s;z-index:80}
 .nbtn:hover .tip,.nbtn:focus-visible .tip{opacity:1}
 .main{flex:1;display:flex;flex-direction:column;min-width:0;transition:margin-right .18s ease}
 .main.mercer-open{margin-right:390px}
 .topbar{height:56px;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 20px;flex-shrink:0;z-index:20}
-.topbar .ttl{font-weight:700;font-size:15px;white-space:nowrap}
+.topbar .ttl{font-weight:700;font-size:15px;white-space:nowrap;color:var(--text-heading)}
 .topbar .crumb{font-size:12px;color:var(--ink3);white-space:nowrap}
 .topbar .grow{flex:1}
 .scopebtn{display:flex;align-items:center;gap:7px;border:1px solid var(--line2);border-radius:9px;padding:6px 12px;font-size:12.5px;font-weight:600;background:var(--card);white-space:nowrap}
-.scopebtn:hover{border-color:var(--ink4)}
+.scopebtn:hover{background:var(--muted)}
 .scopebtn .sv{color:var(--merc);font-weight:700}
 .scopebtn .car{color:var(--ink4);font-size:9px}
-.askbtn{display:flex;align-items:center;gap:7px;background:var(--indigo);color:#fff;border-radius:9px;padding:8px 14px;font-size:13px;font-weight:600;white-space:nowrap}
-.askbtn:hover{background:var(--indigo-h)}
+.askbtn{display:flex;align-items:center;gap:7px;background-image:var(--gradient-christy);color:#fff;border-radius:9px;padding:8px 14px;font-size:13px;font-weight:600;white-space:nowrap}
+.askbtn:hover{background-image:var(--gradient-christy-hover)}
 .content{flex:1;overflow-y:auto;padding:20px 24px 80px;scroll-behavior:smooth}
 .screen{max-width:1220px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 .stamp{font-size:11.5px;color:var(--ink3);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -68,62 +108,64 @@ input,select,textarea{font:inherit;color:var(--ink)}
 /* ── Generic surfaces ── */
 .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
 .panel .ph{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-.panel .ph .t{font-weight:700;font-size:14.5px}
+.panel .ph .t{font-weight:700;font-size:14.5px;color:var(--text-heading)}
 .panel .ph .s{font-size:12px;color:var(--ink3)}
 .panel .ph .grow{flex:1}
 .panel .pb{padding:16px 18px}
 .panel .pb.tight{padding:0}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:12px}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh)}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:var(--kpi-card-pad);box-shadow:var(--sh)}
 .kpi .kl{font-size:12.5px;color:var(--ink2);font-weight:600;display:flex;align-items:center;gap:5px}
 .kpi .kv{font-size:23px;font-weight:800;margin:5px 0 2px;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
 .kpi .kv.good{color:var(--green)}
 .kpi .kv.bad{color:var(--red)}
 .kpi .kc{font-size:11.5px;color:var(--ink3)}
-.info{width:15px;height:15px;border-radius:50%;border:1.3px solid var(--ink4);color:var(--ink4);font-size:9.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;background:none;line-height:1}
+.info{width:15px;height:15px;border-radius:50%;border:1.3px solid var(--border-control);color:var(--ink4);font-size:9.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;background:none;line-height:1}
 .info:hover,.info:focus-visible{border-color:var(--merc);color:var(--merc)}
 
-/* ── Buttons (DS roles: primary=indigo · christy=mercer · outline=white) ── */
-.btn{display:inline-flex;align-items:center;gap:7px;border-radius:9px;padding:8px 15px;font-size:13px;font-weight:600;border:1px solid var(--line2);background:var(--card);color:var(--ink)}
-.btn:hover{border-color:var(--ink4)}
-.btn.pri{background:var(--indigo);border-color:var(--indigo);color:#fff}
-.btn.pri:hover{background:var(--indigo-h)}
-.btn.christy{background:var(--merc);border-color:var(--merc);color:#fff}
-.btn.christy:hover{background:var(--merc-deep)}
+/* ── Buttons (DS roles: primary=charcoal · christy=AI gradient · outline) ── */
+.btn{display:inline-flex;align-items:center;gap:7px;border-radius:9px;padding:8px 15px;font-size:13px;font-weight:600;border:1px solid var(--border);background:var(--card);color:var(--ink)}
+.btn:hover{background:var(--muted)}
+.btn.pri{background:var(--btn-primary-bg);border-color:var(--btn-primary-bg);color:var(--btn-primary-text,#fff)}
+.btn.pri:hover{background:var(--btn-primary-bg-hover);border-color:var(--btn-primary-bg-hover)}
+.btn.christy{background-image:var(--gradient-christy);border:none;color:#fff;padding:9px 16px}
+.btn.christy:hover{background-image:var(--gradient-christy-hover)}
 .btn.sm{padding:5px 11px;font-size:12px;border-radius:8px}
-.btn[disabled]{opacity:.45;cursor:not-allowed}
-.btn:focus-visible,.nbtn:focus-visible,.tab:focus-visible,.chiplink:focus-visible{outline:2px solid var(--merc);outline-offset:1px}
+.btn.christy.sm{padding:6px 12px}
+.btn[disabled]{cursor:not-allowed}
+.btn.pri[disabled],.btn.christy[disabled]{background:var(--btn-primary-disabled-bg);background-image:none;border-color:var(--btn-primary-disabled-bg);color:var(--btn-primary-disabled-text)}
+.btn[disabled]:not(.pri):not(.christy){opacity:.45}
+.btn:focus-visible,.nbtn:focus-visible,.tab:focus-visible{outline:none;box-shadow:var(--shadow-focus)}
 .linkbtn{color:var(--merc);font-weight:600;font-size:12px;cursor:pointer;background:none;border:none;display:inline-flex;align-items:center;gap:4px}
 .linkbtn:hover{text-decoration:underline}
 
-/* ── Pills & chips ── */
+/* ── Pills & chips (DS tonal 50/800 pairs) ── */
 .chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;border-radius:99px;padding:2px 9px;white-space:nowrap}
-.chip.at{background:var(--blue-bg);color:var(--blue)}
-.chip.aoh{background:var(--amber-bg);color:var(--amber)}
-.chip.both{background:#ECEEF2;color:var(--ink2)}
-.chip.lever{background:#ECEEF2;color:var(--ink2)}
-.chip.lever.cons{background:var(--blue-bg);color:var(--blue)}
-.chip.lever.warn{background:var(--warn-bg);color:var(--warn)}
-.chip.flag{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-line);cursor:default}
-.chip.drift{background:var(--red-bg);color:var(--red)}
+.chip.at{background:var(--pill-info-bg);color:var(--pill-info-fg)}
+.chip.aoh{background:var(--pill-warning-bg);color:var(--pill-warning-fg)}
+.chip.both{background:var(--pill-neutral-bg);color:var(--pill-neutral-fg)}
+.chip.lever{background:var(--pill-neutral-bg);color:var(--pill-neutral-fg)}
+.chip.lever.cons{background:var(--pill-info-bg);color:var(--pill-info-fg)}
+.chip.lever.warn{background:var(--pill-warning-bg);color:var(--pill-warning-fg)}
+.chip.flag{background:var(--pill-warning-bg);color:var(--pill-warning-fg);border:1px solid var(--warn-line);cursor:default}
+.chip.drift{background:var(--pill-danger-bg);color:var(--pill-danger-fg)}
 .chip.new{background:var(--merc-bg);color:var(--merc)}
-.chip.changed{background:var(--blue-bg);color:var(--blue)}
+.chip.changed{background:var(--pill-info-bg);color:var(--pill-info-fg)}
 .chip.ok{background:var(--green-bg);color:var(--green)}
-.chip.stage{background:#ECEEF2;color:var(--ink2)}
-.chip.ev{background:var(--blue-bg);color:var(--blue)}
-.chip.bench{background:var(--warn-bg);color:var(--warn)}
+.chip.stage{background:var(--pill-neutral-bg);color:var(--ink2)}
+.chip.ev{background:var(--pill-info-bg);color:var(--pill-info-fg)}
 .chip.live{background:var(--green-bg);color:var(--green)}
-.chip.illus{background:#ECEEF2;color:var(--ink3)}
+.chip.illus{background:var(--pill-neutral-bg);color:var(--ink3)}
 .chip.anchor{background:var(--merc-bg);color:var(--merc)}
-.chip.oem{background:var(--warn-bg);color:var(--warn)}
+.chip.oem{background:var(--pill-warning-bg);color:var(--pill-warning-fg)}
 
-/* ── Confidence meter (v2: band word + 99 display ceiling) ── */
+/* ── Confidence meter (DS progress gradients — dark stop at the tip) ── */
 .conf{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
-.confbar{width:54px;height:5px;border-radius:99px;background:var(--line);overflow:hidden;position:relative;flex-shrink:0}
+.confbar{width:54px;height:5px;border-radius:99px;background:var(--progress-track);overflow:hidden;position:relative;flex-shrink:0}
 .confbar.md{width:84px;height:6px}
-.confbar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,#86EFAC,#16A34A)}
-.confbar.b-med i{background:linear-gradient(90deg,#FDE68A,#F59E0B)}
-.confbar.b-dir i{background:linear-gradient(90deg,#E5E7EB,#9CA3AF)}
+.confbar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--gradient-progress-green)}
+.confbar.b-med i{background:var(--gradient-progress-amber)}
+.confbar.b-dir i{background:var(--gradient-progress-neutral)}
 .conf .cn{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
 .conf .cw{font-size:11px;font-weight:700}
 .conf .cw.high{color:var(--green)} .conf .cw.med{color:var(--amber)} .conf .cw.dir{color:var(--ink3)}
@@ -131,8 +173,8 @@ input,select,textarea{font:inherit;color:var(--ink)}
 /* ── Tabs ── */
 .tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);padding:0 18px;flex-wrap:wrap}
 .tab{padding:11px 13px;font-size:13px;font-weight:600;color:var(--ink2);border-bottom:2px solid transparent;display:flex;gap:6px;align-items:center;background:none}
-.tab .ct{background:#ECEEF2;border-radius:99px;font-size:11px;padding:0 7px;font-weight:700}
-.tab.on{color:var(--ink);border-bottom-color:var(--indigo)}
+.tab .ct{background:var(--pill-neutral-bg);border-radius:99px;font-size:11px;padding:0 7px;font-weight:700}
+.tab.on{color:var(--ink);border-bottom-color:var(--primary)}
 .tab.on .ct{background:var(--merc-bg);color:var(--merc)}
 .tab:hover{color:var(--ink)}
 
@@ -143,12 +185,14 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
 .tbl th.sortable{cursor:pointer;user-select:none}
 .tbl th.sortable:hover{color:var(--ink)}
 .tbl th .arr{font-size:9px;color:var(--merc)}
-.tbl td{padding:10px 13px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl td{padding:10px 13px;border-bottom:1px solid var(--border-light);vertical-align:middle}
 .tbl tr:last-child td{border-bottom:none}
 .tbl tr.rowlink{cursor:pointer}
-.tbl tr.rowlink:hover td{background:#FAFBFD}
+.tbl tr.rowlink:hover td{background:var(--surface-raised)}
 .tbl .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-.tbl td .sub{display:block;font-size:11.5px;color:var(--ink3);margin-top:1px}
+.tbl td .sub{display:block;font-size:11.5px;color:var(--ink3);margin-top:var(--text-stack-gap,4px)}
+.tbl tr.grp td{background:var(--surface-raised);font-size:11.5px;font-weight:700;color:var(--ink2);letter-spacing:.03em;text-transform:uppercase;padding:7px 13px;border-top:1px solid var(--line)}
+.tbl tr.grp td .gv{float:right;font-variant-numeric:tabular-nums;text-transform:none;letter-spacing:0;color:var(--ink3);font-weight:600}
 .tbl tr.row-resolved td{background:var(--green-bg)!important;transition:background .2s}
 .tbl tr.row-dismissed td{background:var(--muted)!important;transition:background .2s}
 .tbl tr.row-fading td{opacity:.25;transition:opacity .2s}
@@ -156,58 +200,62 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
 
 /* ── Toolbar / facets ── */
 .toolbar{display:flex;align-items:center;gap:8px;padding:12px 18px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
-.search{display:flex;align-items:center;gap:7px;border:1px solid var(--line2);border-radius:9px;padding:6px 11px;background:var(--card);min-width:220px;flex:1;max-width:320px}
+.search{display:flex;align-items:center;gap:7px;border:1px solid var(--line2);border-radius:9px;padding:6px 11px;background:var(--card);min-width:200px;flex:1;max-width:var(--table-search-width,320px)}
 .search input{border:none;outline:none;flex:1;font-size:13px;background:none}
 .fsel{border:1px solid var(--line2);border-radius:9px;padding:6px 9px;font-size:12.5px;font-weight:600;background:var(--card);color:var(--ink2);max-width:210px}
 .ftog{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line2);border-radius:99px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--ink2);background:var(--card)}
-.ftog .ct{background:#ECEEF2;border-radius:99px;font-size:10.5px;padding:0 6px;font-weight:700}
-.ftog.on{background:var(--blue-bg);border-color:#BFD6FB;color:var(--blue)}
+.ftog .ct{background:var(--pill-neutral-bg);border-radius:99px;font-size:10.5px;padding:0 6px;font-weight:700}
+.ftog.on{background:var(--pill-info-bg);border-color:#bfdbfe;color:var(--pill-info-fg)}
 .ftog.on .ct{background:#fff}
 .sortlbl{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);font-weight:600;white-space:nowrap}
 .sortlbl select{border:1px solid var(--line2);border-radius:8px;padding:4px 8px;font-size:12px;font-weight:600;background:var(--card)}
+.tablenote{display:flex;align-items:center;gap:7px;padding:8px 18px;font-size:11.5px;color:var(--ink3);border-bottom:1px solid var(--border-light);background:var(--surface-raised)}
 
 /* ── Bulk triage bar ── */
-.bulkbar{position:sticky;top:0;z-index:15;display:flex;align-items:center;gap:10px;background:var(--indigo);color:#fff;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;box-shadow:var(--sh2);margin:10px 18px 0}
+.bulkbar{position:sticky;top:0;z-index:15;display:flex;align-items:center;gap:10px;background:var(--primary);color:#fff;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;box-shadow:var(--sh2);margin:10px 18px 0}
 .bulkbar .grow{flex:1}
 .bulkbar .btn{background:rgba(255,255,255,.12);border-color:transparent;color:#fff}
 .bulkbar .btn:hover{background:rgba(255,255,255,.22)}
 
 /* ── Mercer surfaces ── */
-.mercblock{background:linear-gradient(180deg,#FAF7FF 0%,#FFFFFF 55%);border:1px solid var(--merc-line);border-radius:var(--r);padding:14px 18px;box-shadow:var(--sh)}
-.mercblock .mh{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--ink);font-size:13.5px;margin-bottom:7px;flex-wrap:wrap}
+.mercblock{background:linear-gradient(180deg,var(--merc-bg2) 0%,var(--background) 55%);border:1px solid var(--merc-line);border-radius:var(--r);padding:14px 18px;box-shadow:var(--sh)}
+.mercblock .mh{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--text-heading);font-size:13.5px;margin-bottom:7px;flex-wrap:wrap}
 .mercblock .mh .grow{flex:1}
 .mercblock .mh .when{font-size:11.5px;color:var(--ink3);font-weight:500}
 .mercblock .mt{font-size:14px;line-height:1.55}
-.star{width:15px;height:15px;flex-shrink:0;color:var(--merc)}
+.star{width:15px;height:15px;flex-shrink:0}
 .minitiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:9px;margin-top:12px}
-.minitile{background:#F8F3FF;border:1px solid #DAC4FF;border-radius:9px;padding:9px 12px}
+.minitile{background:var(--merc-bg2);border:1px solid var(--merc-line);border-radius:9px;padding:9px 12px}
 .minitile .v{font-size:15.5px;font-weight:700;font-variant-numeric:tabular-nums}
 .minitile .l{font-size:11.5px;color:var(--ink2);font-weight:600;margin-top:1px;display:flex;align-items:center;gap:4px}
 .minitile .c{font-size:10.5px;color:var(--ink3)}
-.caveat{background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:10px;padding:11px 15px;font-size:12.5px;color:#6B5310}
-.caveat b{display:block;color:#5A4A12;margin-bottom:2px;font-size:12.5px}
-.notebox{background:var(--blue-bg);border:1px solid #C9DCFB;border-radius:10px;padding:11px 15px;font-size:12.5px;color:#1E3A8A}
+.caveat{background:var(--pill-warning-bg);border:1px solid var(--warn-line);border-radius:10px;padding:11px 15px;font-size:12.5px;color:var(--pill-warning-fg)}
+.caveat b{display:block;margin-bottom:2px;font-size:12.5px}
+.notebox{background:var(--pill-info-bg);border:1px solid #bfdbfe;border-radius:10px;padding:11px 15px;font-size:12.5px;color:var(--pill-info-fg)}
 .notebox b{display:block;margin-bottom:2px}
-.errbox{background:var(--red-bg);border:1px solid #F3C4C4;border-radius:10px;padding:12px 15px;font-size:13px;color:#7A2222;display:flex;align-items:flex-start;gap:10px}
-.errbox b{display:block;margin-bottom:2px;color:var(--red)}
+.errbox{background:var(--pill-danger-bg);border:1px solid #fecdd3;border-radius:10px;padding:12px 15px;font-size:13px;color:var(--pill-danger-fg);display:flex;align-items:flex-start;gap:10px}
+.errbox b{display:block;margin-bottom:2px;color:var(--destructive)}
 
-/* ── Attention strip ── */
-.astrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.acard{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;box-shadow:var(--sh);cursor:pointer;text-align:left}
-.acard:hover{border-color:var(--ink4)}
-.acard .ic{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
-.acard .n{font-size:19px;font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums}
-.acard .l{font-size:11.5px;color:var(--ink2);font-weight:600;line-height:1.3}
-.acard .go{margin-left:auto;color:var(--ink4);font-size:13px}
+/* ── Attention strip: title → count of denominator → caption ── */
+.astrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.acard{display:flex;align-items:flex-start;gap:11px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;box-shadow:var(--sh);cursor:pointer;text-align:left}
+.acard:hover{border-color:var(--border-strong)}
+.acard .ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;margin-top:2px}
+.acard .ab{min-width:0;flex:1}
+.acard .at2{display:block;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
+.acard .an{display:block;font-size:20px;font-weight:800;line-height:1.25;font-variant-numeric:tabular-nums}
+.acard .an .aof{font-size:11.5px;font-weight:600;color:var(--ink3)}
+.acard .al{font-size:11.5px;color:var(--ink2);line-height:1.35;display:block;margin-top:1px}
+.acard .go{color:var(--ink4);font-size:13px;margin-top:2px}
 .ic.merc{background:var(--merc-bg);color:var(--merc)}
-.ic.red{background:var(--red-bg);color:var(--red)}
+.ic.red{background:var(--pill-danger-bg);color:var(--pill-danger-fg)}
 .ic.green{background:var(--green-bg);color:var(--green)}
-.ic.blue{background:var(--blue-bg);color:var(--blue)}
+.ic.blue{background:var(--pill-info-bg);color:var(--pill-info-fg)}
 
-/* ── Value funnel ── */
-.funnel .frow{display:grid;grid-template-columns:92px 1fr 150px;align-items:center;gap:12px;margin:9px 0}
+/* ── Value funnel (chart tokens: brand → chart-1 → chart-4) ── */
+.funnel .frow{display:grid;grid-template-columns:92px 1fr 170px;align-items:center;gap:12px;margin:9px 0}
 .funnel .fl{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink2)}
-.funnel .ftrack{height:22px;border-radius:7px;background:var(--raised);border:1px solid var(--line);overflow:hidden}
+.funnel .ftrack{height:22px;border-radius:7px;background:var(--surface-raised);border:1px solid var(--border-light);overflow:hidden}
 .funnel .ftrack i{display:block;height:100%;border-radius:6px 0 0 6px;transition:width .3s}
 .funnel .fv{text-align:right;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
 .funnel .fv .sub{display:block;font-size:10.5px;color:var(--ink3);font-weight:500}
@@ -215,17 +263,17 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
 /* ── Program summary cards ── */
 .pcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
 .pcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
-.pcard .pt{font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:7px}
+.pcard .pt{font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:7px;color:var(--text-heading)}
 .pcard .prow{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink2)}
 .pcard .prow b{font-variant-numeric:tabular-nums;color:var(--ink)}
-.pcard .pfoot{margin-top:auto;padding-top:8px;border-top:1px solid var(--line)}
+.pcard .pfoot{margin-top:auto;padding-top:8px;border-top:1px solid var(--border-light)}
 
-/* ── Charts (ramp) ── */
-.chart{display:flex;align-items:flex-end;gap:26px;height:210px;padding:26px 8px 0;border-bottom:1px solid var(--line2);margin:8px 0 6px;overflow-x:auto}
+/* ── Charts (ramp: chart-2 projected · chart-4 realized) ── */
+.chart{display:flex;align-items:flex-end;gap:26px;height:210px;padding:26px 8px 0;border-bottom:1px solid var(--line);margin:8px 0 6px;overflow-x:auto}
 .cgroup{flex:1;min-width:64px;display:flex;align-items:flex-end;justify-content:center;gap:4px;height:100%;position:relative}
 .cbar{width:26px;border-radius:4px 4px 0 0;position:relative;min-height:2px}
-.cbar.proj{background:var(--blue)}
-.cbar.real{background:var(--green2)}
+.cbar.proj{background:var(--chart-2)}
+.cbar.real{background:var(--chart-4)}
 .cbar .bl{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:600;color:var(--ink2);white-space:nowrap;font-variant-numeric:tabular-nums}
 .cxlbl{display:flex;gap:26px;padding:5px 8px 0;font-size:10.5px;color:var(--ink3)}
 .cxlbl span{flex:1;min-width:64px;text-align:center}
@@ -233,12 +281,12 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
 .legend .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 
 /* ── Modals ── */
-.overlay{position:fixed;inset:0;background:rgba(16,18,34,.42);z-index:100;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:28px 16px}
+.overlay{position:fixed;inset:0;background:rgba(9,9,11,.42);z-index:100;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:28px 16px}
 .overlay.elev{z-index:120}
 .modal{background:var(--bg);border-radius:14px;box-shadow:var(--sh2);width:100%;max-width:980px;display:flex;flex-direction:column;max-height:calc(100vh - 56px);position:relative}
 .modal.sm{max-width:520px;background:var(--card)}
 .modal .mhead{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--card);border-radius:14px 14px 0 0;flex-wrap:wrap}
-.modal .mhead .mt1{font-weight:800;font-size:15.5px;white-space:nowrap}
+.modal .mhead .mt1{font-weight:800;font-size:15.5px;white-space:nowrap;color:var(--text-heading)}
 .modal .mhead .mt2{font-size:12.5px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:340px}
 .modal .mhead .meta{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap}
 .modal .mhead .metachip{background:var(--muted);border-radius:5px;padding:2px 8px;font-size:12px;white-space:nowrap}
@@ -246,54 +294,54 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
 .modal .mclose:hover{background:var(--muted);color:var(--ink)}
 .modal .mbody{padding:16px 20px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
 .modal .mbody>*{flex-shrink:0}
-.modal .mfoot{display:flex;align-items:center;gap:9px;padding:13px 20px;border-top:1px solid var(--line);background:var(--card);border-radius:0 0 14px 14px}
+.modal .mfoot{display:flex;align-items:center;gap:9px;padding:13px 20px;border-top:1px solid var(--line);background:var(--card);border-radius:0 0 14px 14px;flex-wrap:wrap}
 .modal .mfoot .grow{flex:1}
 .mtoc{position:sticky;top:-16px;z-index:5;display:flex;gap:5px;background:var(--bg);padding:8px 0 6px;margin:-8px 0 -4px;flex-wrap:wrap}
 .mtoc button{font-size:11.5px;font-weight:600;color:var(--ink2);border:1px solid var(--line2);background:var(--card);border-radius:99px;padding:3px 11px}
 .mtoc button:hover{color:var(--merc);border-color:var(--merc-line)}
 
-/* ── Evidence blocks (Qualify anatomy) ── */
+/* ── Evidence blocks ── */
 .eblock{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-.eblock .eh{display:flex;align-items:center;gap:8px;padding:11px 14px 7px;font-weight:600;font-size:13.5px}
+.eblock .eh{display:flex;align-items:center;gap:8px;padding:11px 14px 7px;font-weight:600;font-size:13.5px;color:var(--text-heading)}
 .eblock .eh .grow{flex:1}
 .eblock .eb{padding:0 14px 12px}
-.eblock .efoot{padding:8px 14px;font-size:11.5px;color:var(--ink3);border-top:1px solid var(--line)}
-.eblock .eact{padding:9px 14px;border-top:1px solid var(--line);background:var(--raised);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.mercsum{background:var(--merc-bg);border-radius:var(--r);overflow:hidden}
+.eblock .efoot{padding:8px 14px;font-size:11.5px;color:var(--ink3);border-top:1px solid var(--border-light)}
+.eblock .eact{padding:9px 14px;border-top:1px solid var(--border-light);background:var(--surface-raised);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mercsum{background:var(--merc-bg);border:1px solid var(--merc-line);border-radius:var(--r);overflow:hidden}
 .mercsum .msb{padding:12px 14px;display:flex;flex-direction:column;gap:8px}
 .mercsum .msh{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px}
 .mercsum p{font-size:13.5px;line-height:1.55}
 .mstiles{display:flex;flex-wrap:wrap;gap:8px}
-.mstile{flex:1;min-width:118px;border:1px solid #E3D2FF;border-radius:8px;padding:8px 11px;display:flex;flex-direction:column;gap:1px}
-.mstile .l{font-size:11.5px;color:#1E1E1E;display:flex;gap:4px;align-items:center}
+.mstile{flex:1;min-width:118px;border:1px solid var(--merc-line);border-radius:8px;padding:8px 11px;display:flex;flex-direction:column;gap:1px;background:rgba(255,255,255,.6)}
+.mstile .l{font-size:11.5px;color:var(--ink2);display:flex;gap:4px;align-items:center}
 .mstile .v{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
 .mstile .c{font-size:10.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mercband{background:linear-gradient(to right,#EBDFFF 60%,#F3ECFE 100%);padding:11px 14px;display:flex;flex-direction:column;gap:8px}
+.mercband{background:color-mix(in oklab, var(--kds-color-brand-accent) 14%, var(--background));padding:11px 14px;display:flex;flex-direction:column;gap:8px}
 .mercband .cap{font-size:11.5px;font-weight:700;color:var(--merc)}
 .mercband .head{font-size:14px;font-weight:600}
 .mercband ul{margin:0 0 0 17px;font-size:12.5px;color:var(--ink2)}
 .mercband li{margin:2px 0}
 .mercband .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
-.deriv .drow{display:flex;justify-content:space-between;gap:14px;padding:10px 14px;border-top:1px solid #F1F3F5;font-size:13.5px;align-items:baseline}
+.deriv .drow{display:flex;justify-content:space-between;gap:14px;padding:10px 14px;border-top:1px solid var(--border-light);font-size:13.5px;align-items:baseline}
 .deriv .drow:first-child{border-top:none}
 .deriv .drow .dl b{display:block;font-weight:600}
 .deriv .drow .dl span{font-size:11.5px;color:var(--ink3)}
 .deriv .drow .dv{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;display:flex;align-items:baseline;gap:6px}
 .deriv .drow .op{color:var(--ink3);font-weight:400}
 .deriv .drow.tot{background:var(--muted);font-weight:700}
-.scorebars .sb{display:grid;grid-template-columns:150px 1fr 120px;align-items:center;gap:12px;padding:8px 14px;border-top:1px solid #F1F3F5;font-size:12.5px}
+.scorebars .sb{display:grid;grid-template-columns:150px 1fr 120px;align-items:center;gap:12px;padding:8px 14px;border-top:1px solid var(--border-light);font-size:12.5px}
 .scorebars .sb:first-child{border-top:none}
 .scorebars .sb .l{font-weight:600;color:var(--ink2)}
 .scorebars .sb .ob{color:var(--ink3);font-variant-numeric:tabular-nums;font-size:12px}
-.scorebars .track{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.scorebars .track{height:6px;border-radius:99px;background:var(--progress-track);overflow:hidden}
 .scorebars .track i{display:block;height:100%;border-radius:99px;background:var(--bar-grad)}
 .scorebars .sb .v{font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
 .scorebars .sb.res{background:var(--muted)}
 .share{display:flex;align-items:center;gap:8px}
-.share .strack{width:56px;height:4px;border-radius:99px;background:var(--line);overflow:hidden;flex-shrink:0}
+.share .strack{width:56px;height:4px;border-radius:99px;background:var(--progress-track);overflow:hidden;flex-shrink:0}
 .share .strack i{display:block;height:100%;background:var(--bar-grad);border-radius:99px}
 .share span{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
-.fitrow{display:flex;align-items:flex-start;gap:10px;padding:9px 14px;border-top:1px solid #F1F3F5}
+.fitrow{display:flex;align-items:flex-start;gap:10px;padding:9px 14px;border-top:1px solid var(--border-light)}
 .fitrow:first-child{border-top:none}
 .fitrow .fi{font-size:14px;line-height:1.3;flex-shrink:0;width:18px;text-align:center}
 .fitrow .fl2{flex:1;min-width:0}
@@ -301,15 +349,15 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
 .fitrow .fd{font-size:12px;color:var(--ink2);margin-top:2px;line-height:1.45}
 .vchip{display:inline-flex;align-items:center;gap:4px;border-radius:5px;padding:1px 8px;font-size:11px;font-weight:700}
 .vchip.pass{background:var(--green-bg);color:var(--green)}
-.vchip.watch{background:var(--warn-bg);color:var(--warn)}
-.vchip.note{background:#ECEEF2;color:var(--ink2)}
+.vchip.watch{background:var(--pill-warning-bg);color:var(--pill-warning-fg)}
+.vchip.note{background:var(--pill-neutral-bg);color:var(--ink2)}
 .tline{padding:2px 14px 10px}
-.tline .te{display:flex;gap:10px;padding:7px 0;border-top:1px solid #F1F3F5;font-size:12.5px}
+.tline .te{display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--border-light);font-size:12.5px}
 .tline .te:first-child{border-top:none}
 .tline .dot{width:8px;height:8px;border-radius:50%;background:var(--ink4);margin-top:5px;flex-shrink:0}
 .tline .dot.merc{background:var(--merc)}
-.tline .dot.green{background:var(--green)}
-.tline .dot.red{background:var(--red)}
+.tline .dot.green{background:var(--success)}
+.tline .dot.red{background:var(--destructive)}
 .tline .tw{color:var(--ink2)}
 .tline .tw b{color:var(--ink);font-weight:600}
 .tline .td2{font-size:11px;color:var(--ink3);margin-top:1px}
@@ -318,49 +366,60 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
 .field{display:flex;flex-direction:column;gap:5px;min-width:170px;flex:1}
 .field label{font-size:12px;font-weight:600;color:var(--ink2)}
 .field input,.field select,.field textarea{border:1px solid var(--line2);border-radius:9px;padding:8px 11px;font-size:13px;background:var(--card);outline:none}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--merc)}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--merc);box-shadow:var(--shadow-focus)}
 .field .help{font-size:11px;color:var(--ink3)}
-.field .err{font-size:11px;color:var(--red)}
-.field input.invalid{border-color:var(--red)}
+.field .err{font-size:11px;color:var(--destructive)}
+.field input.invalid{border-color:var(--destructive)}
 .frow2{display:flex;gap:12px;flex-wrap:wrap}
 .seg{display:flex;border:1px solid var(--line2);border-radius:9px;overflow:hidden;width:fit-content}
 .seg button{padding:6px 16px;font-size:12.5px;font-weight:600;color:var(--ink2);background:var(--card)}
-.seg button.on{background:var(--indigo);color:#fff}
+.seg button.on{background:var(--primary);color:#fff}
 
-/* ── Act / playbook ── */
+/* ── Act / playbook / evidence & versions ── */
 .appr{display:flex;gap:9px;flex-wrap:wrap}
 .appr button{flex:1;min-width:170px;display:flex;flex-direction:column;gap:3px;text-align:left;border:1px solid var(--line2);border-radius:9px;padding:10px 12px;background:var(--card)}
-.appr button.on{background:var(--merc-bg);border-color:#8C5DE1}
+.appr button.on{background:var(--merc-bg);border-color:var(--merc)}
 .appr .al{font-size:13px;font-weight:600;display:flex;justify-content:space-between;gap:6px;align-items:flex-start}
 .appr .rec{flex-shrink:0;background:var(--merc-chip);color:var(--merc);border-radius:5px;padding:1px 7px;font-size:10px;font-weight:700}
 .appr .as{font-size:11px;color:var(--ink3);line-height:1.4}
-.task{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line);width:100%;text-align:left}
+.task{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--border-light);width:100%;text-align:left}
 .task:first-child{border-top:none}
-.task .tk{width:17px;height:17px;border-radius:50%;border:2px solid var(--ink4);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
-.task.done .tk{background:var(--green);border-color:var(--green)}
+.task .tk{width:17px;height:17px;border-radius:50%;border:2px solid var(--border-control);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
+.task.done .tk{background:var(--success);border-color:var(--success)}
 .task.done .tt{color:var(--ink3);text-decoration:line-through}
 .task .tt{font-size:13px}
-.drafttag{display:inline-flex;width:fit-content;align-items:center;gap:5px;background:var(--warn-bg);color:var(--warn);border-radius:5px;padding:2px 9px;font-size:11px;font-weight:700}
+.drafttag{display:inline-flex;width:fit-content;align-items:center;gap:5px;background:var(--pill-warning-bg);color:var(--pill-warning-fg);border-radius:5px;padding:2px 9px;font-size:11px;font-weight:700}
 textarea.draft{width:100%;border:1px solid var(--line2);border-radius:9px;padding:10px 12px;font-family:var(--mono);font-size:11.5px;line-height:1.55;background:var(--card);min-height:180px;resize:vertical}
+.vers{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.vers button{font-size:11px;font-weight:700;border:1px solid var(--line2);border-radius:99px;padding:3px 11px;color:var(--ink2);background:var(--card)}
+.vers button.on{background:var(--merc-bg);border-color:var(--merc);color:var(--merc)}
+.vers .vby{font-size:10.5px;color:var(--ink3)}
+.docrow{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-top:1px solid var(--border-light);font-size:12.5px}
+.docrow:first-child{border-top:none}
+.docrow .di{width:28px;height:28px;border-radius:7px;background:var(--merc-bg);color:var(--merc);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+.docrow ul{margin:3px 0 0 16px;color:var(--ink2);font-size:12px}
+.filebox{display:flex;align-items:center;gap:8px;border:1.5px dashed var(--border-control);border-radius:9px;padding:9px 12px;font-size:12.5px;color:var(--ink2);background:var(--surface-raised);cursor:pointer}
+.filebox:hover{border-color:var(--merc)}
+.filebox input[type=file]{display:none}
 
 /* ── Tracking ── */
 .riskband{display:flex;align-items:flex-start;gap:10px;border-radius:10px;padding:11px 14px;font-size:12.5px}
-.riskband.ok{background:var(--green-bg);color:#14532D}
-.riskband.warn{background:var(--warn-bg);color:#6B5310}
-.riskband.bad{background:var(--red-bg);color:#7A2222}
+.riskband.ok{background:var(--green-bg);color:#14532d}
+.riskband.warn{background:var(--pill-warning-bg);color:var(--pill-warning-fg)}
+.riskband.bad{background:var(--pill-danger-bg);color:var(--pill-danger-fg)}
 .riskband b{display:block;font-size:13px;margin-bottom:1px}
 .riskband .acts{margin-left:auto;display:flex;gap:7px;flex-shrink:0;flex-wrap:wrap}
-.progress{height:7px;border-radius:99px;background:var(--line);overflow:hidden}
-.progress i{display:block;height:100%;background:var(--green2);border-radius:99px}
+.progress{height:7px;border-radius:99px;background:var(--progress-track);overflow:hidden}
+.progress i{display:block;height:100%;background:var(--gradient-progress-green);border-radius:99px}
 
 /* ── Ask Mercer dock ── */
-.mercdock{position:fixed;top:0;right:0;bottom:0;width:390px;background:var(--card);border-left:1px solid var(--line);box-shadow:-8px 0 28px rgba(20,22,50,.08);z-index:90;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .18s ease}
+.mercdock{position:fixed;top:0;right:0;bottom:0;width:390px;background:var(--card);border-left:1px solid var(--line);box-shadow:var(--shadow-panel,-8px 0 28px rgba(9,9,11,.08));z-index:90;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .18s ease}
 .mercdock.on{transform:translateX(0)}
 .mercdock .mdh{display:flex;align-items:center;gap:8px;padding:13px 16px;border-bottom:1px solid var(--line);font-weight:700;font-size:14px}
 .mercdock .ctx{font-size:11px;font-weight:700;background:var(--merc-bg);color:var(--merc);border-radius:99px;padding:2px 10px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mercdock .msgs{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
 .msg{max-width:92%;border-radius:11px;padding:9px 12px;font-size:13px;line-height:1.5}
-.msg.user{align-self:flex-end;background:var(--indigo);color:#fff}
+.msg.user{align-self:flex-end;background:var(--primary);color:#fff}
 .msg.mercer{align-self:flex-start;background:var(--merc-bg);border:1px solid var(--merc-line)}
 .msg .cites{margin-top:7px;padding-top:6px;border-top:1px dashed var(--merc-line);font-size:11px;color:var(--ink3)}
 .msg .cites b{color:var(--merc);font-weight:700}
@@ -369,40 +428,40 @@ textarea.draft{width:100%;border:1px solid var(--line2);border-radius:9px;paddin
 .sugg button:hover{background:var(--merc-chip)}
 .mercin{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line)}
 .mercin input{flex:1;border:1px solid var(--line2);border-radius:9px;padding:8px 12px;font-size:13px;outline:none}
-.mercin input:focus{border-color:var(--merc)}
+.mercin input:focus{border-color:var(--merc);box-shadow:var(--shadow-focus)}
 
 /* ── Explain popover ── */
-.expop{position:fixed;z-index:200;width:330px;background:var(--card);border:1px solid var(--line2);border-radius:12px;box-shadow:var(--sh2);padding:13px 15px;font-size:12.5px}
-.expop .xt{font-weight:700;font-size:13px;margin-bottom:5px;display:flex;justify-content:space-between;gap:8px}
+.expop{position:fixed;z-index:200;width:330px;background:var(--popover,#fff);border:1px solid var(--line2);border-radius:12px;box-shadow:var(--shadow-dropdown);padding:13px 15px;font-size:12.5px}
+.expop .xt{font-weight:700;font-size:13px;margin-bottom:5px;display:flex;justify-content:space-between;gap:8px;color:var(--text-heading)}
 .expop .xf{font-family:var(--mono);font-size:11.5px;background:var(--muted);border-radius:7px;padding:7px 10px;margin:6px 0}
 .expop .xp{display:flex;justify-content:space-between;gap:10px;padding:3px 0;color:var(--ink2)}
 .expop .xp b{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}
-.expop .xl{font-size:11px;color:var(--ink3);margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
+.expop .xl{font-size:11px;color:var(--ink3);margin-top:6px;padding-top:6px;border-top:1px solid var(--border-light)}
 .expop .xgo{margin-top:8px}
 
 /* ── Toasts ── */
 #toasts{position:fixed;left:80px;bottom:18px;z-index:300;display:flex;flex-direction:column;gap:8px}
-.toast{display:flex;align-items:center;gap:9px;background:var(--ink);color:#fff;border-radius:10px;padding:10px 15px;font-size:13px;font-weight:500;box-shadow:var(--sh2);max-width:440px}
-.toast.success{background:#0E5A31}
-.toast.info{background:var(--indigo)}
-.toast .tlink{color:#CFC6FF;font-weight:700;cursor:pointer;white-space:nowrap}
+.toast{display:flex;align-items:center;gap:9px;background:var(--surface-inverse);color:#fff;border-radius:10px;padding:10px 15px;font-size:13px;font-weight:500;box-shadow:var(--sh2);max-width:440px}
+.toast.success{background:#14532d}
+.toast.info{background:var(--info-strong)}
+.toast .tlink{color:#bfdbfe;font-weight:700;cursor:pointer;white-space:nowrap}
 .toast .tlink:hover{text-decoration:underline}
 
 /* ── Empty states ── */
 .empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:44px 20px;text-align:center}
 .empty .ei{width:46px;height:46px;border-radius:12px;background:var(--merc-bg);color:var(--merc);display:flex;align-items:center;justify-content:center;font-size:21px}
 .empty .ei.green{background:var(--green-bg);color:var(--green)}
-.empty .et{font-weight:700;font-size:15px}
+.empty .et{font-weight:700;font-size:15px;color:var(--text-heading)}
 .empty .ed{font-size:12.5px;color:var(--ink3);max-width:380px}
 
 /* ── Demo controls ── */
 .demochip{position:fixed;right:16px;bottom:16px;z-index:85;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
-.demochip .dbtn{background:var(--ink);color:#fff;border-radius:99px;padding:7px 15px;font-size:12px;font-weight:700;box-shadow:var(--sh2);opacity:.82}
+.demochip .dbtn{background:var(--surface-inverse);color:#fff;border-radius:99px;padding:7px 15px;font-size:12px;font-weight:700;box-shadow:var(--sh2);opacity:.82}
 .demochip .dbtn:hover{opacity:1}
-.demomenu{background:var(--card);border:1px solid var(--line2);border-radius:11px;box-shadow:var(--sh2);padding:7px;display:flex;flex-direction:column;gap:2px;min-width:230px}
+.demomenu{background:var(--card);border:1px solid var(--line2);border-radius:11px;box-shadow:var(--shadow-dropdown);padding:7px;display:flex;flex-direction:column;gap:2px;min-width:230px}
 .demomenu button{text-align:left;font-size:12.5px;font-weight:600;padding:7px 10px;border-radius:8px;color:var(--ink2)}
 .demomenu button:hover{background:var(--muted);color:var(--ink)}
-.demomenu .dnote{font-size:10.5px;color:var(--ink3);padding:4px 10px 5px;border-top:1px solid var(--line);margin-top:3px}
+.demomenu .dnote{font-size:10.5px;color:var(--ink3);padding:4px 10px 5px;border-top:1px solid var(--border-light);margin-top:3px}
 .main.mercer-open .demochip{right:406px}
 
 .flash-param{animation:flashp 1.6s ease}
@@ -411,6 +470,11 @@ textarea.draft{width:100%;border:1px solid var(--line2);border-radius:9px;paddin
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="aistar" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#8a49be"/><stop offset="1" stop-color="#396eb6"/>
+  </linearGradient>
+</defs></svg>
 <div id="app">
   <nav class="rail" aria-label="Modules">
     <div class="logo" title="Navanta Lens">NL</div>
@@ -818,6 +882,9 @@ OPPS.forEach(o => {
   o.userInput = o.userInput || { context:"", marketIntel:"", vendorNotes:"", savedAt:null };
   o.ovA = null; o.ovP = null;          // operator figure overrides
   o.play = o.play || { approach:null, done:[] };
+  o.play.docs = o.play.docs || [];          // uploaded evidence + Mercer's read of it
+  o.play.drafts = o.play.drafts || {};      // per kind: [{v, by, note, at, text}]
+  o.play.activeVer = o.play.activeVer || {};// per kind: active version number
   o.rosterTotal = o.roster.reduce((s,v)=>s+v.s,0);
 });
 
@@ -1089,6 +1156,15 @@ const EXPLAINS = {
     ]:[],
     lineage:"Rates are the signed methodology's tiers (Appendix A.6), versioned in the parameter registry.",
   };},
+  upperbound: () => ({
+    title:"Why every Addressable is an upper bound",
+    formula:"addressable = pocket − OEM / sole-source (− incumbent share when consolidating)",
+    params:[
+      { l:"What could shrink it", v:"lines proving sole-source" },
+      { l:"When it firms up", v:"part / spec master lands" },
+    ],
+    lineage:"material_id isn't a cross-vendor part number yet (~80% single-vendor), so contestability is confirmed against the part master before any commit. That's why the note sits once above the table instead of a warning chip on every row.",
+  }),
   impact: () => ({
     title:"Impact ranking",
     formula:"impact = addressable × confidence",
@@ -1228,7 +1304,7 @@ function renderTopbar(){
     <button class="scopebtn" data-act="cycle-scope" title="Scope is a server-side lens — everything on screen re-derives. One persona, three altitudes.">
       Scope <span class="sv">${sc.label}</span> <span style="color:var(--ink3);font-weight:500">· ${sc.sub}</span> <span class="car">▼</span>
     </button>
-    <button class="askbtn" data-act="open-mercer"><svg class="star" viewBox="0 0 24 24" fill="currentColor" style="color:#CFC6FF"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg> Ask Mercer</button>`;
+    <button class="askbtn" data-act="open-mercer"><svg class="star" viewBox="0 0 24 24" fill="#ffffff"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg> Ask Mercer</button>`;
 }
 
 /* Row-resolve choreography (IRIS): flash, fade, drop. */
@@ -1254,18 +1330,28 @@ function renderDashboard(){
   return `<div class="screen">
     ${stamp(SCOPES[S.scope].label+" scope")}
 
-    <!-- What needs me today — every count one click from the work -->
+    <!-- What needs me today — titled cards: what it counts, of what, and why it matters -->
     <div class="astrip">
-      ${acard("merc","◫",feed.length, feed.length===1?"opportunity awaiting triage":"opportunities awaiting triage","feed")}
+      ${acard("merc","◫","Awaiting triage", feed.length, `of ${scoped().filter(o=>o.status!=="rejected").length} opportunities`,
+        "surfaced by the sweep — decide: approve, park or reject","feed",
+        "Opportunities sitting in the feed with no decision yet. Click to open the triage queue.")}
       ${drift.length
-        ? acard("red","⚑",drift.length,"drift — commitment needs review","tracking")
-        : acard("green","✓",0,"drift alerts · all on plan","tracking")}
-      ${acard("green","◎",hi,"high-confidence, ready to qualify","feed")}
-      ${acard("blue","✦",fresh,"new or changed since your last sweep","feed")}
+        ? acard("red","⚑","Drift alerts", drift.length, `of ${tracked.length} committed plays`,
+            "a commitment's evidence changed — review it","tracking",
+            "Engine refreshes never silently change an acted play — drift flags wait for your decision.")
+        : acard("green","✓","Drift alerts", 0, `of ${tracked.length} committed plays`,
+            "all committed plays are on plan","tracking",
+            "No committed play's evidence has drifted since the last sweep.")}
+      ${acard("green","◎","Ready to qualify", hi, `of ${feed.length} in the feed`,
+        "high-confidence (≥60%) — the best place to start","feed",
+        "Feed items whose confidence band is High. Confidence is banded High ≥60 · Medium 30–59 · Directional <30.")}
+      ${acard("blue","✦","New or changed", fresh, `since your last sweep (${fmtDay(RUN.lastSeen.slice(0,10))})`,
+        "what's different since you last looked","feed",
+        "New = surfaced since your last visit. Changed = an existing item's evidence moved (e.g. price movement).")}
     </div>
 
     <div class="mercblock">
-      <div class="mh"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg>
+      <div class="mh"><svg class="star" viewBox="0 0 24 24" fill="url(#aistar)"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg>
         Mercer synthesis <div class="grow"></div><span class="when">Sweep ${fmtDate(RUN.scanDate)} · ${RUN.sweepTime}</span></div>
       <p class="mt">${synth}</p>
     </div>
@@ -1283,9 +1369,9 @@ function renderDashboard(){
       <div class="ph"><span class="t">Value funnel</span><span class="s">portfolio conversion</span><div class="grow"></div>
         <button class="linkbtn" data-act="nav" data-go="tracking">Value Realization →</button></div>
       <div class="pb funnel">
-        ${frow("Identified", idv, idv, `${scoped().filter(o=>o.status!=="rejected").length} opportunities · engine midpoints`, "#59349C")}
-        ${frow("Committed", cm, idv, `${tracked.length} ${tracked.length===1?"play":"plays"} · Σ midpoints · CM-confirmed`, "#2F2B6E")}
-        ${frow("Realized", rz, idv, "measured actuals only", "var(--green2)")}
+        ${frow("Identified", idv, idv, `${scoped().filter(o=>o.status!=="rejected").length} opportunities · engine midpoints`, "var(--merc)")}
+        ${frow("Committed", cm, idv, `${tracked.length} ${tracked.length===1?"play":"plays"} · Σ midpoints · CM-confirmed`, "var(--chart-1)")}
+        ${frow("Realized", rz, idv, "measured actuals only", "var(--chart-4)")}
         <p style="font-size:11px;color:var(--ink3);margin-top:6px">Bars scale to identified value. Realized is never a projection — green is banked value only.</p>
       </div>
     </div>
@@ -1337,10 +1423,14 @@ function renderDashboard(){
     </div>
   </div>`;
 }
-function acard(tone, icon, n, label, go){
-  return `<button class="acard" data-act="nav" data-go="${go}">
+function acard(tone, icon, title, n, of, caption, go, tip){
+  return `<button class="acard" data-act="nav" data-go="${go}" title="${esc(tip)}">
     <span class="ic ${tone}">${icon}</span>
-    <span><span class="n">${n}</span><span class="l" style="display:block">${label}</span></span>
+    <span class="ab">
+      <span class="at2">${esc(title)}</span>
+      <span class="an">${n} <span class="aof">${esc(of)}</span></span>
+      <span class="al">${esc(caption)}</span>
+    </span>
     <span class="go">→</span></button>`;
 }
 function kpi(label, value, caption, explainKey, vcls){
@@ -1361,8 +1451,9 @@ function top10Share(){
 }
 </script>
 <script>
-/* ═══ OPPORTUNITY FEED — declared sort · bulk triage · new/changed chips ·
-       flags at row level · lifecycle tabs · inbox-zero designed state ═══ */
+/* ═══ OPPORTUNITY FEED — categorised & calm: grouped by sub-category, essential
+       columns first, one shared upper-bound note (not a chip storm), declared
+       sort, bulk triage, new/changed chips, inbox-zero. ═══ */
 
 const SORTS = {
   impact:      { label:"Impact — addressable × confidence", fn:o=>impact(o) },
@@ -1372,6 +1463,8 @@ const SORTS = {
   pocket:      { label:"Total spend", fn:o=>o.pocket },
 };
 S.scanOpen = S.scanOpen ?? false;
+S.groupBy = S.groupBy ?? "l2";        // categorised by default — "" = flat list
+S.cols = S.cols ?? "essential";       // essential | all (adds Total spend + Vendors)
 
 function feedRows(){
   let rows;
@@ -1388,6 +1481,19 @@ function feedRows(){
   rows = rows.slice().sort((a,b)=>(s.fn(a)-s.fn(b))*dir);
   return rows;
 }
+/* Groups ordered by their best row under the ACTIVE sort, so "top item first"
+   stays true even when categorised. */
+function feedGroups(rows){
+  if (S.groupBy!=="l2") return [{ key:null, rows }];
+  const m = new Map();
+  rows.forEach(o=>{ if(!m.has(o.l2)) m.set(o.l2,[]); m.get(o.l2).push(o); });
+  const s = SORTS[S.sort]; const asc = S.sortDir==="asc";
+  return [...m.entries()].map(([key,rs])=>({ key, rows:rs }))
+    .sort((a,b)=>{
+      const best = g => asc ? Math.min(...g.rows.map(o=>s.fn(o))) : Math.max(...g.rows.map(o=>s.fn(o)));
+      return asc ? best(a)-best(b) : best(b)-best(a);
+    });
+}
 
 function renderFeed(){
   const rows = feedRows();
@@ -1402,18 +1508,20 @@ function renderFeed(){
   const sLo = survivors.reduce((s,o)=>s+resolveSavings(o).lo,0), sHi = survivors.reduce((s,o)=>s+resolveSavings(o).hi,0);
   const l2Yield = new Set(survivors.map(o=>o.l2)).size;
   const countries = [...new Set(all.map(o=>o.country))].sort();
+  const showAllCols = S.cols==="all";
+  const colCount = (S.tab==="feed"?1:0) + 5 + (showAllCols?2:0);
 
   return `<div class="screen">
     ${stamp(SCOPES[S.scope].label+" scope")}
 
     <!-- Mercer Brief — its ranking claim always matches the ACTIVE sort (audit N2) -->
     <div class="mercblock">
-      <div class="mh"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg>
+      <div class="mh"><svg class="star" viewBox="0 0 24 24" fill="url(#aistar)"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg>
         Mercer Brief <div class="grow"></div><span class="when">Scan run ${fmtDate(RUN.scanDate)}</span></div>
       <p class="mt">Mercer's scan covered <b>${SCAN.length} of ${MRO_L2_TOTAL}</b> MRO sub-categories and surfaced <b>${survivors.length}</b> ${survivors.length===1?"opportunity":"opportunities"} in ${l2Yield} of them — ${fmtC(addr)} addressable, ${fmtRange(sLo,sHi)} estimated savings. ${feedN} await triage; ${trackedN} already committed. Ranked by <b>${SORTS[S.sort].label.split(" — ")[0]}</b>.</p>
       <div class="minitiles">
         <div class="minitile"><div class="v">${fmtM(FOOTPRINT.scannedSpend)}</div><div class="l">Total MRO spend</div><div class="c">AT + AOH combined</div></div>
-        <div class="minitile"><div class="v">${fmtC(addr)}</div><div class="l">Addressable <button class="info" data-act="explain" data-key="addressable" data-opp="${survivors[0]?survivors[0].id:""}" aria-label="What addressable means">i</button></div><div class="c">upper bound · pre part-master</div></div>
+        <div class="minitile"><div class="v">${fmtC(addr)}</div><div class="l">Addressable <button class="info" data-act="explain" data-key="upperbound" aria-label="What addressable means">i</button></div><div class="c">upper bound · pre part-master</div></div>
         <div class="minitile"><div class="v">${fmtRange(sLo,sHi)}</div><div class="l">Savings potential</div><div class="c">lever-tier rates</div></div>
         <div class="minitile"><div class="v">${survivors.length}</div><div class="l">Opportunities</div><div class="c">${feedN} in feed · ${trackedN} committed</div></div>
       </div>
@@ -1429,6 +1537,9 @@ function renderFeed(){
     <div class="panel">
       <div class="ph"><span class="t">Opportunities</span><span class="s">${rows.length} shown</span>
         <div class="grow"></div>
+        <span class="sortlbl">Group:
+          <select data-in="groupby" aria-label="Group rows"><option value="l2" ${S.groupBy==="l2"?"selected":""}>Sub-category</option><option value="" ${S.groupBy===""?"selected":""}>None</option></select>
+        </span>
         <span class="sortlbl">Ranked by:
           <select data-in="sort" aria-label="Ranking rule">${Object.entries(SORTS).map(([k,v])=>`<option value="${k}" ${S.sort===k?"selected":""}>${v.label}</option>`).join("")}</select>
           <button class="info" data-act="explain" data-key="impact" aria-label="About the ranking rule">i</button>
@@ -1440,6 +1551,7 @@ function renderFeed(){
         <select class="fsel" data-in="country" aria-label="Country filter"><option value="">All countries</option>
           ${countries.map(c=>`<option ${S.f.country===c?"selected":""}>${c}</option>`).join("")}</select>
         <button class="ftog ${S.f.hiconf?"on":""}" data-act="toggle-hiconf">High confidence ≥60% <span class="ct">${scoped().filter(o=>FEED_ST.has(o.status)&&o.conf>=60).length}</span></button>
+        <button class="ftog" data-act="toggle-cols" title="Essential shows the decision numbers; All adds Total spend and Vendors">${showAllCols?"Columns: All":"Columns: Essential"}</button>
         ${(S.f.q||S.f.l2||S.f.lever||S.f.country||S.f.hiconf)?`<button class="linkbtn" data-act="clear-filters">Clear all</button>`:""}
       </div>
 
@@ -1457,14 +1569,22 @@ function renderFeed(){
       </div>
 
       ${rows.length===0 ? emptyFeedState() : `
+      <div class="tablenote">ⓘ All <b>&nbsp;Addressable&nbsp;</b> figures are upper bounds — confirmed against the part master before commit.
+        <button class="linkbtn" data-act="explain" data-key="upperbound" style="font-size:11px">why?</button></div>
       <div class="pb tight tblwrap"><table class="tbl">
         <thead><tr>
           ${S.tab==="feed"?`<th style="width:34px"><input type="checkbox" data-act="sel-all" ${rows.length>0&&rows.every(o=>S.sel.has(o.id))?"checked":""} aria-label="Select all"></th>`:""}
-          <th>#</th><th>Opportunity</th><th>Sub-category</th><th>Country</th><th>Lever</th>
-          ${sortTh("pocket","Total spend")}${sortTh("movable","Addressable")}
-          <th class="num">Vendors</th>${sortTh("conf","Confidence")}${sortTh("savings","Savings")}
+          <th>#</th><th>Opportunity</th><th>Lever</th>
+          ${showAllCols?sortTh("pocket","Total spend"):""}
+          ${sortTh("movable","Addressable")}
+          ${showAllCols?`<th class="num">Vendors</th>`:""}
+          ${sortTh("conf","Confidence")}${sortTh("savings","Savings")}
         </tr></thead>
-        <tbody>${rows.map((o,i)=>feedRow(o,i)).join("")}</tbody>
+        <tbody>${(()=>{ let i=0; return feedGroups(rows).map(g=>{
+          const gsum = g.rows.reduce((s,o)=>s+resolveSavings(o).addr,0);
+          return (g.key?`<tr class="grp"><td colspan="${colCount}">${esc(g.key)} · ${g.rows.length} ${g.rows.length===1?"opportunity":"opportunities"}<span class="gv">Σ addressable ${fmtC(gsum)}</span></td></tr>`:"")
+            + g.rows.map(o=>feedRow(o,i++)).join("");
+        }).join(""); })()}</tbody>
       </table></div>`}
     </div>
   </div>`;
@@ -1477,22 +1597,25 @@ function feedRow(o,i){
   const r = resolveSavings(o);
   const res = S.resolving.get(o.id);
   const cls = res ? (res.kind==="committed"?"row-resolved":"row-dismissed")+(res.phase==="fading"?" row-fading":"") : "";
+  const showAllCols = S.cols==="all";
+  /* Only DISTINCTIVE chips at row level (max ~2): New / Changed / Cross-BU.
+     The blanket upper-bound note lives once above the table, not on every row. */
   const flags = [];
   if (S.tab==="feed" && isNewSince(o)) flags.push(`<span class="chip new" title="${esc(o.newSignal||"Surfaced since your last sweep")}">✦ New</span>`);
   if (S.tab==="feed" && isChangedSince(o)) flags.push(`<span class="chip changed" title="${esc(o.changed.note)}">Δ Changed</span>`);
-  if (o.caveats && o.caveats.length && S.tab!=="rejected") flags.push(`<span class="chip flag" title="${esc(o.caveats[0])}">Upper bound</span>`);
   if (o.bu==="Both") flags.push(`<span class="chip both" title="Both AT and AOH buy in this pocket — cross-division synergy">Cross-BU</span>`);
-  const sub = S.tab==="rejected" && o.rejectReason ? `<span class="sub">Rejected · ${esc(o.rejectReason)}</span>`
-    : S.tab==="parked" && o.parkTrigger ? `<span class="sub">Revisit: ${esc(o.parkTrigger)}</span>`
-    : S.tab==="act" ? `<span class="sub">Approved — run the play to commit</span>` : "";
+  const stateSub = S.tab==="rejected" && o.rejectReason ? ` · <span style="color:var(--pill-danger-fg)">Rejected: ${esc(o.rejectReason)}</span>`
+    : S.tab==="parked" && o.parkTrigger ? ` · <span style="color:var(--pill-warning-fg)">Revisit: ${esc(o.parkTrigger)}</span>`
+    : S.tab==="act" ? ` · <span style="color:var(--merc)">Approved — run the play to commit</span>` : "";
   return `<tr class="rowlink ${cls}" data-act="open-opp" data-id="${o.id}">
     ${S.tab==="feed"?`<td data-act="sel-row" data-id="${o.id}"><input type="checkbox" data-act="sel-row" data-id="${o.id}" ${S.sel.has(o.id)?"checked":""} aria-label="Select ${o.id}"></td>`:""}
     <td style="color:var(--ink3);font-variant-numeric:tabular-nums">${i+1}</td>
-    <td><b>${esc(o.l3)}</b> <span style="color:var(--ink3);font-size:11.5px">${o.id}</span><br>${flags.join(" ")}${sub}</td>
-    <td>${esc(o.l2)}</td><td>${esc(o.country)}</td><td>${leverPill(o)}</td>
-    <td class="num">${fmtC(o.pocket)}</td>
+    <td><b>${esc(o.l3)}</b> <span style="color:var(--ink3);font-size:11.5px">${o.id}</span> ${flags.join(" ")}
+      <span class="sub">${esc(o.l2)} · ${esc(o.country)} · ${o.vendorCount} vendors${stateSub}</span></td>
+    <td>${leverPill(o)}</td>
+    ${showAllCols?`<td class="num">${fmtC(o.pocket)}</td>`:""}
     <td class="num">${fmtC(r.addr)}${r.basis==="override"?` <span class="chip new" title="Operator override — workbook was ${fmtC(o.movable)}">ovr</span>`:""}</td>
-    <td class="num">${o.vendorCount}</td>
+    ${showAllCols?`<td class="num">${o.vendorCount}</td>`:""}
     <td class="num">${confMeter(o,"sm",true)}</td>
     <td class="num">${fmtRange(r.lo,r.hi)}</td>
   </tr>`;
@@ -1510,7 +1633,7 @@ function emptyFeedState(){
     <div class="ed">Widen the filters or clear the search to see more of the sweep.</div>
     <button class="btn sm" data-act="clear-filters">Clear all filters</button></div>`;
   return `<div class="empty"><div class="ei">◫</div><div class="et">Nothing here yet</div>
-    <div class="ed">${S.tab==="act"?"Approve an opportunity in the feed to stage its play here.":S.tab==="parked"?"Parked buckets wait here until their revisit trigger fires.":"Rejected buckets stay visible here — each carries its reason, and Mercer's fit screen learns from them."}</div></div>`;
+    <div class="ed">${S.tab==="act"?"Approve an opportunity in the feed to stage its play here.":S.tab==="parked"?"Parked buckets wait here until their revisit trigger fires — and you can approve or reject them directly from the panel.":"Rejected buckets stay visible here — each carries its reason, and Mercer's fit screen learns from them."}</div></div>`;
 }
 </script>
 <script>
@@ -1532,17 +1655,16 @@ function renderQualify(o){
   let bandHtml;
   if (isTracked) bandHtml = `<div style="padding:0 12px 12px"><div class="riskband ok">✓<div><b>Committed · in Value Realization</b>${fmtRange(r.lo,r.hi)} target · ${STATUS_LABELS[o.status]} · owner ${esc(o.committed?.by||"—")}</div></div></div>`;
   else if (isRej) bandHtml = `<div style="padding:0 12px 12px"><div class="riskband bad">✕<div><b>Rejected · ${esc(o.rejectReason||"screened out")}</b>Logged for sweep calibration — stays visible under Rejected.</div></div></div>`;
-  else if (isParked) bandHtml = `<div style="padding:0 12px 12px"><div class="riskband warn">⏸<div><b>Parked · revisit: ${esc(o.parkTrigger||"later")}</b>Resurfaces when its trigger fires.</div></div></div>`;
+  else if (isParked) bandHtml = `<div style="padding:0 12px 12px"><div class="riskband warn">⏸<div><b>Parked · revisit: ${esc(o.parkTrigger||"later")}</b>Resurfaces when its trigger fires — or decide now: approve or reject directly from here, no need to return it to the feed first.</div></div></div>`;
   else if (S.overrideOpen) bandHtml = overrideBand(o,r);
   else bandHtml = `<div class="mercband">
       <span class="cap">Mercer recommends · Confidence ${confWord} (${Math.min(CONF_CEILING,o.conf)}%)</span>
       <span class="head">${esc(o.action)}</span>
       <ul>${o.rationale.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
       ${editable?`<div class="acts">
-        <button class="btn christy sm" data-act="mercer-about-opp">✦ Ask Mercer about this</button>
         <button class="btn sm" data-act="toggle-input">${S.inputOpen?"Hide context":"Add context"}</button>
         <button class="btn sm" data-act="open-override">Override figures</button>
-        <button class="btn christy sm" data-act="approve" ${S.overrideOpen||inputDirty(o)?"disabled":""} title="${S.overrideOpen?"Apply or cancel your override first":inputDirty(o)?"Save or discard your input first":""}">✓ Approve</button>
+        <span style="font-size:11px;color:var(--ink3);align-self:center">Decide in the footer below — one place, always the same order.</span>
       </div>`:""}</div>`;
 
   const body = `
@@ -1553,7 +1675,7 @@ function renderQualify(o){
 
     <div class="mercsum" id="q-sum">
       <div class="msb">
-        <div class="msh"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg> Mercer Summary</div>
+        <div class="msh"><svg class="star" viewBox="0 0 24 24" fill="url(#aistar)"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg> Mercer Summary</div>
         <p>${esc(o.mercerSummary)}</p>
         <div class="mstiles">
           <div class="mstile"><span class="l">Total spend</span><span class="v">${fmtC(o.pocket)}</span><span class="c">in this pocket</span></div>
@@ -1627,18 +1749,24 @@ function renderQualify(o){
       </div>
     </div>`;
 
+  /* Ask Mercer is ALWAYS the left-most footer action, product-wide; decisions
+     sit right, always in the same order. */
   const footer = isTracked
     ? `<button class="btn christy" data-act="mercer-about-opp">✦ Ask Mercer about this</button><div class="grow"></div><button class="btn" data-act="goto-tracking-opp">View in Value Realization ↗</button>`
-    : (isRej||isParked)
+    : isRej
     ? `<button class="btn christy" data-act="mercer-about-opp">✦ Ask Mercer about this</button><div class="grow"></div>
-       ${isParked?`<button class="btn pri" data-act="unpark">Return to feed</button>`:""}
        <button class="btn" data-act="close-panel">Close</button>`
+    : isParked
+    ? `<button class="btn christy" data-act="mercer-about-opp">✦ Ask Mercer about this</button><div class="grow"></div>
+       <button class="btn" data-act="req-reject">Reject</button>
+       <button class="btn" data-act="unpark">Return to feed</button>
+       <button class="btn pri" data-act="approve">✓ Approve</button>`
     : o.status==="accepted"
-    ? `<div class="grow"></div><button class="btn pri" data-act="open-act">Run the play →</button>`
-    : `<div class="grow"></div>
+    ? `<button class="btn christy" data-act="mercer-about-opp">✦ Ask Mercer about this</button><div class="grow"></div><button class="btn pri" data-act="open-act">Run the play →</button>`
+    : `<button class="btn christy" data-act="mercer-about-opp">✦ Ask Mercer about this</button><div class="grow"></div>
        <button class="btn" data-act="req-reject">Reject</button>
        <button class="btn" data-act="req-park">Park</button>
-       <button class="btn christy" data-act="approve" ${S.overrideOpen||inputDirty(o)?"disabled":""} title="${S.overrideOpen?"Apply or cancel your override first":inputDirty(o)?"Save or discard your input first":""}">✓ Approve</button>`;
+       <button class="btn pri" data-act="approve" ${S.overrideOpen||inputDirty(o)?"disabled":""} title="${S.overrideOpen?"Apply or cancel your override first":inputDirty(o)?"Save or discard your input first":""}">✓ Approve</button>`;
 
   return modalShell("qualify", o.id, o.l3+" · "+o.country, `
       <span class="metachip">${esc(o.l2)} · ${esc(o.country)}</span>
@@ -1814,14 +1942,51 @@ function rejectDialog(){
 }
 </script>
 <script>
-/* ═══ ACT — run the play. Commit requires timing + basis (audit N9). ═══ */
+/* ═══ ACT — run the play. Evidence in → Mercer analyzes → drafts regenerate as
+       VERSIONS the user can edit and restore. Commit requires timing + basis. ═══ */
 
-S.actDraft = { timing:"", basis:"", draftKind:null, draftText:"" };
+S.actDraft = { timing:"", basis:"", draftKind:null, draftText:"", docName:"", docNote:"" };
 const COMMIT_BASES = ["Signed contract","RFP awarded","Terms agreed with supplier","Budget-approved plan","Verbal / in principle"];
 function upcomingQuarters(count=8){
   const now = new Date();                        // real clock — no mock TODAY (audit N8)
   let q = Math.floor(now.getMonth()/3)+1, y = now.getFullYear();
   const out=[]; for(let i=0;i<count;i++){ out.push(`Q${q} ${y}`); if(++q>4){q=1;y+=1;} } return out;
+}
+
+/* Mercer's read of an uploaded doc / pasted note — keyword-grounded, never invented. */
+function analyzeEvidence(name, note){
+  const t = ((name||"")+" "+(note||"")).toLowerCase();
+  const out = [];
+  if (/quote|price|rate|\$|discount|gal|unit/.test(t)) out.push("Quoted unit prices sit below the current blended rate — supports the stretch outcome; cited in the pricing section.");
+  if (/term|payment|net\s?\d+/.test(t)) out.push(`Quoted payment terms noted vs the Net ${prm("benchmark_terms_target")} benchmark — a terms ask is folded into the award language.`);
+  if (/contract|clause|exit|notice|renewal/.test(t)) out.push("Contract language noted — exit/notice periods checked before volume moves.");
+  if (/spec|quality|cert|iso/.test(t)) out.push("Spec / certification evidence noted — folded into the requirements section.");
+  if (!out.length) out.push("Context noted and saved to the play's evidence — folded into the draft framing.");
+  return out;
+}
+function evidenceLines(o){
+  return o.play.docs.flatMap(d=>d.insights.map(i=>`- ${d.name?`[${d.name}] `:""}${i}`));
+}
+function draftVersions(o, kind){ return o.play.drafts[kind] || []; }
+function activeDraft(o, kind){
+  const vs = draftVersions(o, kind); if(!vs.length) return null;
+  const av = o.play.activeVer[kind] ?? vs[vs.length-1].v;
+  return vs.find(x=>x.v===av) || vs[vs.length-1];
+}
+function pushDraftVersion(o, kind, by, note, text){
+  const vs = o.play.drafts[kind] = o.play.drafts[kind] || [];
+  const v = (vs.length?vs[vs.length-1].v:0)+1;
+  vs.push({ v, by, note, at:todayISO(), text });
+  o.play.activeVer[kind] = v;
+  return v;
+}
+function genDraft(o, kind){
+  const r = resolveSavings(o);
+  const anchor = o.roster.find(v=>v.win);
+  let text = kind==="outreach" ? outreachDraft(o,r,anchor?anchor.n:null) : rfpDraft(o,r);
+  const ev = evidenceLines(o);
+  if (ev.length) text += `\n\nContext from your evidence (Mercer):\n${ev.join("\n")}`;
+  return text;
 }
 
 function renderAct(o){
@@ -1832,17 +1997,19 @@ function renderAct(o){
   const done = new Set(o.play.done);
   const d = S.actDraft;
   const canCommit = d.timing!=="" && d.basis!=="";
-  const anchor = o.roster.find(v=>v.win);
+  const canAnalyze = (d.docName.trim()!=="" || d.docNote.trim()!=="");
+  const active = d.draftKind ? activeDraft(o, d.draftKind) : null;
+  const draftDirty = !!(active && d.draftText !== active.text);
 
   const body = `
     <div class="mercsum"><div class="msb">
-      <div class="msh"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg>
+      <div class="msh"><svg class="star" viewBox="0 0 24 24" fill="url(#aistar)"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg>
         Executing · Confidence ${Math.min(CONF_CEILING,o.conf)}% · ${band(o.conf).word}</div>
       <p style="font-weight:600">${esc(o.action)}</p>
       <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px">
         <span>Addressable <b style="font-variant-numeric:tabular-nums">${fmtC(r.addr)}</b></span>
         <span>Target savings <b style="font-variant-numeric:tabular-nums">${fmtRange(r.lo,r.hi)}</b></span>
-        ${anchor?`<span>Lead · <b>${esc(anchor.n)}</b></span>`:""}
+        ${o.roster.find(v=>v.win)?`<span>Lead · <b>${esc(o.roster.find(v=>v.win).n)}</b></span>`:""}
       </div></div></div>
 
     <div class="eblock"><div class="eh">⚑ Choose an approach</div>
@@ -1860,14 +2027,40 @@ function renderAct(o){
           <span class="tk">${done.has(t)?"✓":""}</span><span class="tt">${esc(t)}</span></button>`).join("")}
       </div></div>
 
-    <div class="eblock"><div class="eh">✉ Draft with Mercer</div>
+    <!-- Evidence in → Mercer analyzes → drafts regenerate as new versions -->
+    <div class="eblock"><div class="eh">⎙ Evidence &amp; context · Mercer analyzes <div class="grow"></div>
+      ${o.play.docs.length?`<span style="font-size:11.5px;color:var(--ink3)">${o.play.docs.length} item${o.play.docs.length===1?"":"s"} on file</span>`:""}</div>
+      <div class="eb" style="display:flex;flex-direction:column;gap:9px">
+        <p style="font-size:12px;color:var(--ink2)">The checklist is yours to work — as you gather quotes, contracts or supplier notes, drop them here. Mercer reads them, saves the insight to the play, and re-issues the drafts below as a new version (your edits are never overwritten — everything is versioned).</p>
+        <label class="filebox">📎 <input type="file" data-in="act-file">
+          <span>${d.docName?esc(d.docName):"Attach a document — quote sheet, contract, spec…"}</span></label>
+        <div class="field"><textarea rows="2" data-in="act-docnote" placeholder="…or paste the key numbers / context. e.g. “PetroChoice quote: 15W-40 bulk at $2.86/gal, Net 45.”">${esc(d.docNote)}</textarea></div>
+        <div style="display:flex;justify-content:flex-end"><button class="btn christy sm" data-act="analyze-doc" ${canAnalyze?"":"disabled"} title="${canAnalyze?"":"Attach a file or add a note first"}">✦ Analyze &amp; fold into drafts</button></div>
+        ${o.play.docs.length?`<div style="border-top:1px solid var(--border-light)">
+          ${o.play.docs.map(doc=>`<div class="docrow"><span class="di">⎙</span>
+            <div><b>${esc(doc.name||"Pasted note")}</b> <span style="color:var(--ink3);font-size:11px">· analyzed ${fmtDay(doc.at)}</span>
+            ${doc.note?`<div style="color:var(--ink3);font-size:11.5px">“${esc(doc.note.length>90?doc.note.slice(0,90)+"…":doc.note)}”</div>`:""}
+            <ul>${doc.insights.map(i=>`<li>${esc(i)}</li>`).join("")}</ul></div></div>`).join("")}
+        </div>`:""}
+      </div></div>
+
+    <div class="eblock"><div class="eh">✉ Draft with Mercer <div class="grow"></div>
+      <span style="font-size:11px;color:var(--ink3)">grounded in the play's data + your evidence · never auto-sent</span></div>
       <div class="eb" style="display:flex;flex-direction:column;gap:9px">
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn sm ${d.draftKind==="outreach"?"pri":""}" data-act="draft" data-kind="outreach">✦ Supplier outreach</button>
           <button class="btn sm ${d.draftKind==="rfp"?"pri":""}" data-act="draft" data-kind="rfp">✦ RFP scaffold</button>
         </div>
-        ${d.draftKind?`<span class="drafttag">Template — customize before sending · never auto-sent</span>
-          <textarea class="draft" data-in="draft-text" rows="${d.draftKind==="rfp"?13:9}">${esc(d.draftText)}</textarea>`:""}
+        ${d.draftKind && active?`
+          <div class="vers">Versions:
+            ${draftVersions(o,d.draftKind).map(ver=>`<button class="${ver.v===active.v?"on":""}" data-act="draft-ver" data-kind="${d.draftKind}" data-v="${ver.v}" title="${esc(ver.by)} · ${esc(ver.note)} · ${fmtDay(ver.at)}">v${ver.v}</button>`).join("")}
+            <span class="vby">v${active.v} · ${esc(active.by)} · ${esc(active.note)}</span>
+          </div>
+          <span class="drafttag">Template — customize before sending · every save is a new version</span>
+          <textarea class="draft" data-in="draft-text" rows="${d.draftKind==="rfp"?13:9}">${esc(d.draftText)}</textarea>
+          <div style="display:flex;justify-content:flex-end;gap:8px">
+            <button class="btn sm" data-act="save-draft-version" ${draftDirty?"":"disabled"} title="${draftDirty?"":"Edit the text to save a new version"}">Save edit as v${draftVersions(o,d.draftKind).length+1}</button>
+          </div>`:""}
       </div></div>
 
     <div class="eblock"><div class="eh">✓ Commit the value</div>
@@ -1876,17 +2069,19 @@ function renderAct(o){
           <span style="font-size:13px;color:var(--ink2)">Committing target</span>
           <span style="font-size:15px;font-weight:700;font-variant-numeric:tabular-nums">${fmtRange(r.lo,r.hi)} <span style="font-size:11px;color:var(--ink3);font-weight:500">midpoint ${fmtC(r.mid)} — tracked as such</span></span></div>
         <div class="frow2">
-          <div class="field"><label>Expected timing <span style="color:var(--red)">*</span></label>
+          <div class="field"><label>Expected timing <span style="color:var(--destructive)">*</span></label>
             <select data-in="act-timing"><option value="">Select a quarter</option>${upcomingQuarters().map(q=>`<option ${d.timing===q?"selected":""}>${q}</option>`).join("")}</select></div>
-          <div class="field"><label>Commitment basis <span style="color:var(--red)">*</span></label>
+          <div class="field"><label>Commitment basis <span style="color:var(--destructive)">*</span></label>
             <select data-in="act-basis"><option value="">What it's based on</option>${COMMIT_BASES.map(b=>`<option ${d.basis===b?"selected":""}>${b}</option>`).join("")}</select></div>
         </div>
         <p style="font-size:11.5px;color:var(--ink3)">Both fields are required — a committed number without a stated basis can't be audited. “Commit value” books this into Value Realization; realized then tracks against the baseline as the contract executes.</p>
       </div></div>`;
 
   const footer = `
-    <button class="btn" data-act="close-act">Close</button><div class="grow"></div>
-    <button class="btn christy" data-act="commit" ${canCommit?"":"disabled"} title="${canCommit?"":"Select the expected timing and the commitment basis first"}">✓ Commit value</button>`;
+    <button class="btn christy" data-act="mercer-about-opp">✦ Ask Mercer about this</button>
+    <div class="grow"></div>
+    <button class="btn" data-act="close-act">Close</button>
+    <button class="btn pri" data-act="commit" ${canCommit?"":"disabled"} title="${canCommit?"":"Select the expected timing and the commitment basis first"}">✓ Commit value</button>`;
 
   return modalShell("act", o.id, o.l3+" · "+o.country+" — run the play", `
     <span class="metachip">${esc(o.l2)} · ${esc(o.country)}</span>${confMeter(o,"md",true)}`, body, footer);
@@ -2513,7 +2708,7 @@ function renderMercer(){
   dock.classList.toggle("on", S.mercerOpen);
   if (!S.mercerOpen){ dock.innerHTML=""; return; }
   dock.innerHTML = `
-    <div class="mdh"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg>
+    <div class="mdh"><svg class="star" viewBox="0 0 24 24" fill="url(#aistar)"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg>
       Ask Mercer <span class="ctx" title="Mercer sees what you see — answers are scoped to this view">${esc(ctxLabel())}</span>
       <div style="flex:1"></div><button class="mclose" data-act="mercer-close" aria-label="Close">✕</button></div>
     <div class="msgs" id="mercer-msgs">
@@ -2618,6 +2813,7 @@ function onClick(e){
     case "feed-tab": S.tab=t.dataset.tab; S.sel.clear(); render(); break;
     case "sort-col": { const k=t.dataset.key; if(S.sort===k) S.sortDir=S.sortDir==="desc"?"asc":"desc"; else {S.sort=k;S.sortDir="desc";} render(); break; }
     case "toggle-hiconf": S.f.hiconf=!S.f.hiconf; S.sel.clear(); render(); break;
+    case "toggle-cols": S.cols = S.cols==="all"?"essential":"all"; render(); break;
     case "clear-filters": S.f={l2:null,lever:null,country:null,hiconf:false,q:""}; S.sel.clear(); render(); break;
     /* Selection only ever covers VISIBLE, non-resolving rows — a filter change
        clears it, so bulk actions can never touch a row the user can't see. */
@@ -2634,7 +2830,7 @@ function onClick(e){
       S.activeId=id; S.vPanel=false; S.trackPanel=false;
       S.overrideOpen=false; S.inputOpen=false; S.rosterExpanded=false; S.fitDetail=false;
       S.inputDraft=null; S.inputDraftId=null;
-      if (opp.status==="accepted"){ S.actOpen=true; S.actDraft={timing:"",basis:"",draftKind:null,draftText:""}; }
+      if (opp.status==="accepted"){ S.actOpen=true; S.actDraft={timing:"",basis:"",draftKind:null,draftText:"",docName:"",docNote:""}; }
       else { S.panelOpen=true; if(opp.status==="surfaced") opp.status="qualifying"; }
       render(); break; }
     /* qualify */
@@ -2659,8 +2855,9 @@ function onClick(e){
       if(!o.rationale.some(x=>x.startsWith("Regenerated"))) o.rationale.push(`Regenerated ${fmtDate(todayISO())} folding in your saved input.`);
       toast("Analysis regenerated with your input","success"); render(); } break;
     case "approve": if(o){
-      o.status="accepted";
-      o.events.push({at:todayISO(),actor:"Maria Vance",kind:"qualified",note:"Approved — moved to Act"});
+      const fromParked = o.status==="parked";
+      o.status="accepted"; if(fromParked) o.parkTrigger=null;
+      o.events.push({at:todayISO(),actor:"Maria Vance",kind:"qualified",note:fromParked?"Approved directly from Parked — moved to Act":"Approved — moved to Act"});
       S.panelOpen=false; S.tab="act";
       toast(`${o.id} approved — run the play to commit the value`,"success"); render(); } break;
     case "req-reject": S.bulkKind=null; S.dlg.rejReason=""; S.dlg.rejNote=""; S.rejectOpen=true; render(); break;
@@ -2671,7 +2868,7 @@ function onClick(e){
       const visible = new Set(feedRows().map(x=>x.id));
       const ids = S.bulkKind==="park" ? [...S.sel].filter(id=>visible.has(id)) : [S.activeId];
       ids.forEach(id=>{ const x=oppById(id); if(!x) return; x.status="parked"; x.parkTrigger=trigger;
-        x.events.push({at:todayISO(),actor:"Maria Vance",kind:"parked",note:"Revisit: "+trigger}); beginResolve(id,"parked"); });
+        x.events.push({at:todayISO(),actor:"Maria Vance",kind:"parked",note:"Revisit: "+trigger}); if(S.tab==="feed") beginResolve(id,"parked"); });
       S.parkOpen=false; S.panelOpen=false; S.bulkKind=null; S.sel.clear();
       toast(`Parked ${ids.length>1?ids.length+" opportunities":ids[0]} — revisit: ${trigger}`,"info"); render(); break; }
     case "reject-confirm": {
@@ -2679,7 +2876,7 @@ function onClick(e){
       const visible = new Set(feedRows().map(x=>x.id));
       const ids = S.bulkKind==="reject" ? [...S.sel].filter(id=>visible.has(id)) : [S.activeId];
       ids.forEach(id=>{ const x=oppById(id); if(!x) return; x.status="rejected"; x.rejectReason=reason;
-        x.events.push({at:todayISO(),actor:"Maria Vance",kind:"rejected",note:reason}); beginResolve(id,"rejected"); });
+        x.events.push({at:todayISO(),actor:"Maria Vance",kind:"rejected",note:reason}); if(S.tab==="feed") beginResolve(id,"rejected"); });
       S.rejectOpen=false; S.panelOpen=false; S.bulkKind=null; S.sel.clear();
       toast(`Rejected ${ids.length>1?ids.length+" opportunities":ids[0]} — logged for sweep calibration`,"info"); render(); break; }
     case "dlg-cancel": S.parkOpen=false; S.rejectOpen=false; S.bulkKind=null; render(); break;
@@ -2691,15 +2888,38 @@ function onClick(e){
     case "goto-tracking-opp": S.panelOpen=false; S.screen="tracking"; S.trackActive=S.activeId; S.trackPanel=true; render(); break;
     case "open-qualify-ro": S.trackPanel=false; S.activeId=S.trackActive; S.panelOpen=true; render(); break;
     /* act */
-    case "open-act": S.panelOpen=false; S.actOpen=true; S.actDraft={timing:"",basis:"",draftKind:null,draftText:""}; render(); break;
+    case "open-act": S.panelOpen=false; S.actOpen=true; S.actDraft={timing:"",basis:"",draftKind:null,draftText:"",docName:"",docNote:""}; render(); break;
     case "close-act": S.actOpen=false; render(); break;
     case "pick-approach": if(o){ o.play.approach=t.dataset.pb; render(); } break;
     case "toggle-task": if(o){ const task=t.dataset.task; const i=o.play.done.indexOf(task);
       i>=0?o.play.done.splice(i,1):o.play.done.push(task); render(); } break;
     case "save-play": toast("Progress saved","success"); break;
-    case "draft": if(o){ const r=resolveSavings(o); const anchor=o.roster.find(v=>v.win);
-      S.actDraft.draftKind=t.dataset.kind;
-      S.actDraft.draftText = t.dataset.kind==="outreach"?outreachDraft(o,r,anchor?anchor.n:null):rfpDraft(o,r); render(); } break;
+    case "draft": if(o){ const kind=t.dataset.kind;
+      if(!draftVersions(o,kind).length) pushDraftVersion(o, kind, "Mercer", "generated from the play's engine data"+(o.play.docs.length?" + your evidence":""), genDraft(o,kind));
+      S.actDraft.draftKind=kind;
+      S.actDraft.draftText=activeDraft(o,kind).text; render(); } break;
+    case "draft-ver": if(o){ const kind=t.dataset.kind; o.play.activeVer[kind]=+t.dataset.v;
+      S.actDraft.draftText=activeDraft(o,kind).text; render(); } break;
+    case "save-draft-version": if(o && S.actDraft.draftKind){
+      const kind=S.actDraft.draftKind;
+      const v=pushDraftVersion(o, kind, "Maria Vance", "manual edit", S.actDraft.draftText);
+      o.events.push({at:todayISO(),actor:"Maria Vance",kind:"note",note:`Saved ${kind==="rfp"?"RFP scaffold":"supplier outreach"} v${v}`});
+      toast(`Saved as v${v} — earlier versions stay selectable`,"success"); render(); } break;
+    case "analyze-doc": if(o){
+      const name=S.actDraft.docName.trim(), note=S.actDraft.docNote.trim();
+      if(!name && !note) break;
+      const insights=analyzeEvidence(name,note);
+      o.play.docs.push({ name, note, at:todayISO(), insights });
+      /* Re-issue every draft kind that already exists as a NEW Mercer version —
+         the user's saved versions are never touched. */
+      Object.keys(o.play.drafts).forEach(kind=>{
+        if(draftVersions(o,kind).length) pushDraftVersion(o, kind, "Mercer", `folded in ${name||"your note"}`, genDraft(o,kind));
+      });
+      if(S.actDraft.draftKind && draftVersions(o,S.actDraft.draftKind).length)
+        S.actDraft.draftText=activeDraft(o,S.actDraft.draftKind).text;
+      o.events.push({at:todayISO(),actor:"Mercer",kind:"note",note:`Analyzed ${name||"pasted context"} — ${insights.length} insight${insights.length===1?"":"s"} saved to the play`});
+      S.actDraft.docName=""; S.actDraft.docNote="";
+      toast(`Mercer analyzed ${name||"your note"} — drafts re-issued as a new version`,"success"); render(); } break;
     case "commit": if(o && S.actDraft.timing && S.actDraft.basis){
       const r=resolveSavings(o);
       o.status="committed"; o.live=false;
@@ -2778,6 +2998,10 @@ function onClick(e){
 
 function onChange(e){
   const t=e.target; if(!t.dataset||!t.dataset.in) return;
+  /* Keys handled surgically on 'input' must NOT trigger a full re-render here:
+     the blur-time 'change' would replace the modal mid-click and the button
+     under the pointer would be detached before the click lands. */
+  if (["act-docnote","draft-text","mercer-q"].includes(t.dataset.in)) return;
   handleInput(t, true);
 }
 function onInput(e){
@@ -2785,7 +3009,22 @@ function onInput(e){
   const k=t.dataset.in;
   /* free-text state that shouldn't re-render per keystroke */
   if (k==="mercer-q"){ S.mercerInput=t.value; return; }
-  if (k==="draft-text"){ S.actDraft.draftText=t.value; return; }
+  /* Modal text fields update state + surgically toggle their action button —
+     no full re-render mid-keystroke (it races the browser's blur handling). */
+  if (k==="draft-text"){
+    S.actDraft.draftText=t.value;
+    const o=S.activeId?oppById(S.activeId):null;
+    const act=o&&S.actDraft.draftKind?activeDraft(o,S.actDraft.draftKind):null;
+    const b=document.querySelector('[data-act="save-draft-version"]');
+    if(b&&act) b.disabled = t.value===act.text;
+    return;
+  }
+  if (k==="act-docnote"){
+    S.actDraft.docNote=t.value;
+    const b=document.querySelector('[data-act="analyze-doc"]');
+    if(b) b.disabled = !(t.value.trim()!==""||S.actDraft.docName.trim()!=="");
+    return;
+  }
   if (["yi-context","yi-market","yi-vendor","park-other","rej-note","ov-a","ov-p","q","vq","ve-lead","ve-terms","mparam","mparam-lo","mparam-hi","park-date"].includes(k)){
     handleInput(t, true);
   }
@@ -2794,6 +3033,7 @@ function handleInput(t, rerender){
   const k=t.dataset.in, v=t.value;
   switch(k){
     case "l2": S.f.l2 = v||null; S.sel.clear(); break;
+    case "groupby": S.groupBy = v; break;
     case "sort": S.sort = v; S.sortDir="desc"; break;
     case "q": S.f.q = v; S.sel.clear(); break;
     case "lever": S.f.lever = v||null; S.sel.clear(); break;
@@ -2810,6 +3050,9 @@ function handleInput(t, rerender){
     case "rej-note": S.dlg.rejNote=v; break;
     case "act-timing": S.actDraft.timing=v; break;
     case "act-basis": S.actDraft.basis=v; break;
+    case "act-file": S.actDraft.docName = (t.files && t.files[0] && t.files[0].name) || v.split(/[\\/]/).pop() || ""; break;
+    case "act-docnote": S.actDraft.docNote=v; break;
+    case "draft-text": break; /* state already set in onInput; re-render refreshes Save-as-vN */
     case "vq": S.vf.q=v; break;
     case "vrole": S.vf.role=v||null; break;
     case "vl2": S.vf.l2=v||null; break;

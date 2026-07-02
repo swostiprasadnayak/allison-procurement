@@ -1,6 +1,27 @@
 # Navanta Lens — Design Prototypes
 
-## `navanta_lens_prototype_v2.html`
+## `navanta_lens_prototype_v2.html` (v2.1)
+
+**v2.1** restyles the prototype onto the *genuine* `@navanta-ai/design-system`
+v0.4.13 tokens — several differ from what the app currently hardcodes and are
+worth reconciling in `frontend/`:
+
+| Token | Design system says | App hardcodes |
+|---|---|---|
+| Primary CTA | charcoal `#232122`, hover `#000` | indigo `#2F2B6E` |
+| AI / Christy CTA | gradient `154.42deg #1d4a86 → #3d348b` | flat purple |
+| Brand accent | `#6440b6` (`--kds-color-brand-accent`) | `#59349C` |
+| Status pills | tonal 50/800 pairs (`--pill-*-bg/fg`) | ad-hoc tints |
+| Progress fills | held-light → dark-at-tip gradients (Figma spec) | flat/simple gradients |
+
+v2.1 also adds five UX corrections: titled attention cards with denominators
+("Awaiting triage · 5 of 7 opportunities"); **Ask Mercer always left-most in
+every decision footer**; an Act **evidence loop** (attach/paste → Mercer
+analyzes → insights saved to the play → drafts re-issued as versions; manual
+edits save as new versions, all selectable); **parked opportunities can be
+approved or rejected directly**; and a decluttered feed (grouped by
+sub-category with Σ-addressable headers, essential-columns default + "All"
+toggle, one shared upper-bound note instead of a chip on every row).
 
 The **to-be experience reference** for the frontend, rebuilt (Jul 2026) against the
 *deployed* build rather than the discovery workbook. Open it in any browser — single

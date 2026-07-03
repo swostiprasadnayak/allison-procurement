@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Opportunity Experience Blueprint — Feed to Realized, End to End</title>
+<style>
+  :root{
+    --ink:#1a1d23; --ink-2:#4a4f5a; --ink-3:#7a808c;
+    --bg:#ffffff; --bg-2:#f6f7f9; --bg-3:#eef0f3;
+    --line:#e2e5ea; --line-2:#cdd2d9;
+    --accent:#6440b6; --accent-soft:#efeafb;
+    --blue:#1d4a86; --blue-soft:#eaf1fb;
+    --good:#1e7d4f; --good-soft:#e7f4ed;
+    --warn:#9a6b00; --warn-soft:#faf3e0;
+    --bad:#a13232; --bad-soft:#f9ecec;
+    --christy:linear-gradient(154.42deg,#1d4a86 1.66%,#3d348b 83.4%);
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;color:var(--ink);background:#fbfbfc;line-height:1.52;font-size:15px}
+  .wrap{max-width:1500px;margin:0 auto;padding:0 30px 90px}
+
+  header.doc{padding:46px 0 24px;border-bottom:3px solid var(--ink)}
+  header.doc .kicker{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:800;margin-bottom:9px}
+  header.doc h1{font-size:30px;line-height:1.16;letter-spacing:-.012em}
+  header.doc .sub{margin-top:12px;color:var(--ink-2);max-width:980px;font-size:15px}
+  header.doc .meta{margin-top:14px;font-size:12.5px;color:var(--ink-3)}
+  header.doc .meta code{font-family:var(--mono);font-size:11.5px;background:var(--bg-3);padding:1px 6px;border-radius:4px}
+
+  /* stat strip of live data */
+  .livebar{display:flex;flex-wrap:wrap;gap:0;margin:22px 0 0;border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}
+  .livebar .cell{flex:1;min-width:150px;padding:14px 18px;border-right:1px solid var(--line)}
+  .livebar .cell:last-child{border-right:none}
+  .livebar .l{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--ink-3);margin-bottom:3px}
+  .livebar .v{font-size:19px;font-weight:700;letter-spacing:-.01em}
+  .livebar .d{font-size:11.5px;color:var(--ink-3);margin-top:1px}
+
+  nav.toc{margin:26px 0 0;padding:18px 22px;background:var(--bg-2);border:1px solid var(--line);border-radius:10px}
+  nav.toc .t{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:800;margin-bottom:8px}
+  nav.toc ol{margin-left:20px;columns:3;column-gap:36px;font-size:13.5px}
+  nav.toc li{margin:3px 0}
+  nav.toc a{color:var(--blue);text-decoration:none}
+  nav.toc a:hover{text-decoration:underline}
+
+  section{margin-top:64px}
+  .snum{display:inline-block;font-family:var(--mono);font-size:12.5px;color:var(--accent);font-weight:700;margin-bottom:6px}
+  h2{font-size:24px;letter-spacing:-.012em;padding-bottom:11px;border-bottom:2px solid var(--ink);margin-bottom:10px}
+  .lede{color:var(--ink-2);margin:12px 0 6px;max-width:960px;font-size:14.5px}
+  h3{font-size:17.5px;margin:28px 0 10px;letter-spacing:-.01em}
+
+  /* ============ flow map ============ */
+  .flowmap{overflow-x:auto;padding:6px 0 14px}
+  .fm-lane{display:flex;align-items:stretch;gap:0;min-width:1340px;margin-top:14px}
+  .fm-node{position:relative;flex:1;min-width:150px;border:1.5px solid var(--line-2);border-radius:11px;background:#fff;padding:13px 14px 12px;box-shadow:0 1px 2px rgba(20,25,35,.05)}
+  .fm-node .st{font-size:10px;letter-spacing:.11em;text-transform:uppercase;font-weight:800;color:var(--ink-3);margin-bottom:4px}
+  .fm-node .nm{font-size:14px;font-weight:700;line-height:1.25;margin-bottom:4px}
+  .fm-node p{font-size:11.5px;color:var(--ink-2);line-height:1.4}
+  .fm-node.main{border-color:var(--blue)}
+  .fm-node.main .st{color:var(--blue)}
+  .fm-node.dead{border-style:dashed;border-color:var(--bad);background:var(--bad-soft)}
+  .fm-node.dead .st{color:var(--bad)}
+  .fm-node.tobe{border-style:dashed;border-color:var(--good);background:var(--good-soft)}
+  .fm-node.tobe .st{color:var(--good)}
+  .fm-arrow{flex:0 0 26px;display:flex;align-items:center;justify-content:center;color:#b9c0cc}
+  .fm-branchrow{display:flex;gap:16px;min-width:1340px;margin-top:16px}
+  .fm-branch{flex:1;display:flex;align-items:stretch;gap:0}
+  .fm-tag{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.05em;padding:1px 7px;border-radius:99px;margin-left:6px;vertical-align:middle}
+  .fm-tag.dead{background:var(--bad);color:#fff}
+  .fm-tag.new{background:var(--good);color:#fff}
+
+  .maplegend{display:flex;flex-wrap:wrap;gap:18px;margin-top:14px;font-size:12px;color:var(--ink-2)}
+  .maplegend .i{display:flex;align-items:center;gap:7px}
+  .sw{width:22px;height:13px;border-radius:4px;border:1.5px solid var(--line-2);background:#fff}
+  .sw.b{border-color:var(--blue)}
+  .sw.r{border-color:var(--bad);border-style:dashed;background:var(--bad-soft)}
+  .sw.g{border-color:var(--good);border-style:dashed;background:var(--good-soft)}
+
+  /* ============ stage sections ============ */
+  .stage{border:1px solid var(--line);border-radius:14px;background:#fff;margin-top:26px;overflow:hidden;box-shadow:0 1px 3px rgba(20,25,35,.05)}
+  .stage-head{padding:18px 24px 14px;border-bottom:1px solid var(--line);background:var(--bg-2);display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .stage-head .num{font-family:var(--mono);font-size:13px;font-weight:800;color:#fff;background:var(--accent);border-radius:7px;padding:3px 9px}
+  .stage-head h3{margin:0;font-size:19px}
+  .stage-head .route{font-size:12px;color:var(--ink-3);font-family:var(--mono)}
+  .stage-body{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  @media(max-width:1000px){.stage-body{grid-template-columns:1fr}}
+  .asis,.tobe-col{padding:18px 24px 22px}
+  .asis{border-right:1px solid var(--line)}
+  @media(max-width:1000px){.asis{border-right:none;border-bottom:1px solid var(--line)}}
+  .coltitle{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;margin-bottom:12px}
+  .asis .coltitle{color:var(--ink-3)}
+  .tobe-col .coltitle{color:var(--good)}
+
+  .feat{margin-bottom:10px;padding:9px 12px;border-radius:8px;background:var(--bg-2);border-left:3px solid var(--line-2);font-size:13px;line-height:1.42}
+  .feat b{color:var(--ink)}
+  .feat .ev{display:block;font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:3px}
+  .feat.gap{border-left-color:var(--bad);background:var(--bad-soft)}
+  .feat.gap b{color:var(--bad)}
+  .feat.ok{border-left-color:var(--good)}
+
+  .tb{margin-bottom:11px;padding:11px 13px;border-radius:9px;background:var(--good-soft);border:1px solid #cfe7da;font-size:13px;line-height:1.42}
+  .tb b{color:var(--ink)}
+  .tb .why{display:block;font-size:12px;color:var(--ink-2);margin-top:4px}
+  .tb .why i{color:var(--ink-3)}
+  .prio{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.05em;padding:1.5px 7px;border-radius:99px;margin-left:6px;vertical-align:middle}
+  .prio.poc{background:var(--accent);color:#fff}
+  .prio.p1{background:var(--blue-soft);color:var(--blue)}
+  .prio.p2{background:var(--bg-3);color:var(--ink-3)}
+
+  /* behavior strip inside stage */
+  .behav{grid-column:1/-1;display:flex;gap:0;border-top:1px solid var(--line);background:var(--blue-soft)}
+  .behav>div{flex:1;padding:13px 20px;border-right:1px solid #d8e4f4}
+  .behav>div:last-child{border-right:none}
+  .behav .bl{font-size:10px;letter-spacing:.11em;text-transform:uppercase;font-weight:800;color:var(--blue);opacity:.75;margin-bottom:4px}
+  .behav p{font-size:12.5px;color:var(--blue);line-height:1.45}
+
+  /* tables */
+  table.map{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+  table.map th{text-align:left;background:var(--ink);color:#fff;padding:9px 12px;font-weight:600;font-size:12px;letter-spacing:.02em;position:sticky;top:0}
+  table.map td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  table.map tr:nth-child(even) td{background:var(--bg-2)}
+  .scrollx{overflow-x:auto}
+
+  .pill{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.03em;padding:2px 9px;border-radius:99px;white-space:nowrap;margin:1px 3px 1px 0}
+  .pill.info{background:#eff6ff;color:#1e40af}
+  .pill.warn{background:#fffbeb;color:#92400e}
+  .pill.danger{background:#fff1f2;color:#a7000f}
+  .pill.neutral{background:var(--bg-3);color:var(--ink-2)}
+  .pill.good{background:var(--good-soft);color:var(--good)}
+
+  .callout{border-left:4px solid var(--blue);background:var(--blue-soft);border-radius:8px;padding:14px 18px;margin:18px 0;font-size:13.5px;line-height:1.55}
+  .callout.warn{border-left-color:var(--warn);background:var(--warn-soft)}
+  .callout.risk{border-left-color:var(--bad);background:var(--bad-soft)}
+  .callout b{color:var(--ink)}
+
+  .foot{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink-3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc">
+  <div class="kicker">Experience Blueprint · Opportunity Module · ATI MRO Discovery</div>
+  <h1>Opportunity Flow — Feed to Realized, End to End</h1>
+  <p class="sub">A screen-by-screen map of the deployed experience (<code>allison-procurement-931u.vercel.app</code>) from the Feed through Details, the three decisions (Approve / Park / Reject), Act, and Value Realization — every screen audited from its real source code, mapped against what the category manager is doing and feeling at that moment, and specced with the features each screen needs next. Green = build; red = verified dead ends.</p>
+  <p class="meta">Grounded in the live build's real data (7 opportunities, scan run <code>Jul 2 2026</code>) · full source audit of <code>frontend/src/app/(portal)/opportunities</code> + <code>/tracking</code> + store/API · 5 parallel code-readers, 6 adversarial verifications (1 of my own claims refuted and corrected) · personas &amp; journeys from the UX analysis · scoped to the 3-week MRO Discovery (Scan → Qualify → Act → Monitor → Readout).</p>
+
+  <div class="livebar">
+    <div class="cell"><div class="l">Live opportunities</div><div class="v">7</div><div class="d">surfaced ×2 · accepted · committed ×2 · parked · rejected</div></div>
+    <div class="cell"><div class="l">Pocket spend in play</div><div class="v">$2.39M</div><div class="d">7 pockets · Lubricants, Chemicals, Gas, Safety Equip.</div></div>
+    <div class="cell"><div class="l">Addressable</div><div class="v">$887.9K</div><div class="d">after OEM / sole-source carve-outs</div></div>
+    <div class="cell"><div class="l">Savings surfaced</div><div class="v">$92.8K–$148.9K</div><div class="d">4–7% of addressable, lever-tiered</div></div>
+    <div class="cell"><div class="l">Statuses reachable</div><div class="v">8 of 9</div><div class="d">`realized` has no UI trigger — nothing measures it</div></div>
+    <div class="cell"><div class="l">Systems that never fire</div><div class="v">3</div><div class="d">park triggers · drift flags · sweep calibration</div></div>
+  </div>
+
+  <nav class="toc">
+    <div class="t">Contents</div>
+    <ol>
+      <li><a href="#map">The flow map — as-is + dead ends + to-be</a></li>
+      <li><a href="#s1">Stage 1 · Opportunity Feed (triage)</a></li>
+      <li><a href="#s2">Stage 2 · Opportunity Details (interrogate)</a></li>
+      <li><a href="#s3">Stage 3 · The decision moment</a></li>
+      <li><a href="#s4">Stage 4 · Act (run the play)</a></li>
+      <li><a href="#s5">Stage 5 · After Act — Commit → Value Realization</a></li>
+      <li><a href="#s6">Stage 6 · Parked — the waiting room</a></li>
+      <li><a href="#s7">Stage 7 · Rejected — the record</a></li>
+      <li><a href="#cross">Cross-cutting layers</a></li>
+      <li><a href="#master">Master feature map — one table</a></li>
+      <li><a href="#scope">Discovery POC vs Phase 2</a></li>
+    </ol>
+  </nav>
+</header>
+
+<!-- ================= FLOW MAP ================= -->
+<section id="map">
+  <div class="snum">01</div>
+  <h2>The Flow Map</h2>
+  <p class="lede">The spine is real: Feed → Details → Approve → Act → Commit → Value Realization all exist and connect. The problems live in three places: <b>the edges</b> (Park and Reject exit into rooms with no working door back), <b>the promises</b> (five places where the UI announces behavior no code performs), and <b>durability</b> (decisions, notes, and audit events that silently vanish on reload). Solid blue = deployed and working. Dashed red = deployed but broken promise / dead end. Dashed green = build.</p>
+
+  <div class="flowmap">
+    <!-- main line -->
+    <div class="fm-lane">
+      <div class="fm-node main"><div class="st">Entry</div><div class="nm">Mercer Brief</div><p>Scan stamp + narrative + cards, all derived from the same store as the table — brief and feed can't disagree.</p></div>
+      <div class="fm-arrow">➜</div>
+      <div class="fm-node main"><div class="st">Triage · daily</div><div class="nm">Opportunity Feed</div><p>4 tabs w/ counts, real facets, 10 engine-field columns. Opening a surfaced row <i>is</i> qualifying it.</p></div>
+      <div class="fm-arrow">➜</div>
+      <div class="fm-node main"><div class="st">Interrogate</div><div class="nm">Details modal</div><p>Mercer summary · KPI tiles · waterfall w/ named carve-outs · fit gate · roster · caveats · override-with-memory.</p></div>
+      <div class="fm-arrow">➜</div>
+      <div class="fm-node main"><div class="st">Decide</div><div class="nm">Approve / Park / Reject</div><p>Dialogs capture reason & trigger; toasts + 2s resolve choreography; guards stop double-submits.</p></div>
+      <div class="fm-arrow">➜</div>
+      <div class="fm-node main"><div class="st">Execute</div><div class="nm">Act — play workspace</div><p>Playbook picker · task checklist · template drafts · commit with timing + basis → committed.</p></div>
+      <div class="fm-arrow">➜</div>
+      <div class="fm-node main"><div class="st">Monitor</div><div class="nm">Value Realization (/tracking)</div><p>KPIs · ramp chart · Mark live (committed → in-execution) · activity trail · demo SAP actuals.</p></div>
+      <div class="fm-arrow">➜</div>
+      <div class="fm-node dead"><div class="st">Terminal · today</div><div class="nm">Realized — unreachable <span class="fm-tag dead">NO TRIGGER</span></div><p>Designed as "measured, not advanced" — but nothing measures it. No auto-flip at 100%, no closure artifact, no variance-vs-commitment sign-off.</p></div>
+    </div>
+
+    <!-- branch row -->
+    <div class="fm-branchrow">
+      <div class="fm-branch">
+        <div class="fm-node dead" style="flex:1"><div class="st">Branch · Park</div><div class="nm">Parked <span class="fm-tag dead">TRIGGERS NEVER FIRE</span></div><p>Date &amp; condition triggers are captured, promised ("resurfaces when it fires") — and inert. Only exit: un-park → re-find → re-open → decide.</p></div>
+        <div class="fm-arrow">➜</div>
+        <div class="fm-node tobe" style="flex:1"><div class="st">Build</div><div class="nm">Revisit engine <span class="fm-tag new">BUILD</span></div><p>Date watch + condition watch → "revisit due" feed signal → one-click Approve / Reject straight from Parked.</p></div>
+      </div>
+      <div class="fm-branch">
+        <div class="fm-node dead" style="flex:1"><div class="st">Branch · Reject</div><div class="nm">Rejected <span class="fm-tag dead">TERMINAL + LOSSY</span></div><p>No un-reject exists. "Other" notes are never persisted. "Logged for sweep calibration" — but the engine hardcodes <code>dismissed_reason=None</code> and reads nothing back.</p></div>
+        <div class="fm-arrow">➜</div>
+        <div class="fm-node tobe" style="flex:1"><div class="st">Build</div><div class="nm">Respected record <span class="fm-tag new">BUILD</span></div><p>Un-reject with reason · notes persisted · next sweep honors (or justifies re-surfacing) the dismissal.</p></div>
+      </div>
+    </div>
+
+    <!-- silent-loss row -->
+    <div class="fm-branchrow">
+      <div class="fm-branch">
+        <div class="fm-node dead" style="flex:1"><div class="st">Invisible thread</div><div class="nm">Silent data loss <span class="fm-tag dead">VERIFIED</span></div><p>Failed decision-saves show success toasts anyway (<code>.catch(()=>{})</code>) and revert on reload · qualify status is volatile · audit events &amp; CM context/overrides rebuilt away on refresh.</p></div>
+        <div class="fm-arrow">➜</div>
+        <div class="fm-node tobe" style="flex:1"><div class="st">Build</div><div class="nm">Durable record <span class="fm-tag new">BUILD</span></div><p>Persist events, notes, user input &amp; overrides; surface save failures with retry; audit trail survives reload.</p></div>
+      </div>
+      <div class="fm-branch">
+        <div class="fm-node dead" style="flex:1"><div class="st">Invisible thread</div><div class="nm">Dormant systems <span class="fm-tag dead">VERIFIED</span></div><p>Drift: banner, sidebar dot, $-at-risk, Watch status all built — but <code>drift.flagged</code> is set nowhere. <code>undoCommit</code> fully implemented, zero buttons.</p></div>
+        <div class="fm-arrow">➜</div>
+        <div class="fm-node tobe" style="flex:1"><div class="st">Build</div><div class="nm">Wake them up <span class="fm-tag new">BUILD</span></div><p>Engine re-run diffs committed plays → sets drift · un-commit button wired to the existing store action.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="maplegend">
+    <div class="i"><span class="sw b"></span> Deployed &amp; functional</div>
+    <div class="i"><span class="sw r"></span> Deployed but dead-ends / broken promise (source-verified)</div>
+    <div class="i"><span class="sw g"></span> Missing piece to build</div>
+  </div>
+
+  <div class="callout"><b>The one-sentence diagnosis:</b> the build wins the <i>argument</i> (why this pocket, why this lever, honest carve-out math) but loses the <i>loop</i> — decisions don't durably persist, promises aren't backed by running code, prices never appear as evidence, and the two exits (Park / Reject) plus the finish line (Realized) don't complete. The blueprint below closes each gap where the user actually feels it.</div>
+</section>
+<!-- ================= STAGE 1 · FEED ================= -->
+<section id="s1">
+  <div class="snum">02</div>
+  <h2>Stage 1 · Opportunity Feed — the triage queue</h2>
+  <p class="lede">The CM's morning starts here. The job is <b>throughput with confidence</b>: separate the 2–3 items worth deep work from the noise, in minutes, without fear of missing something that changed overnight. Today's feed is a competent read-only table; it is not yet a triage instrument.</p>
+
+  <div class="stage">
+    <div class="stage-head"><span class="num">S1</span><h3>Opportunity Feed</h3><span class="route">/opportunities · page.tsx · opportunityColumns.tsx · MorningBrief.tsx</span></div>
+    <div class="stage-body">
+      <div class="asis">
+        <div class="coltitle">As deployed — verified in source</div>
+        <div class="feat ok"><b>Mercer Brief that can't lie.</b> Scan-run date stamp, narrative + metric cards (Total MRO $10.5M via cockpit API, addressable, savings range, "3 of 15 scanned") all derived from the same store as the table — brief and feed cannot disagree.<span class="ev">MorningBrief.tsx:110–166</span></div>
+        <div class="feat ok"><b>Four workflow tabs with live counts.</b> Feed (surfaced+qualifying+qualified) / Act (accepted) / Parked / Rejected — decided rows animate out with a 2s wash.<span class="ev">page.tsx:33–37, 406–433</span></div>
+        <div class="feat ok"><b>Global sub-category scope in the TopBar.</b> L2 selection persists across pages; brief re-scopes with it. L1 selector honestly shows unscanned categories as disabled "Expanding to" rows with real spend.<span class="ev">GlobalScopeFilter.tsx:13–26 · SubCategoryFilter.tsx:41–94</span></div>
+        <div class="feat ok"><b>Real facets with live counts.</b> Lever (4 engine play-routes), Country, BU, High-confidence ≥60% toggle, free-text search, clear-all, pagination with global serial numbers.<span class="ev">page.tsx:238–404</span></div>
+        <div class="feat ok"><b>Ten columns of real engine fields.</b> L3 · L2 · Country · Lever pill · Total spend · Addressable · Vendors · ConfidenceMeter · Savings range — right-aligned tabular numerals, sorts the full filtered set.<span class="ev">opportunityColumns.tsx:23–157</span></div>
+        <div class="feat gap"><b>Says one ranking, does another.</b> Brief claims "Ranked by evidence strength"; the table default-sorts by <i>confidence %</i>, and evidence basis is neither a column nor a facet.<span class="ev">MorningBrief.tsx:163 vs page.tsx:67</span></div>
+        <div class="feat gap"><b>No freshness signals.</b> No NEW badge, no age column, no "why is this here / what changed since yesterday," no read/unread — the CM re-reviews rows she's already seen.<span class="ev">opportunityColumns.tsx (absent)</span></div>
+        <div class="feat gap"><b>No bulk triage.</b> Zero multi-select; every park/dismiss is a one-row modal→dialog→toast loop. A 40-row sweep = 40 loops.<span class="ev">page.tsx:489–499 (no selection props)</span></div>
+        <div class="feat gap"><b>Working set evaporates.</b> Only L2 persists; lever/country/search/sort/page/tab are lost on any navigation. No URL state, no saved views, no export.<span class="ev">page.tsx:58–67</span></div>
+        <div class="feat gap"><b>Small frictions that compound.</b> Savings column not sortable; search misses vendor names & opp IDs; 60% confidence threshold hardcoded; no next/prev stepping inside the modal.<span class="ev">opportunityColumns.tsx:146–156 · page.tsx:241–243</span></div>
+      </div>
+      <div class="tobe-col">
+        <div class="coltitle">To be — the triage instrument</div>
+        <div class="tb"><b>Signal column: "why am I seeing this."</b><span class="prio poc">POC</span><span class="why">Per-row chip + one-liner: <span class="pill info">New</span> <span class="pill warn">Changed · +$41K addressable</span> <span class="pill danger">Drift</span> <span class="pill info">New supplier in pocket</span> <span class="pill info">New BU data</span> — with surfaced date. <i>Kills the re-review tax; makes the morning scan a diff, not a full read.</i></span></div>
+        <div class="tb"><b>Declared, honest ranking.</b><span class="prio poc">POC</span><span class="why">One line above the table: "Ranked by Impact = addressable × confidence" — and make the sort match. Add evidence-basis as a facet so "evidence-backed only" is one click. <i>Fixes the trust crack of claiming one order and showing another.</i></span></div>
+        <div class="tb"><b>Bulk triage with reasons.</b><span class="prio poc">POC</span><span class="why">Multi-select → Park / Dismiss with one shared reason; select-all honors active filters ("park all 6 Lubricants rows until Q3 review"). <i>Turns 40 loops into 3 decisions.</i></span></div>
+        <div class="tb"><b>Group-by toggle: sub-category / lever / country.</b><span class="prio poc">POC</span><span class="why">Collapsible groups with rolled-up $ per group. <i>Triage is naturally batched — "all the Chemicals consolidations together."</i></span></div>
+        <div class="tb"><b>Sequential review.</b><span class="prio p1">P1</span><span class="why">Next / Previous inside the details modal + read/unread dots in the table. <i>The morning ritual becomes flow, not close-find-click.</i></span></div>
+        <div class="tb"><b>Durable working set.</b><span class="prio p1">P1</span><span class="why">Filters/sort/tab in URL params; "copy filtered view" link; CSV export of the filtered set. <i>Triage survives a detour to a vendor page, and the list can go to a stakeholder meeting.</i></span></div>
+        <div class="tb"><b>Complete search + sortable savings + threshold control.</b><span class="prio p1">P1</span><span class="why">Search vendor names and OPP-IDs; make Savings sortable; confidence cutoff as a slider chip. <i>"Show me everything touching Bulkmro ≥80%" in one breath.</i></span></div>
+      </div>
+      <div class="behav">
+        <div><div class="bl">User mindset here</div><p>"20 minutes before stand-up. What's new, what changed, what can I safely ignore?" — scanning for anomalies, not reading a report.</p></div>
+        <div><div class="bl">Journey & persona</div><p>J1-02 daily triage (every CM, every morning) · J3 enterprise CM arrives here after a scope switch expecting the same table.</p></div>
+        <div><div class="bl">Pain today</div><p>Can't tell new from stale, can't act in bulk, loses the working set on any detour — so triage silently becomes "open everything again."</p></div>
+        <div><div class="bl">Success metric</div><p>Time-to-inbox-zero on a fresh sweep; % of rows decided without opening the modal; zero re-reviews of unchanged rows.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STAGE 2 · DETAILS ================= -->
+<section id="s2">
+  <div class="snum">03</div>
+  <h2>Stage 2 · Opportunity Details — the interrogation room</h2>
+  <p class="lede">One click deep, the CM stops scanning and starts cross-examining: <b>"$74.5K addressable in Chemicals · Mexico — says who?"</b> This modal is the strongest screen in the build — summary, waterfall, fit checks, roster, caveats, override — but it argues from <i>shares and rates</i>, never from <i>prices</i>. For a skeptic under an outcome-fee model, that's the difference between plausible and proven.</p>
+
+  <div class="stage">
+    <div class="stage-head"><span class="num">S2</span><h3>Details / Qualify modal</h3><span class="route">ReviewPanel.tsx (847 lines) · SavingsWaterfallCard · FunctionalFitCard · YourInputCard · ChangeTimeline</span></div>
+    <div class="stage-body">
+      <div class="asis">
+        <div class="coltitle">As deployed — verified in source</div>
+        <div class="feat ok"><b>Header that fronts the verdict.</b> L2·country chips, BU entity, evidence-basis pill, confidence meter + % + plain word ("well-evidenced"). Mercer summary states the play in one sentence with "Why? · 3 signals" expandable rationale.<span class="ev">ReviewPanel.tsx:117–160</span></div>
+        <div class="feat ok"><b>KPI tiles that tie out.</b> Total spend / Addressable / Savings potential / Confidence — same numbers as the feed row, same store.<span class="ev">ReviewPanel.tsx:162–180</span></div>
+        <div class="feat ok"><b>Savings waterfall with named carve-outs.</b> Pocket → −OEM/sole-source (per-exclusion label, $, reason) → addressable → lever-tiered savings %. The honest math, rendered.<span class="ev">SavingsWaterfallCard.tsx:103–138</span></div>
+        <div class="feat ok"><b>Functional fit gate.</b> Four checks (asset/scope overlap, vendor independence, geography, play type) with pass/watch verdicts and prose reasons.<span class="ev">FunctionalFitCard.tsx</span></div>
+        <div class="feat ok"><b>Vendor roster + recommended bidders.</b> Spend, AT/AOH split, share-of-pocket bar, capability class, Anchor/OEM chips, show-all-N; bidder chips summarize the shortlist.<span class="ev">ReviewPanel.tsx:182–367</span></div>
+        <div class="feat ok"><b>Override with memory.</b> Add-context and override-figures editors (mutually exclusive), justification required, engine's original preserved.<span class="ev">SummaryOverrideBand.tsx · ReviewPanel.tsx:505–560</span></div>
+        <div class="feat gap"><b>Zero price evidence.</b> No unit prices, no benchmarks/indices, no best-vs-worst price spread across the roster, no per-vendor price comparison. The savings % is asserted, not bridged from a price gap.<span class="ev">types/opportunity.ts:150–160 (roster has no price fields)</span></div>
+        <div class="feat gap"><b>It asks the CM for the proof.</b> "Market intel / pricing data" is an empty free-text box the user is asked to fill — the burden of evidence is inverted.<span class="ev">YourInputCard.tsx:147–153</span></div>
+        <div class="feat gap"><b>Confidence math exists but is unplugged.</b> WhatDroveThisCard (fit × MIN(gap,20)/20 derivation, analyst adjustments) is complete, orphaned dead code — the CM approves against a bare "76%."<span class="ev">WhatDroveThisCard.tsx — imported nowhere</span></div>
+        <div class="feat gap"><b>Regenerate is theater.</b> "Fold my input in" runs a 1200 ms setTimeout and a success toast; nothing shows what changed.<span class="ev">ReviewPanel.tsx:488–500</span></div>
+        <div class="feat gap"><b>Every number is a cul-de-sac.</b> No drill-through from any figure to transactions/POs; roster names don't link to vendor records; exclusions can't be individually disputed; no evidence-pack export.<span class="ev">ReviewPanel.tsx:217–231, 807–814</span></div>
+        <div class="feat gap"><b>Two Approve buttons.</b> One in the Mercer band, one in the footer — duplicate primary actions in one viewport, and the disabled state explains itself only via a hover tooltip on a disabled element.<span class="ev">ReviewPanel.tsx:656, 734, 658–664</span></div>
+      </div>
+      <div class="tobe-col">
+        <div class="coltitle">To be — from plausible to proven</div>
+        <div class="tb"><b>Pricing Evidence section — the missing bridge.</b><span class="prio poc">POC</span><span class="why">Benchmark price for the category/region (index or should-cost) → current blended rate from ATI's own transactions → the gap per unit × addressable volume → the savings range. Per-vendor blended unit price column in the roster where line data allows. <i>Answers "prove it" with market math instead of a rate assumption — the single highest-leverage addition for the discovery readout.</i></span></div>
+        <div class="tb"><b>Wire the confidence derivation.</b><span class="prio poc">POC</span><span class="why">Resurrect WhatDroveThisCard as the "Derivation" tab: fit factor × capped fragmentation gap, with analyst adjustments visible. <i>Already built — the cheapest trust win in the codebase.</i></span></div>
+        <div class="tb"><b>Drill-to-lineage on every figure.</b><span class="prio poc">POC</span><span class="why">Pocket, addressable, each exclusion → top transactions behind it (vendor, PO, amount, date). <i>The J2 skeptic journey ends at source rows, or it doesn't end.</i></span></div>
+        <div class="tb"><b>Visible regenerate diff.</b><span class="prio p1">P1</span><span class="why">After folding in CM context: before → after on addressable, savings, confidence, recommendation — with the input cited. <i>Proves the loop is real; today it's a toast.</i></span></div>
+        <div class="tb"><b>Live roster & challengeable carve-outs.</b><span class="prio p1">P1</span><span class="why">Vendor names link to vendor detail; each exclusion row gets "dispute" (reason → flags to P4 data steward). <i>Verification without leaving the modal.</i></span></div>
+        <div class="tb"><b>One Approve, Mercer on the left.</b><span class="prio poc">POC</span><span class="why">Single primary CTA in the footer; Ask Mercer anchored left of the decision cluster (site-wide rule); disabled states explain inline, not in tooltips. <i>One viewport, one primary action.</i></span></div>
+        <div class="tb"><b>Evidence-pack export.</b><span class="prio p1">P1</span><span class="why">Summary + waterfall + fit + roster + pricing evidence as a shareable PDF/link. <i>Decisions get socialized to finance before commit — let the argument travel.</i></span></div>
+      </div>
+      <div class="behav">
+        <div><div class="bl">User mindset here</div><p>"Convince me. Whose spend is this, what's excluded, what would I actually pay less for?" — actively hunting for the flaw before staking their name on it.</p></div>
+        <div><div class="bl">Journey & persona</div><p>J2 "prove it to me" — decisive under the outcome-fee model · J1-03 qualify · P2 exec skims the same modal read-only.</p></div>
+        <div><div class="bl">Pain today</div><p>The argument stops at rates and shares; confidence is a bare number; and the tool asks <i>her</i> for pricing data. Skeptics stall here.</p></div>
+        <div><div class="bl">Success metric</div><p>% of opens that end in a decision (any); time-to-decision; overrides carrying justifications; zero "where did this number come from" escalations.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ================= STAGE 3 · DECISION ================= -->
+<section id="s3">
+  <div class="snum">04</div>
+  <h2>Stage 3 · The Decision Moment — Approve / Park / Reject</h2>
+  <p class="lede">The whole product funnels to three buttons. This is where trust is spent: the CM stakes their name on Approve, or tells the machine <i>why not</i>. The dialogs are well-designed; what's broken is what happens to the answer afterward — <b>reasons the system asks for and then loses, and promises it makes and doesn't keep.</b></p>
+
+  <div class="stage">
+    <div class="stage-head"><span class="num">S3</span><h3>Decision actions + Park/Reject dialogs</h3><span class="route">ReviewPanel footer · ParkDialog.tsx · RejectDialog.tsx · OpportunityStoreContext.tsx</span></div>
+    <div class="stage-body">
+      <div class="asis">
+        <div class="coltitle">As deployed — verified in source</div>
+        <div class="feat ok"><b>Park dialog does triggers properly.</b> Date picker <i>or</i> six canned conditions (contract renewal, budget cycle, price movement &gt;5%, consolidation elsewhere, volume threshold, other + required text); confirm validated; TZ-safe date serialization.<span class="ev">ParkDialog.tsx — SegmentedControl + validation</span></div>
+        <div class="feat ok"><b>Reject dialog frames reasons as model feedback.</b> Seven canned reasons (non-negotiable counterparty, intercompany, OEM-locked, already contracted…); "Other" requires a note; both dialogs reset cleanly on every exit.<span class="ev">RejectDialog.tsx</span></div>
+        <div class="feat ok"><b>Transition guards that hold.</b> reject/park no-op unless the opp is in a feed status; double-submits inert; Approve cancels the pending qualify timer so races can't overwrite newer state.<span class="ev">OpportunityStoreContext.tsx:321,337 · race guards</span></div>
+        <div class="feat ok"><b>Decisions keyed to survive re-runs.</b> Write-back keys on the stable <code>opportunity_key</code> (hash of L3×country), so a decision survives the engine regenerating the opportunity.<span class="ev">OpportunityStoreContext.tsx:96–106</span></div>
+        <div class="feat gap"><b>Two Approve buttons, one viewport.</b> Band + footer, same handler, both christy-primary — confirmed duplicate primary actions; the disabled state explains itself only via tooltip on a disabled element.<span class="ev">ReviewPanel.tsx:652–667, 731–745 [verified]</span></div>
+        <div class="feat gap"><b>The "Other" rejection note is lost.</b> Store sends only <code>{reason}</code>; the API accepts only <code>reason</code>. The CM's typed explanation lives in memory and dies on reload.<span class="ev">OpportunityStoreContext.tsx:331 · action/route.ts:46 [verified]</span></div>
+        <div class="feat gap"><b>Failure looks like success.</b> persistAction is fire-and-forget with <code>.catch(()=>{})</code> — a failed save still shows the success toast, and the decision silently reverts to "surfaced" on next load.<span class="ev">OpportunityStoreContext.tsx:85–90 [verified]</span></div>
+        <div class="feat gap"><b>"Logged for sweep calibration" — to nowhere.</b> The engine's generate step hardcodes <code>dismissed_reason=None</code> and never reads the action layer: the next sweep neither respects nor learns from any dismissal.<span class="ev">engine/core/opportunities/generate.py [verified]</span></div>
+        <div class="feat gap"><b>Decision history invisible.</b> Every transition appends a typed audit event — but the timeline component filters to <code>kind==='surfaced'</code> only, and reload rebuilds events to a single "surfaced" entry anyway.<span class="ev">ChangeTimeline.tsx:44–46 · cdm.ts:574–581</span></div>
+      </div>
+      <div class="tobe-col">
+        <div class="coltitle">To be — decisions that stick</div>
+        <div class="tb"><b>One Approve; disabled states explain inline.</b><span class="prio poc">POC</span><span class="why">Single primary in the footer, Ask Mercer anchored left of the cluster; when Approve is gated ("save or discard your edits first") the reason renders as text, not a tooltip on a dead button. <i>One viewport, one primary action, no mystery.</i></span></div>
+        <div class="tb"><b>Persist the whole decision record.</b><span class="prio poc">POC</span><span class="why">Reason + note + trigger (typed: date vs condition) + actor + timestamp written through; audit events durable so the timeline can show qualify → park → unpark → approve history. <i>The J2 trust loop depends on the system remembering being overruled.</i></span></div>
+        <div class="tb"><b>Honest failure handling.</b><span class="prio poc">POC</span><span class="why">Toast on save failure with retry; optimistic state rolls back if write-back fails. <i>A procurement decision that silently un-happens is worse than an error message.</i></span></div>
+        <div class="tb"><b>Close the calibration loop.</b><span class="prio p1">P1</span><span class="why">Next engine run reads the action layer: suppresses dismissed pockets (or re-surfaces with "here's what changed since you rejected it"), honors parked state, and stamps "decision honored" on the brief. <i>This is the single promise the UI already makes in three places — make it true.</i></span></div>
+        <div class="tb"><b>Decision timeline in the modal.</b><span class="prio p1">P1</span><span class="why">ChangeTimeline shows all event kinds for decided opps — who parked it, when, why, and what happened next. <i>Turns the modal into the case file it's pretending to be.</i></span></div>
+      </div>
+      <div class="behav">
+        <div><div class="bl">User mindset here</div><p>"I'm accountable for this call. If I say no, I want it to <i>count</i> — not to re-litigate the same pocket next sweep."</p></div>
+        <div><div class="bl">Journey & persona</div><p>J1-04 decide · J2-05 "disagree → override/dismiss; system records, doesn't argue" — the exact step the lost-note and ignored-reason bugs break.</p></div>
+        <div><div class="bl">Pain today</div><p>Reasons are asked for, then dropped; failures masquerade as success; the engine never hears any of it.</p></div>
+        <div><div class="bl">Success metric</div><p>0% silent decision loss; % of re-surfaced items carrying a "what changed" justification; repeat-dismissal rate → 0.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STAGE 4 · ACT ================= -->
+<section id="s4">
+  <div class="snum">05</div>
+  <h2>Stage 4 · Act — Run the Play</h2>
+  <p class="lede">Approve moves the opp to the Act tab; clicking it opens the play workspace. The scaffolding is real — playbooks from the CDM, a task checklist, draft generators, a commit step that bakes the CM's overrides into the committed value. But as a place to <b>run a live RFP</b>, it stops at templates: nothing can be sent, compared, versioned, or fed back in. This is where the discovery's "evidence-based price &amp; spec comparisons" must land.</p>
+
+  <div class="stage">
+    <div class="stage-head"><span class="num">S4</span><h3>Act tab + Run-the-Play modal</h3><span class="route">ActStep.tsx · RunPlayModal.tsx · /api/playbooks</span></div>
+    <div class="stage-body">
+      <div class="asis">
+        <div class="coltitle">As deployed — verified in source</div>
+        <div class="feat ok"><b>Playbook picker with a recommendation.</b> Approaches served from the CDM (<code>ref.playbook</code>, admin-adjustable), Mercer-recommended route chipped; selected playbook's tasks render as a toggleable checklist with an N/M counter.<span class="ev">ActStep.tsx:125–133, 287–331</span></div>
+        <div class="feat ok"><b>Progress that persists.</b> "Save progress" stores approach + done-tasks through the action API, keyed to survive engine re-runs.<span class="ev">savePlay → persistAction('save')</span></div>
+        <div class="feat ok"><b>Commit that honors the CM.</b> Committing target = resolveSavings — operator overrides from Qualify win over engine figures; commit stamps timing, basis, owner, milestones, ramp; toast hands off to Value Realization.<span class="ev">OpportunityStoreContext.tsx:144–222</span></div>
+        <div class="feat gap"><b>"Draft with Mercer" isn't Mercer.</b> Outreach email + full RFP scaffold generate instantly from deterministic string templates; the docstring claims a grounded copilot API that's never called.<span class="ev">ActStep.tsx:56–123 [verified: templates, no model call]</span></div>
+        <div class="feat gap"><b>One fragile draft.</b> A single shared <code>draftText</code>: switching outreach↔RFP regenerates the template and destroys edits; closing the modal loses everything. No versions, no authorship, no persistence.<span class="ev">ActStep.tsx:166–169 [verified]</span></div>
+        <div class="feat gap"><b>No evidence in, nothing analyzed.</b> Zero upload/paste surface in Act — no quote ingestion, no supplier-reply capture, no analysis feeding drafts. (Doc-upload exists nowhere in the module.)<span class="ev">[verified via adversarial pass]</span></div>
+        <div class="feat gap"><b>The RFP points at rooms that don't exist.</b> Generated scaffold names "Bids due" and "Award" steps — there is no bid intake, no comparison table, no award modeling anywhere.<span class="ev">ActStep.tsx:118</span></div>
+        <div class="feat gap"><b>Commit has no guardrails; Close eats state.</b> Commit stays enabled with blank timing/basis and 0/N tasks; timing/basis are modal-local and silently discarded on Close. Checklist completion gates nothing.<span class="ev">RunPlayModal.tsx:36–59</span></div>
+        <div class="feat gap"><b>Accepted is a blind, one-way state.</b> Accepted-but-uncommitted plays appear in no KPI (excluded from feed and tracked sets), can't be parked/rejected/returned, and carry no aging indicator.<span class="ev">page.tsx:33–37 · store guards :321,337</span></div>
+      </div>
+      <div class="tobe-col">
+        <div class="coltitle">To be — a working deal room</div>
+        <div class="tb"><b>Evidence loop: paste/upload → analyze → fold into drafts.</b><span class="prio poc">POC</span><span class="why">Drop a supplier quote, email, or price list → Mercer extracts unit prices/terms → summarizes ("quoted $2.41/unit vs your $3.10 blended — 22% below") → offers "fold into RFP v2 / outreach v2." <i>The feature this engagement sells: ATI's own transaction data meeting supplier reality, in one place.</i></span></div>
+        <div class="tb"><b>Versioned drafts with authorship.</b><span class="prio poc">POC</span><span class="why">v1 Mercer · v2 you · v3 Mercer-after-evidence; switch kinds without loss; persisted with the play; active version marked. <i>Edits are work product — treat them like it.</i></span></div>
+        <div class="tb"><b>Real copilot drafting (or honest labels).</b><span class="prio poc">POC</span><span class="why">Route draft generation through the grounded copilot with citations into the pocket's own numbers — or relabel the button "Insert template." <i>Never ship a Mercer star on a string template.</i></span></div>
+        <div class="tb"><b>Bid intake + comparison.</b><span class="prio p1">P1</span><span class="why">Per-bidder table: unit price vs current blended, terms, lead time, capability, coverage of the addressable base; award modeling shows who gains/loses volume at what rate. <i>Completes the RFP the scaffold already promises.</i></span></div>
+        <div class="tb"><b>Commit guardrails + savings at commit.</b><span class="prio poc">POC</span><span class="why">Require timing + basis; warn when checklist &lt; done; savings rate editable at commit with justification (it's the last honest moment to correct it). Draft timing/basis persist on Close.</span></div>
+        <div class="tb"><b>Aging + a way back.</b><span class="prio p1">P1</span><span class="why">"Accepted 12 days ago, no commit" chip + Mercer nudge; de-accept (return to feed / park / reject with reason) for plays that die in negotiation. <i>Real pipelines leak; the tool should let them.</i></span></div>
+        <div class="tb"><b>Send / export the outreach.</b><span class="prio p1">P1</span><span class="why">Copy, download, or mailto the draft; log that it went out and to whom; capture the reply as evidence (feeding the loop above). <i>Today the draft's only destination is a textarea.</i></span></div>
+      </div>
+      <div class="behav">
+        <div><div class="bl">User mindset here</div><p>"The decision's made — now win the deal. Draft, send, chase, compare bids, and lock a number I can defend to finance."</p></div>
+        <div><div class="bl">Journey & persona</div><p>J1-05 act / J1-06 commit · the CM + procurement team (multi-week, multi-touch) · Mercer as drafting copilot.</p></div>
+        <div><div class="bl">Pain today</div><p>Templates dead-end in a textarea; evidence has no door in; bids have no room; commit accepts empty metadata; a stalled play is invisible.</p></div>
+        <div><div class="bl">Success metric</div><p>Time from Approve → first outreach sent; % of commits with evidence attached; bid-comparison used before award; zero stalled-play blind spots.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ================= STAGE 5 · POST-ACT ================= -->
+<section id="s5">
+  <div class="snum">06</div>
+  <h2>Stage 5 · After Act — Commit → Value Realization</h2>
+  <p class="lede">This stage <b>exists and is better than expected</b> — the adversarial pass refuted the "post-Act is a dead end" assumption. Commit hands off to <code>/tracking</code>: KPIs, a ramp chart of projected vs realized, per-play panels with a full activity trail, and a Mark-live stage toggle. What's missing is the <i>ending</i>: nothing ever measures realization, flags drift, or closes a play with a verdict. Under an outcome-based fee, the unfinished ending is the product.</p>
+
+  <div class="stage">
+    <div class="stage-head"><span class="num">S5</span><h3>Value Realization (/tracking)</h3><span class="route">tracking/page.tsx · TrackingKpis · RampChart · TrackingTable · TrackingPanel · stage.ts</span></div>
+    <div class="stage-body">
+      <div class="asis">
+        <div class="coltitle">As deployed — verified in source</div>
+        <div class="feat ok"><b>A real Control Tower skeleton.</b> KPI cards, ramp chart (projected vs realized), tracking table with lifecycle labels, and a per-play panel resolved live from the store — drift clears and stage advances reflect immediately.<span class="ev">tracking/page.tsx:14–24</span></div>
+        <div class="feat ok"><b>Commit bakes an auditable baseline.</b> Figures resolved (overrides win), milestones + ramp generated, committedAt/owner/timing/basis stamped, provenance noted in the event.<span class="ev">OpportunityStoreContext.tsx:144–222</span></div>
+        <div class="feat ok"><b>Two-state lifecycle, honestly documented.</b> "Not started (committed) → Mark live (in-execution)"; <code>stage.ts</code> explicitly designs `realized` as an ERP-measured outcome, not a button.<span class="ev">stage.ts:3–13, 46–49</span></div>
+        <div class="feat ok"><b>Full activity trail — here, not in the modal.</b> TrackingPanel's ActivityList renders every event kind (commit, stage moves, drift-cleared, notes) — the audit UX the Details modal lacks.<span class="ev">TrackingPanel.tsx:89–143</span></div>
+        <div class="feat gap"><b>`realized` is unreachable.</b> No UI trigger in or out; nothing watches realizedPct()===100; the panel just shows a static "Closed" badge if data ever arrives there.<span class="ev">stage.ts:46–48 · store:396 [verified]</span></div>
+        <div class="feat gap"><b>The drift system is fully built and can never fire.</b> Banner, Apply-revised-ramp / Escalate actions, sidebar warning dot, amber Watch risk, dashboard $-at-risk — all keyed to <code>drift.flagged</code>, which no code path ever sets.<span class="ev">store:525–533 · risk.ts:113 [verified: setter absent]</span></div>
+        <div class="feat gap"><b>Commits are forever.</b> <code>undoCommit</code> restores pre-commit figures and strips generated milestones — implemented, tested by design, wired to zero buttons.<span class="ev">OpportunityStoreContext.tsx:224–252 [verified: no callers]</span></div>
+        <div class="feat gap"><b>Actuals are a demo lever.</b> "Post next quarter" / "Reset actuals" simulate SAP in-memory (fine for a POC) — but nothing marks them as unaudited in the KPIs, and none of it persists or emits events.<span class="ev">tracking/page.tsx:41–58 · store:561–584</span></div>
+        <div class="feat gap"><b>History evaporates.</b> Events, milestones, drift state, and demo actuals are memory-only; reload rebuilds each play to a single "surfaced" event.<span class="ev">cdm.ts:574–581</span></div>
+      </div>
+      <div class="tobe-col">
+        <div class="coltitle">To be — finish the loop</div>
+        <div class="tb"><b>Measure realization — even manually.</b><span class="prio poc">POC</span><span class="why">Discovery-grade: quarterly actuals entry (CSV or form) per play with source noted → realized % computes → auto-flip to Realized at threshold with a closure card: committed vs realized variance, timeline, sign-off. <i>The readout's money slide generates itself.</i></span></div>
+        <div class="tb"><b>Set drift, don't just clear it.</b><span class="prio poc">POC</span><span class="why">Each engine re-run diffs committed plays (addressable, roster, prices): material change → <code>drift.flagged=true</code> + note. The entire already-built triage UX — banner, dot, $-at-risk — comes alive with one setter. <i>Highest ratio of built-UI-to-missing-code in the app.</i></span></div>
+        <div class="tb"><b>Wire the un-commit.</b><span class="prio p1">P1</span><span class="why">Guarded button (reason required, audit event) on the tracking panel calling the existing store action. <i>Committed-by-mistake shouldn't mean committed-forever in a demo to skeptical buyers.</i></span></div>
+        <div class="tb"><b>Persist the trail.</b><span class="prio poc">POC</span><span class="why">Events, milestones, actuals, drift → action layer, rehydrated on load. <i>An audit trail that survives F5 is table stakes for a finance-adjacent tool.</i></span></div>
+        <div class="tb"><b>Label demo data as demo.</b><span class="prio poc">POC</span><span class="why">Simulated actuals get an "illustrative" watermark in KPIs and ramp until a real source lands. <i>Never let ATI wonder which numbers are real.</i></span></div>
+      </div>
+      <div class="behav">
+        <div><div class="bl">User mindset here</div><p>"I told finance $16.5K–$26.4K. Is it landing? What's slipping, and can I prove what did land?"</p></div>
+        <div><div class="bl">Journey & persona</div><p>J1-07 monitor / J1-08 realize · P2 exec reads the rollup · outcome-fee model makes this the billing substrate.</p></div>
+        <div><div class="bl">Pain today</div><p>The play can go live but never finish; risk surfaces are dormant; the trail resets on refresh; demo and real numbers are indistinguishable.</p></div>
+        <div><div class="bl">Success metric</div><p>Every committed play reaches a closure verdict; drift catches material changes before the QBR does; variance report exports for the readout.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STAGE 6 · PARKED ================= -->
+<section id="s6">
+  <div class="snum">07</div>
+  <h2>Stage 6 · Parked — the Waiting Room</h2>
+  <p class="lede">Park is the CM's snooze button — "not now, wake me when the contract renews." The dialog captures exactly the right data. Then nothing watches it: <b>a parked item resurfaces only if a human remembers it exists.</b></p>
+
+  <div class="stage">
+    <div class="stage-head"><span class="num">S6</span><h3>Parked tab + parked panel</h3><span class="route">ParkDialog.tsx · page.tsx · ReviewPanel (read-only) · store.unpark()</span></div>
+    <div class="stage-body">
+      <div class="asis">
+        <div class="coltitle">As deployed — verified in source</div>
+        <div class="feat ok"><b>Rich trigger capture.</b> Date or condition (6 canned + Other), validated, persisted to the action layer, surviving engine re-runs.<span class="ev">ParkDialog.tsx · action/route.ts:43–44</span></div>
+        <div class="feat ok"><b>A working return path.</b> Parked panel's "Return to feed" un-parks to `qualified` (persisted), with a toast.<span class="ev">store.unpark():352–366</span></div>
+        <div class="feat gap"><b>The trigger is decoration.</b> No scheduler parses dates, no watcher evaluates conditions, no notification exists — the panel's own copy ("resurfaces when its revisit trigger fires") is false today.<span class="ev">[verified: no consumer of parkTrigger]</span></div>
+        <div class="feat gap"><b>Invisible in its own tab.</b> Parked rows render identically to feed rows — the trigger shows only after opening each row one by one; rejected rows get a reason subtitle, parked rows get nothing.<span class="ev">opportunityColumns.tsx:50–59</span></div>
+        <div class="feat gap"><b>Deciding takes five steps.</b> Open (read-only) → Return to feed → find the row again → re-open → decide. No Approve/Reject from the parked state.<span class="ev">ReviewPanel.tsx:558, 708–712 [verified]</span></div>
+        <div class="feat gap"><b>Date vs condition flattened.</b> The typed distinction is serialized into one string, so a future revisit engine can't tell them apart without parsing prose.<span class="ev">ParkDialog.tsx:67–74 · types:164</span></div>
+      </div>
+      <div class="tobe-col">
+        <div class="coltitle">To be — a snooze that rings</div>
+        <div class="tb"><b>Trigger column + overdue state.</b><span class="prio poc">POC</span><span class="why">"Revisit" column in the Parked tab (date or condition), amber "Due" chip once passed. <i>The tab becomes a worklist instead of a graveyard.</i></span></div>
+        <div class="tb"><b>Revisit engine, date-first.</b><span class="prio poc">POC</span><span class="why">Dates auto-resurface on load ("Parked revisit due" feed signal + brief line). Conditions wire to watchers as data allows (price movement from scan diffs, contract renewal from vendor data). <i>Makes the dialog's promise true with a day of work.</i></span></div>
+        <div class="tb"><b>Direct decide from Parked.</b><span class="prio poc">POC</span><span class="why">Approve / Reject live in the parked panel (same dialogs, park context pre-filled) — one step, not five. <i>The user asked for exactly this in session feedback.</i></span></div>
+        <div class="tb"><b>Keep the trigger typed.</b><span class="prio poc">POC</span><span class="why">Persist {type: date|condition, value} instead of one string. <i>Ten minutes now saves the parser later.</i></span></div>
+      </div>
+      <div class="behav">
+        <div><div class="bl">User mindset here</div><p>"Wake me when it matters. If I have to remember it myself, parking was just a slower way to forget."</p></div>
+        <div><div class="bl">Journey & persona</div><p>J1 triage (park the maybes) · drift/revisit use case ("respond to change on parked work").</p></div>
+        <div><div class="bl">Pain today</div><p>Triggers never fire; the tab hides its own data; changing your mind costs five interactions.</p></div>
+        <div><div class="bl">Success metric</div><p>% of parked items resurfaced by trigger (not memory); time from due → decision; parked-forever count → 0.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STAGE 7 · REJECTED ================= -->
+<section id="s7">
+  <div class="snum">08</div>
+  <h2>Stage 7 · Rejected — the Record</h2>
+  <p class="lede">Rejection is the CM teaching the machine. The build takes the lesson politely — canned reasons, a note field, a visible bucket — and then <b>loses the note, ignores the lesson, and locks the door.</b></p>
+
+  <div class="stage">
+    <div class="stage-head"><span class="num">S7</span><h3>Rejected tab + rejected panel</h3><span class="route">RejectDialog.tsx · store.reject() · action/route.ts · engine generate.py</span></div>
+    <div class="stage-body">
+      <div class="asis">
+        <div class="coltitle">As deployed — verified in source</div>
+        <div class="feat ok"><b>Reason taxonomy that maps to reality.</b> Non-negotiable counterparty, intercompany, OEM-locked, already contracted… — a real dismissal vocabulary, persisted by reason.<span class="ev">RejectDialog.tsx · route.ts:45–46</span></div>
+        <div class="feat ok"><b>Reason stays visible.</b> "Rejected · &lt;reason&gt;" subtitle on the row; panel band restates it; the bucket keeps its tab and count.<span class="ev">opportunityColumns.tsx:50–59</span></div>
+        <div class="feat gap"><b>Terminal, with no appeal.</b> No un-reject exists in store or API — `parked` got `unpark()`, `rejected` got nothing. A fat-fingered rejection is permanent.<span class="ev">store:352–366 (no counterpart) [verified]</span></div>
+        <div class="feat gap"><b>The note dies; the engine never listens.</b> "Other (specify)" text is never sent to the API; and generate.py emits fresh `surfaced` rows unconditionally — <code>dismissed_reason=None</code> hardcoded. "Sweep calibration" is copy, not code.<span class="ev">store:331 · generate.py [verified]</span></div>
+        <div class="feat gap"><b>No memory across re-runs — the quiet contradiction.</b> The J2 journey promises "next engine run respects the decision." Only the action-layer status merge keeps dismissed opps out; the engine itself would happily re-emit the same pocket as new.<span class="ev">cdm.ts:524–530 (merge is the only guard)</span></div>
+      </div>
+      <div class="tobe-col">
+        <div class="coltitle">To be — a record that teaches</div>
+        <div class="tb"><b>Un-reject with reason.</b><span class="prio poc">POC</span><span class="why">Symmetric to unpark: "Restore to feed" with a required why, audit event appended. <i>Reversibility is cheap; re-running a 3-week discovery to recover one pocket is not.</i></span></div>
+        <div class="tb"><b>Persist the note; show the history.</b><span class="prio poc">POC</span><span class="why">Send {reason, note} through; render the full decision trail in the panel timeline. <i>The CM's explanation is exactly the data the engine will someday train on — stop discarding it.</i></span></div>
+        <div class="tb"><b>Sweep respect, then sweep learning.</b><span class="prio p1">P1</span><span class="why">Next run: suppress rejected pockets unless materially changed — and when re-surfacing, attach "what changed since you rejected it" (spend +32%, incumbent exited). <i>Turns re-surfacing from an insult into a signal.</i></span></div>
+        <div class="tb"><b>Calibration digest.</b><span class="prio p2">P2</span><span class="why">Aggregate reject reasons per sweep ("6 of 9 rejections were intercompany — scope filter proposed") in the Mercer Brief. <i>Closes the loop publicly; builds the trust the fee model needs.</i></span></div>
+      </div>
+      <div class="behav">
+        <div><div class="bl">User mindset here</div><p>"I said no and told you why. Prove you heard me — don't show me the same pocket next Tuesday."</p></div>
+        <div><div class="bl">Journey & persona</div><p>J2-05/06 — the skeptic's dismissal and the trust-compounding that follows (or doesn't).</p></div>
+        <div><div class="bl">Pain today</div><p>Irreversible; notes lost; engine deaf; the promised calibration doesn't exist.</p></div>
+        <div><div class="bl">Success metric</div><p>Repeat-dismissal rate → 0; % of re-surfaced items with a changed-justification; un-reject usage low but non-zero (it exists and isn't needed often).</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ================= CROSS-CUTTING ================= -->
+<section id="cross">
+  <div class="snum">09</div>
+  <h2>Cross-Cutting Layers</h2>
+  <p class="lede">Five threads that run through every stage rather than living on one screen.</p>
+
+  <h3>① The pricing-evidence layer — from rates to prices</h3>
+  <p>Today every savings number is <b>rate-derived</b> (a lever-tiered % of addressable). Nowhere — feed, details, act, tracking — does a unit price, benchmark, or price gap appear; the roster carries only aggregate spend and shares, and the one place named "Market intel / pricing data" is an empty box the CM is asked to fill. For a skeptical buyer, that's an argument without its strongest witness.</p>
+  <div class="callout"><b>The bridge to build (Details modal + Act):</b> benchmark price for the category/geography → ATI's own blended rate from transaction lines → gap per unit × addressable volume → the savings range. Per-vendor blended unit price in the roster; quote-vs-blended comparison when evidence lands in Act. <i>This is literally the discovery's promise — "evidence-based price and spec comparisons on ATI's own transaction data."</i></div>
+
+  <h3>② Ask Mercer — one placement, one behavior</h3>
+  <p>Mercer is correctly scoped everywhere (the copilot opens with page + opportunity context, and the modal reserves 440px for the dock). Two fixes: anchor the button <b>left of the decision cluster</b> in every footer (today it drifts), and never dress non-AI output in Mercer's star — the Act drafts are deterministic templates wearing the copilot's badge, which is exactly the kind of over-claim a "prove it" buyer punishes.</p>
+
+  <h3>③ Signals &amp; notifications — the missing nervous system</h3>
+  <p>All communication today is same-session toasts. Nothing announces: a new sweep landing, a parked trigger coming due, drift on a committed play, a new supplier entering a pocket, or a new BU's data arriving. One <b>signal rail</b> (feed chips + a brief line + a bell) serves every stage: <span class="pill info">New</span> <span class="pill warn">Changed +$41K</span> <span class="pill info">New supplier</span> <span class="pill warn">Revisit due</span> <span class="pill danger">Drift</span> — each chip answering "why am I seeing this <i>now</i>."</p>
+
+  <h3>④ Truthful microcopy — say only what the code does</h3>
+  <p>The audit found five places where copy promises behavior that doesn't exist: "Ranked by evidence strength" (sorts by confidence), "resurfaces when its revisit trigger fires" (nothing fires), "logged for sweep calibration" (engine reads nothing), the Mercer-starred template drafts, and a docstring's promised commit "Done" state. Each is small; together they train users to distrust labels — fatal under an outcome-based fee. <b>Rule: every promise in copy maps to a code path, or the copy changes.</b></p>
+
+  <h3>⑤ Durability — decisions that survive a refresh</h3>
+  <p>Volatile today: qualify status, audit events, reject notes, CM context/market intel, figure overrides' provenance trail, drift state, demo actuals — plus save failures masked by success toasts and a store clock frozen at <code>2026-06-12</code>. A finance-adjacent tool has one hard rule: <b>what the user told the system, the system remembers — visibly, or it says why not.</b></p>
+</section>
+
+<!-- ================= MASTER TABLE ================= -->
+<section id="master">
+  <div class="snum">10</div>
+  <h2>Master Feature Map</h2>
+  <p class="lede">Every to-be feature from the seven stages, one table. Priority: <span class="prio poc" style="vertical-align:baseline">POC</span> = build for the 3-week discovery · <span class="prio p1" style="vertical-align:baseline">P1</span> = Phase-2 licensing scope · <span class="prio p2" style="vertical-align:baseline">P2</span> = later. Effort: S ≤ ½ day · M ≤ 2 days · L &gt; 2 days.</p>
+
+  <div class="scrollx">
+  <table class="map">
+    <thead><tr><th>#</th><th>Feature</th><th>Screen</th><th>Pain it kills</th><th>Journey</th><th style="width:64px">Priority</th><th style="width:52px">Effort</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><b>Signal column + signal rail</b> (new / changed / new-supplier / revisit-due / drift chips with reasons)</td><td>Feed</td><td>Can't tell new from stale; re-review tax; no notifications anywhere</td><td>J1-02</td><td><span class="prio poc">POC</span></td><td>M</td></tr>
+      <tr><td>2</td><td><b>Bulk triage</b> (multi-select → park/dismiss with shared reason, filter-scoped select-all)</td><td>Feed</td><td>40 rows = 40 modal loops</td><td>J1-02</td><td><span class="prio poc">POC</span></td><td>M</td></tr>
+      <tr><td>3</td><td><b>Declared, honest ranking</b> (sort = what the brief claims; evidence-basis facet)</td><td>Feed</td><td>"Ranked by evidence strength" vs confidence sort</td><td>J2</td><td><span class="prio poc">POC</span></td><td>S</td></tr>
+      <tr><td>4</td><td><b>Group-by</b> (sub-category / lever / country with rolled-up $)</td><td>Feed</td><td>Flat list scatters natural batches</td><td>J1-02</td><td><span class="prio poc">POC</span></td><td>M</td></tr>
+      <tr><td>5</td><td><b>Sequential review</b> (next/prev in modal; read-unread dots)</td><td>Feed+Details</td><td>Close-find-click per row; no read state</td><td>J1-02</td><td><span class="prio p1">P1</span></td><td>M</td></tr>
+      <tr><td>6</td><td><b>Durable working set</b> (filters in URL, saved views, CSV export)</td><td>Feed</td><td>Working set lost on any detour</td><td>J1</td><td><span class="prio p1">P1</span></td><td>M</td></tr>
+      <tr><td>7</td><td><b>Search vendors + IDs; sortable savings; threshold slider</b></td><td>Feed</td><td>Canonical queries impossible</td><td>J1-02</td><td><span class="prio p1">P1</span></td><td>S</td></tr>
+      <tr><td>8</td><td><b>Pricing Evidence section</b> (benchmark → blended rate → gap → savings; per-vendor unit price)</td><td>Details</td><td>Savings asserted from rates, never bridged from prices</td><td>J2</td><td><span class="prio poc">POC</span></td><td>L</td></tr>
+      <tr><td>9</td><td><b>Wire the confidence derivation</b> (resurrect WhatDroveThisCard as a tab)</td><td>Details</td><td>Approving against a bare "76%"</td><td>J2</td><td><span class="prio poc">POC</span></td><td>S</td></tr>
+      <tr><td>10</td><td><b>Drill-to-lineage</b> (every figure → top transactions behind it)</td><td>Details</td><td>Every number is a cul-de-sac</td><td>J2</td><td><span class="prio poc">POC</span></td><td>L</td></tr>
+      <tr><td>11</td><td><b>Single Approve + inline disabled reasons + Mercer left</b></td><td>Details</td><td>Duplicate primaries; tooltip-on-disabled trap</td><td>All</td><td><span class="prio poc">POC</span></td><td>S</td></tr>
+      <tr><td>12</td><td><b>Visible regenerate diff</b> (before → after when CM context folds in)</td><td>Details</td><td>Regenerate is a toast + 1200ms timer</td><td>J2</td><td><span class="prio p1">P1</span></td><td>M</td></tr>
+      <tr><td>13</td><td><b>Live roster + challengeable carve-outs</b> (vendor links; per-exclusion dispute → P4)</td><td>Details</td><td>Inert roster; unchallengeable exclusions</td><td>J2/J5</td><td><span class="prio p1">P1</span></td><td>M</td></tr>
+      <tr><td>14</td><td><b>Evidence-pack export</b> (summary + waterfall + fit + roster + pricing, PDF/link)</td><td>Details</td><td>The argument can't leave the modal</td><td>J1-04</td><td><span class="prio p1">P1</span></td><td>M</td></tr>
+      <tr><td>15</td><td><b>Persist the full decision record</b> (notes, typed triggers, actors, events; failures surface with retry)</td><td>Decision</td><td>Lost notes; silent failures; amnesiac audit trail</td><td>J2-05</td><td><span class="prio poc">POC</span></td><td>M</td></tr>
+      <tr><td>16</td><td><b>Sweep respect + calibration</b> (engine reads dismissals; "what changed" on re-surface)</td><td>Decision/Engine</td><td>"Calibration" copy backed by nothing</td><td>J2-06</td><td><span class="prio p1">P1</span></td><td>L</td></tr>
+      <tr><td>17</td><td><b>Evidence loop in Act</b> (paste/upload quote → Mercer analyzes → folds into versioned drafts)</td><td>Act</td><td>No door for evidence; drafts never improve</td><td>J1-05</td><td><span class="prio poc">POC</span></td><td>L</td></tr>
+      <tr><td>18</td><td><b>Versioned, persistent drafts</b> (authorship, kind-switch without loss)</td><td>Act</td><td>One fragile textarea; edits destroyed</td><td>J1-05</td><td><span class="prio poc">POC</span></td><td>M</td></tr>
+      <tr><td>19</td><td><b>Real copilot drafting or honest labels</b></td><td>Act</td><td>Mercer star on string templates</td><td>Trust</td><td><span class="prio poc">POC</span></td><td>M</td></tr>
+      <tr><td>20</td><td><b>Commit guardrails</b> (require timing/basis; checklist warning; savings editable w/ justification)</td><td>Act</td><td>Commit accepts empty metadata; Close eats state</td><td>J1-06</td><td><span class="prio poc">POC</span></td><td>S</td></tr>
+      <tr><td>21</td><td><b>Bid intake + comparison + award modeling</b></td><td>Act</td><td>RFP scaffold points at rooms that don't exist</td><td>J1-05</td><td><span class="prio p1">P1</span></td><td>L</td></tr>
+      <tr><td>22</td><td><b>Aging + de-accept path</b> (stalled-play chip; return/park/reject from accepted)</td><td>Act</td><td>Accepted is blind and one-way</td><td>J1</td><td><span class="prio p1">P1</span></td><td>M</td></tr>
+      <tr><td>23</td><td><b>Send/export outreach + response log</b></td><td>Act</td><td>Draft's only destination is a textarea</td><td>J1-05</td><td><span class="prio p1">P1</span></td><td>M</td></tr>
+      <tr><td>24</td><td><b>Actuals entry + auto-realize + closure card</b> (variance vs commitment, sign-off)</td><td>Tracking</td><td>`realized` unreachable; no ending, no verdict</td><td>J1-08</td><td><span class="prio poc">POC</span></td><td>M</td></tr>
+      <tr><td>25</td><td><b>Drift setter</b> (engine re-run diffs committed plays → flags)</td><td>Tracking/Engine</td><td>Entire drift UX built, dormant</td><td>J1-07</td><td><span class="prio poc">POC</span></td><td>M</td></tr>
+      <tr><td>26</td><td><b>Un-commit button</b> (wired to existing undoCommit, guarded)</td><td>Tracking</td><td>Commits are forever</td><td>J1-06</td><td><span class="prio p1">P1</span></td><td>S</td></tr>
+      <tr><td>27</td><td><b>Demo-data watermark</b> (illustrative actuals labeled)</td><td>Tracking</td><td>Real vs simulated indistinguishable</td><td>Trust</td><td><span class="prio poc">POC</span></td><td>S</td></tr>
+      <tr><td>28</td><td><b>Trigger column + overdue chips + revisit engine (dates first)</b></td><td>Parked</td><td>Snooze that never rings; graveyard tab</td><td>J1</td><td><span class="prio poc">POC</span></td><td>M</td></tr>
+      <tr><td>29</td><td><b>Direct decide from Parked</b> (Approve/Reject in the parked panel)</td><td>Parked</td><td>Five steps to change your mind</td><td>J1</td><td><span class="prio poc">POC</span></td><td>S</td></tr>
+      <tr><td>30</td><td><b>Un-reject with reason + persisted notes + decision timeline</b></td><td>Rejected</td><td>Terminal state; lost explanations</td><td>J2-05</td><td><span class="prio poc">POC</span></td><td>S</td></tr>
+      <tr><td>31</td><td><b>Calibration digest in the brief</b> (aggregated reject reasons → proposed scope fixes)</td><td>Brief</td><td>The lesson never becomes visible learning</td><td>J2-06</td><td><span class="prio p2">P2</span></td><td>M</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ================= DISCOVERY SCOPE ================= -->
+<section id="scope">
+  <div class="snum">11</div>
+  <h2>What Lands in the 3-Week Discovery vs Phase 2</h2>
+  <p class="lede">The engagement's five phases map one-to-one onto this flow — which is the argument for fixing the flow's edges <i>before</i> July 24. The POC column is 17 features; over half are S/M effort because the hard parts (waterfall math, tracking page, store, drift UI) already exist.</p>
+
+  <div class="scrollx">
+  <table class="map">
+    <thead><tr><th style="width:130px">Engagement phase</th><th>Product surface</th><th>Discovery-critical builds (from the map above)</th><th>Why it matters at the readout</th></tr></thead>
+    <tbody>
+      <tr><td><b>Scan</b><br><span style="color:var(--ink-3);font-size:12px">ingest + normalize MRO</span></td><td>Mercer Brief + Feed</td><td>#1 signals · #3 honest ranking · #4 grouping</td><td>Day-2 sweep must visibly diff from day-1 — "the engine noticed" is the wow moment.</td></tr>
+      <tr><td><b>Qualify</b><br><span style="color:var(--ink-3);font-size:12px">rank + confirm top 5 sub-categories</span></td><td>Feed + Details modal</td><td>#2 bulk triage · #8 pricing evidence · #9 confidence derivation · #10 lineage · #11 single Approve · #15 durable decisions</td><td>ATI's skeptics live here. Price-gap math on their own transactions converts them; lost notes and silent failures un-convert them.</td></tr>
+      <tr><td><b>Act</b><br><span style="color:var(--ink-3);font-size:12px">price/spec comparisons, decisions captured in one place</span></td><td>Act workspace</td><td>#17 evidence loop · #18 versioned drafts · #19 honest Mercer · #20 commit guardrails</td><td>"Decisions captured in one place" is the engagement's literal wording — today notes, timing and drafts leak out of that place.</td></tr>
+      <tr><td><b>Monitor</b><br><span style="color:var(--ink-3);font-size:12px">stand up value-realization tracking</span></td><td>/tracking Control Tower</td><td>#24 actuals + closure · #25 drift setter · #27 demo watermark</td><td>The Control Tower exists — it needs an ending (realized + variance) and a working risk signal to be credible as the billing substrate.</td></tr>
+      <tr><td><b>Readout</b><br><span style="color:var(--ink-3);font-size:12px">exec readout + action plan + POC in hand</span></td><td>Everything, exported</td><td>#14 evidence-pack export · #28–30 closed edges (park/reject that work)</td><td>The readout deck should be assembled <i>from</i> the product — screenshots of closed loops, not promises of them. That's the land-and-expand proof.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout warn"><b>Explicitly deferred to Phase 2:</b> bid intake/award modeling (#21), engine-level sweep calibration (#16), outbound send + response tracking (#23), sequential review & saved views (#5, #6), un-commit (#26), plant/regional scope selector (the "same layout, zero relearning" constraint stays documented as the Phase-2 architecture rule — discovery runs enterprise-only). None of these block the discovery's proof; all of them belong in the licensing scope it sets up.</div>
+
+  <div class="callout"><b>Reading order for the build chat:</b> this document is the spec; <code>FEATURE_ROADMAP.md</code> in the repo carries the earlier per-feature implementation notes (types, component paths, pseudo-code). Where the two differ, this document is newer and source-verified — it also corrects one of the roadmap's assumptions: post-Act tracking <i>exists</i>; the work is finishing its loop, not building it.</div>
+</section>
+
+<div class="foot">Opportunity Experience Blueprint · generated from a 5-reader source audit + 6 adversarial verifications of <code>swostiprasadnayak/allison-procurement</code> (frontend + engine), live data from <code>allison-procurement-931u.vercel.app</code>, and the session's persona/journey corpus · July 3, 2026.</div>
+
+</div>
+</body>
+</html>

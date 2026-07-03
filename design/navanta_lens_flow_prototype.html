@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Navanta Lens — Opportunity Flow Prototype (Blueprint v3)</title>
+<style>
+/* ===== Navanta DS tokens (matching @navanta-ai/design-system v0.4.x) ===== */
+:root{
+  --background:#ffffff; --foreground:#09090b;
+  --primary:#232122; --primary-foreground:#ffffff;
+  --accent:#6440b6; --accent-soft:#f5efff;
+  --christy:linear-gradient(154.42deg,#1d4a86 1.66%,#3d348b 83.4%);
+  --muted:#f4f4f5; --muted-2:#fafafa;
+  --border:#e4e4e7; --border-2:#d4d4d8;
+  --text-2:#52525b; --text-3:#8b8b94;
+  --pill-info-bg:#eff6ff; --pill-info-fg:#1e40af;
+  --pill-danger-bg:#fff1f2; --pill-danger-fg:#a7000f;
+  --pill-warning-bg:#fffbeb; --pill-warning-fg:#92400e;
+  --pill-neutral-bg:#f4f4f5; --pill-neutral-fg:#52525b;
+  --good:#1e7d4f; --good-bg:#e7f4ed;
+  --bad:#a7000f; --bad-bg:#fff1f2;
+  --warn:#92400e; --warn-bg:#fffbeb;
+  --blue:#1d4a86; --blue-bg:#eaf1fb;
+  --shadow:0 4px 24px rgba(9,9,11,.10);
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;background:#fafafa;color:var(--foreground);font-size:14px;line-height:1.5}
+button{font:inherit;cursor:pointer;border:none;background:none}
+input,select,textarea{font:inherit;color:inherit}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ===== Topbar ===== */
+.topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:18px;background:#fff;border-bottom:1px solid var(--border);padding:0 22px;height:54px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;letter-spacing:-.01em}
+.brand .logo{width:22px;height:22px;border-radius:6px;background:var(--christy);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800}
+.nav{display:flex;gap:4px;margin-left:8px}
+.nav button{padding:7px 13px;border-radius:8px;font-weight:600;color:var(--text-2);font-size:13.5px}
+.nav button:hover{background:var(--muted)}
+.nav button.on{background:var(--primary);color:#fff}
+.nav button .ct{display:inline-block;min-width:17px;padding:0 5px;margin-left:6px;border-radius:99px;background:rgba(255,255,255,.22);font-size:10.5px;font-weight:800;text-align:center}
+.nav button:not(.on) .ct{background:var(--muted);color:var(--text-2)}
+.scopewrap{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-3)}
+.scopewrap select{border:1px solid var(--border);border-radius:8px;padding:6px 9px;background:#fff;font-size:12.5px;font-weight:600;color:var(--foreground)}
+
+/* ===== Layout ===== */
+.page{max-width:1460px;margin:0 auto;padding:20px 22px 90px}
+
+/* ===== Buttons (DS) ===== */
+.btn{display:inline-flex;align-items:center;gap:7px;border-radius:9px;padding:8px 14px;font-weight:600;font-size:13px;border:1px solid transparent;white-space:nowrap}
+.btn.primary{background:var(--primary);color:#fff}
+.btn.primary:hover{background:#3a3738}
+.btn.christy{background:var(--christy);color:#fff}
+.btn.outline{background:#fff;border-color:var(--border-2);color:var(--foreground)}
+.btn.outline:hover{background:var(--muted)}
+.btn.ghost{color:var(--text-2)}
+.btn.ghost:hover{background:var(--muted)}
+.btn.danger{background:#fff;border-color:#f3c1c6;color:var(--bad)}
+.btn.danger:hover{background:var(--bad-bg)}
+.btn.sm{padding:5px 10px;font-size:12px;border-radius:8px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.gatehint{font-size:11.5px;color:var(--bad);font-weight:600}
+
+/* ===== Pills ===== */
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.pill.info{background:var(--pill-info-bg);color:var(--pill-info-fg)}
+.pill.danger{background:var(--pill-danger-bg);color:var(--pill-danger-fg)}
+.pill.warning{background:var(--pill-warning-bg);color:var(--pill-warning-fg)}
+.pill.neutral{background:var(--pill-neutral-bg);color:var(--pill-neutral-fg)}
+.pill.good{background:var(--good-bg);color:var(--good)}
+.pill.accent{background:var(--accent-soft);color:var(--accent)}
+.pill.xs{font-size:10px;padding:1px 7px}
+
+/* ===== Cards ===== */
+.card{background:#fff;border:1px solid var(--border);border-radius:14px}
+.cardpad{padding:16px 18px}
+
+/* ===== Mercer Brief ===== */
+.brief{border:1px solid #e6ddf6;background:linear-gradient(180deg,#faf7ff, #fff);border-radius:14px;padding:16px 18px;margin-bottom:16px}
+.brief .bhead{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+.bstar{width:20px;height:20px;border-radius:6px;background:var(--christy);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+.brief .bhead b{font-size:14.5px}
+.brief .stamp{margin-left:auto;font-size:12px;color:var(--text-3)}
+.brief .narr{font-size:13.5px;color:var(--text-2);max-width:1000px}
+.brief .honored{margin-top:6px;font-size:12.5px;color:var(--good);font-weight:600}
+.bcards{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap}
+.bcard{flex:1;min-width:150px;background:#fff;border:1px solid var(--border);border-radius:11px;padding:10px 14px}
+.bcard .l{font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.07em}
+.bcard .v{font-size:19px;font-weight:700;letter-spacing:-.01em;margin-top:1px}
+.bcard .d{font-size:11.5px;color:var(--text-3)}
+.sweepbtn{margin-top:12px;display:flex;align-items:center;gap:10px}
+.sweepbtn .note{font-size:12px;color:var(--text-3)}
+
+/* ===== Feed toolbar ===== */
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0 10px}
+.toolbar input[type=text]{border:1px solid var(--border);border-radius:9px;padding:8px 12px;width:280px;background:#fff}
+.toolbar select{border:1px solid var(--border);border-radius:9px;padding:8px 10px;background:#fff;font-size:13px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:99px;background:#fff;padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--text-2)}
+.chip.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.ranknote{font-size:12.5px;color:var(--text-3);margin:2px 0 8px}
+.ranknote b{color:var(--text-2)}
+
+/* ===== Tabs ===== */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin:8px 0 0}
+.tabs button{padding:9px 15px;font-weight:600;font-size:13.5px;color:var(--text-2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--foreground);border-bottom-color:var(--primary)}
+.tabs .ct{display:inline-block;min-width:18px;padding:0 5px;margin-left:5px;border-radius:99px;background:var(--muted);font-size:10.5px;font-weight:800;text-align:center;color:var(--text-2)}
+
+/* ===== Bulk bar ===== */
+.bulkbar{display:flex;align-items:center;gap:10px;background:var(--primary);color:#fff;border-radius:11px;padding:9px 14px;margin:10px 0;font-size:13px}
+.bulkbar .btn.outline{background:transparent;color:#fff;border-color:rgba(255,255,255,.35)}
+.bulkbar .btn.outline:hover{background:rgba(255,255,255,.12)}
+
+/* ===== Table ===== */
+.tblwrap{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-top:10px}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{background:var(--muted-2);border-bottom:1px solid var(--border);text-align:left;padding:9px 12px;font-size:11.5px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;user-select:none}
+.tbl th.sortable{cursor:pointer}
+.tbl th.sortable:hover{color:var(--foreground)}
+.tbl td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tbody tr.row{cursor:pointer}
+.tbl tbody tr.row:hover td{background:#f8f7fb}
+.tbl .r{text-align:right}
+.tbl .oppname{font-weight:600}
+.tbl .sub{display:block;font-size:11.5px;color:var(--text-3);font-weight:400;margin-top:1px}
+.tbl .sub.rej{color:var(--bad)}
+.grouphead td{background:var(--muted-2);font-weight:700;font-size:12px;color:var(--text-2);padding:7px 12px}
+.grouphead .gsum{float:right;font-weight:600;color:var(--text-3)}
+.unread{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:7px;vertical-align:1px}
+.readgap{display:inline-block;width:14px}
+.cm{display:flex;align-items:center;gap:7px;justify-content:flex-end}
+.cm .bar{width:54px;height:6px;border-radius:3px;background:var(--muted);overflow:hidden}
+.cm .bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#89a9e5 0%,#89a9e5 54%,#234687 100%)}
+.emptystate{padding:44px;text-align:center;color:var(--text-3)}
+.emptystate .big{font-size:15px;font-weight:700;color:var(--text-2);margin-bottom:4px}
+
+/* ===== Modal ===== */
+.overlay{position:fixed;inset:0;background:rgba(15,18,34,.45);z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:34px 20px}
+.modal{background:#fff;border-radius:16px;width:min(1020px,100%);max-height:calc(100vh - 68px);display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.mhead{display:flex;align-items:center;gap:12px;padding:16px 22px 12px;border-bottom:1px solid var(--border)}
+.mhead .ic{width:34px;height:34px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px}
+.mhead h2{font-size:18px;letter-spacing:-.01em}
+.mhead .meta{display:flex;gap:8px;align-items:center;margin-top:3px;flex-wrap:wrap}
+.mhead .chipg{background:var(--muted);border-radius:7px;padding:2px 9px;font-size:11.5px;font-weight:600;color:var(--text-2)}
+.mhead .navx{margin-left:auto;display:flex;align-items:center;gap:6px}
+.mhead .navx .pos{font-size:11.5px;color:var(--text-3);margin:0 4px}
+.iconbtn{width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:var(--text-2);border:1px solid var(--border);background:#fff;font-size:13px}
+.iconbtn:hover{background:var(--muted)}
+.iconbtn:disabled{opacity:.35;cursor:not-allowed}
+.mtabs{display:flex;gap:2px;padding:0 22px;border-bottom:1px solid var(--border)}
+.mtabs button{padding:9px 13px;font-weight:600;font-size:12.5px;color:var(--text-2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.mtabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
+.mbody{overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:14px}
+.mbody>*{flex-shrink:0}
+.mfoot{display:flex;align-items:center;gap:9px;padding:13px 22px;border-top:1px solid var(--border)}
+.mfoot .spacer{flex:1}
+
+/* Mercer summary band */
+.msum{background:var(--accent-soft);border:1px solid #e6ddf6;border-radius:12px;padding:13px 16px}
+.msum .h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;margin-bottom:5px}
+.msum p{font-size:13px;color:#3f3564}
+.msum .why{margin-top:7px;font-size:12.5px}
+.msum .why button{color:var(--accent);font-weight:700;font-size:12px}
+.msum ul{margin:7px 0 0 17px;font-size:12.5px;color:#3f3564}
+.msum ul li{margin:3px 0}
+
+/* KPI tiles */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.tile{border:1px solid var(--border);border-radius:11px;padding:10px 13px;background:#fff}
+.tile .l{font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.tile .v{font-size:18px;font-weight:700;margin-top:1px}
+.tile .d{font-size:11.5px;color:var(--text-3)}
+.tile.link{cursor:pointer}
+.tile.link:hover{border-color:var(--accent)}
+.tile .lin{font-size:10.5px;color:var(--accent);font-weight:700;margin-top:3px}
+
+/* Evidence blocks */
+.eb{border:1px solid var(--border);border-radius:12px;background:#fff}
+.eb .ehead{display:flex;align-items:center;gap:9px;padding:11px 15px;border-bottom:1px solid var(--border);font-weight:700;font-size:13px}
+.eb .ehead .right{margin-left:auto;font-size:11.5px;color:var(--text-3);font-weight:500}
+.eb .ebody{padding:13px 15px}
+.eb table{width:100%;border-collapse:collapse;font-size:12.5px}
+.eb table th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);padding:4px 8px;border-bottom:1px solid var(--border)}
+.eb table td{padding:7px 8px;border-bottom:1px solid #f0f0f2}
+.eb table tr:last-child td{border-bottom:none}
+.sharebar{display:inline-block;width:70px;height:6px;border-radius:3px;background:var(--muted);vertical-align:2px;margin-right:6px;overflow:hidden}
+.sharebar i{display:block;height:100%;background:var(--blue)}
+.vlink{color:var(--blue);font-weight:600;cursor:pointer}
+.vlink:hover{text-decoration:underline}
+
+/* pricing evidence */
+.pe .bridge{display:flex;gap:0;align-items:stretch;flex-wrap:wrap;margin-top:4px}
+.pe .bstep{flex:1;min-width:130px;padding:9px 12px;border:1px solid var(--border);background:var(--muted-2)}
+.pe .bstep:first-child{border-radius:9px 0 0 9px}
+.pe .bstep:last-child{border-radius:0 9px 9px 0;background:var(--good-bg);border-color:#cfe7da}
+.pe .bstep .l{font-size:10.5px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.pe .bstep .v{font-size:15.5px;font-weight:700}
+.pe .bstep .d{font-size:11px;color:var(--text-3)}
+.pe .src{font-size:11.5px;color:var(--text-3);margin-top:8px}
+
+/* waterfall */
+.wf .row{display:flex;align-items:baseline;gap:10px;padding:6px 0;border-bottom:1px dashed #ececef;font-size:13px}
+.wf .row:last-child{border-bottom:none}
+.wf .lbl{flex:1}.wf .lbl .rsn{display:block;font-size:11.5px;color:var(--text-3)}
+.wf .amt{font-weight:700}
+.wf .neg{color:var(--bad)}
+.wf .tot{background:var(--muted-2);border-radius:8px;padding:7px 10px;margin:4px -10px 0;border-bottom:none}
+.wf .clicky{cursor:pointer}
+.wf .clicky:hover .lbl{color:var(--accent)}
+
+/* fit */
+.fit .frow{display:flex;gap:10px;padding:7px 0;border-bottom:1px dashed #ececef;font-size:12.5px;align-items:flex-start}
+.fit .frow:last-child{border-bottom:none}
+.fit .fl{width:190px;font-weight:600;flex-shrink:0}
+
+/* derivation */
+.derive .formula{font-family:var(--mono);font-size:12.5px;background:var(--muted-2);border:1px solid var(--border);border-radius:9px;padding:9px 12px;margin-bottom:10px}
+
+/* input / override */
+.uin textarea{width:100%;min-height:64px;border:1px solid var(--border);border-radius:9px;padding:9px 11px;font-size:13px;resize:vertical}
+.uin .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.uin label{font-size:11.5px;font-weight:700;color:var(--text-2);display:block;margin-bottom:3px}
+.uin input[type=number],.uin input[type=text],.uin input[type=date]{width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px}
+.diffbox{border:1px solid #cfe7da;background:var(--good-bg);border-radius:10px;padding:11px 14px;font-size:12.5px}
+.diffbox .dr{display:flex;gap:10px;padding:3px 0}
+.diffbox .dl{width:150px;font-weight:600}
+.diffbox .old{color:var(--text-3);text-decoration:line-through}
+.diffbox .new{font-weight:700;color:var(--good)}
+
+/* history */
+.hist .ev{display:flex;gap:10px;padding:7px 0;border-bottom:1px dashed #ececef;font-size:12.5px}
+.hist .ev:last-child{border-bottom:none}
+.hist .dot{width:8px;height:8px;border-radius:50%;background:var(--border-2);margin-top:5px;flex-shrink:0}
+.hist .ev.k-committed .dot,.hist .ev.k-realized .dot{background:var(--good)}
+.hist .ev.k-rejected .dot{background:var(--bad)}
+.hist .ev.k-parked .dot{background:var(--warn)}
+.hist .ev .who{color:var(--text-3)}
+
+/* status bands */
+.band{border-radius:11px;padding:11px 15px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.band.parked{background:var(--warn-bg);border:1px solid #f0e0b8;color:var(--warn)}
+.band.rejected{background:var(--bad-bg);border:1px solid #f3c1c6;color:var(--bad)}
+.band.tracked{background:var(--good-bg);border:1px solid #cfe7da;color:var(--good)}
+.band b{font-weight:700}
+.band .sp{flex:1}
+
+/* alerts */
+.alert{border-radius:11px;padding:10px 14px;font-size:12.5px;border:1px solid}
+.alert.warn{background:var(--warn-bg);border-color:#f0e0b8;color:var(--warn)}
+.alert.info{background:var(--blue-bg);border-color:#d5e3f5;color:var(--blue)}
+.alert.drift{background:var(--bad-bg);border-color:#f3c1c6;color:var(--bad)}
+
+/* ===== Act workspace ===== */
+.act .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.act .pb{border:1.5px solid var(--border);border-radius:11px;padding:11px 13px;cursor:pointer;background:#fff}
+.act .pb.on{border-color:var(--accent);background:var(--accent-soft)}
+.act .pb .t{font-weight:700;font-size:13px}
+.act .pb .s{font-size:11.5px;color:var(--text-3);margin-top:2px}
+.act .task{display:flex;align-items:center;gap:9px;padding:6px 0;font-size:13px;cursor:pointer;border-bottom:1px dashed #ececef}
+.act .task:last-child{border-bottom:none}
+.act .task .box{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--border-2);display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0}
+.act .task.done .box{background:var(--good);border-color:var(--good)}
+.act .task.done span{color:var(--text-3);text-decoration:line-through}
+.vchips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.vchip{border:1px solid var(--border);border-radius:99px;padding:3px 11px;font-size:11.5px;font-weight:700;color:var(--text-2);background:#fff;cursor:pointer}
+.vchip.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.vchip .by{font-weight:500;color:var(--text-3)}
+.draftarea{width:100%;min-height:170px;border:1px solid var(--border);border-radius:10px;padding:11px 13px;font-family:var(--mono);font-size:12px;line-height:1.55;resize:vertical}
+.analysis{background:var(--accent-soft);border:1px solid #e6ddf6;border-radius:10px;padding:10px 14px;font-size:12.5px}
+.analysis ul{margin:4px 0 0 16px}
+.analysis li{margin:3px 0}
+.evitem{display:flex;gap:8px;font-size:12.5px;padding:6px 0;border-bottom:1px dashed #ececef}
+.evitem .tag{flex-shrink:0}
+
+/* ===== Tracking / VR ===== */
+.vr .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.vr .plays{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
+.vr .plist .prow{border:1px solid var(--border);border-radius:11px;background:#fff;padding:11px 14px;margin-bottom:9px;cursor:pointer}
+.vr .plist .prow:hover{border-color:var(--accent)}
+.vr .plist .prow.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.vr .prow .t{font-weight:700;font-size:13px}
+.vr .prow .meta{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
+.ramp{display:flex;gap:10px;align-items:flex-end;height:150px;padding:14px 6px 4px}
+.ramp .q{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.ramp .bars{display:flex;gap:4px;align-items:flex-end;height:104px}
+.ramp .bar{width:22px;border-radius:4px 4px 0 0}
+.ramp .bar.proj{background:#c9d8ef;border:1px dashed #8fabd6;border-bottom:none}
+.ramp .bar.act{background:linear-gradient(180deg,#234687,#89a9e5)}
+.ramp .ql{font-size:10.5px;color:var(--text-3);font-weight:700}
+.ramp .qv{font-size:10px;color:var(--text-2)}
+.legend{display:flex;gap:14px;font-size:11.5px;color:var(--text-3);padding:0 6px 8px}
+.legend .sw{display:inline-block;width:14px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.watermark{font-size:11px;color:var(--warn);font-weight:700}
+.closure{border:1px solid #cfe7da;background:var(--good-bg);border-radius:12px;padding:13px 16px}
+.closure .t{font-weight:800;font-size:13.5px;color:var(--good);margin-bottom:6px}
+.closure .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-size:12.5px}
+.closure .g .l{font-size:10.5px;color:var(--text-3);text-transform:uppercase;font-weight:700;letter-spacing:.05em}
+.closure .g .v{font-weight:700;font-size:15px}
+
+/* ===== Dialogs (small) ===== */
+.dlg{background:#fff;border-radius:14px;width:min(520px,94vw);box-shadow:var(--shadow);display:flex;flex-direction:column;max-height:86vh}
+.dlg .dhead{padding:15px 20px 4px}
+.dlg .dhead h3{font-size:16px}
+.dlg .dhead p{font-size:12.5px;color:var(--text-3);margin-top:2px}
+.dlg .dbody{padding:12px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.dlg .dfoot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid var(--border)}
+.dlg label{font-size:12px;font-weight:700;color:var(--text-2)}
+.dlg select,.dlg input[type=date],.dlg input[type=text]{width:100%;border:1px solid var(--border);border-radius:9px;padding:9px 11px;font-size:13px;background:#fff}
+.dlg textarea{width:100%;min-height:70px;border:1px solid var(--border);border-radius:9px;padding:9px 11px;font-size:13px;resize:vertical}
+.seg{display:flex;border:1px solid var(--border);border-radius:9px;overflow:hidden}
+.seg button{flex:1;padding:8px;font-weight:600;font-size:12.5px;color:var(--text-2);background:#fff}
+.seg button.on{background:var(--primary);color:#fff}
+.radio{display:flex;align-items:flex-start;gap:9px;padding:8px 10px;border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px}
+.radio.on{border-color:var(--accent);background:var(--accent-soft)}
+.radio input{margin-top:3px}
+
+/* ===== Mercer dock ===== */
+.dock{position:fixed;top:54px;right:0;bottom:0;width:400px;background:#fff;border-left:1px solid var(--border);z-index:70;display:flex;flex-direction:column;box-shadow:-8px 0 30px rgba(9,9,11,.08)}
+.dock .dkhead{display:flex;align-items:center;gap:9px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.dock .dkhead b{font-size:14px}
+.dock .ctx{font-size:11.5px;color:var(--text-3)}
+.dock .thread{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:88%;border-radius:12px;padding:9px 13px;font-size:12.5px;line-height:1.5}
+.msg.user{align-self:flex-end;background:var(--primary);color:#fff}
+.msg.mercer{align-self:flex-start;background:var(--accent-soft);border:1px solid #e6ddf6}
+.msg.mercer .cite{display:block;margin-top:6px;font-size:10.5px;color:var(--accent);font-weight:700}
+.dock .ask{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--border)}
+.dock .ask input{flex:1;border:1px solid var(--border);border-radius:9px;padding:9px 12px;font-size:13px}
+.sugg{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 10px}
+.sugg button{border:1px solid var(--border);border-radius:99px;padding:4px 11px;font-size:11.5px;color:var(--text-2);background:#fff}
+.sugg button:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ===== Toasts ===== */
+.toasts{position:fixed;bottom:18px;right:18px;z-index:100;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--primary);color:#fff;border-radius:11px;padding:11px 16px;font-size:13px;box-shadow:var(--shadow);max-width:380px;animation:tin .25s ease}
+.toast.success{background:#14532d}
+.toast.warn{background:#7c4a03}
+@keyframes tin{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+
+/* lineage popover */
+.pop{position:fixed;z-index:90;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);width:440px;max-height:380px;overflow:auto}
+.pop .phead{display:flex;align-items:center;padding:11px 15px;border-bottom:1px solid var(--border);font-weight:700;font-size:13px}
+.pop table{width:100%;font-size:12px;border-collapse:collapse}
+.pop td,.pop th{padding:6px 12px;border-bottom:1px solid #f0f0f2;text-align:left}
+.pop th{font-size:10.5px;text-transform:uppercase;color:var(--text-3)}
+.pop .pfoot{padding:8px 15px;font-size:11px;color:var(--text-3)}
+
+.signalcell{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
+.sigwhy{font-size:11px;color:var(--text-3)}
+mark{background:#fef3c7;border-radius:3px;padding:0 2px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toasts" id="toasts"></div>
+<div id="layer"></div>
+<script>
+const OPPS_RAW = [{"id":"OPP-001","title":"Lubricants \u00b7 Germany","l3":"Lubricants","l2":"First Fill Oils (Lubricants)","country":"Germany","route":"rfp","vendors":33,"bu":"Both","pocket":349811,"movable":338931,"lo":16947,"hi":27114,"conf":71,"fit":0.8037,"gapN":20,"status":"accepted","summary":"No dominant incumbent in Lubricants / Germany (largest non-OEM 16%) \u2014 compete the non-OEM base with an RFP rather than folding it to one vendor.","rationale":["No dominant incumbent in Lubricants / Germany (largest non-OEM 16%) \u2014 compete the non-OEM base with an RFP rather than folding it to one vendor.","33 vendors \u00b7 top 3 hold 42% of spend \u2014 surfaced by the scan engine.","Confidence reflects how provable the savings are \u2014 it tracks the product-vs-services mix. 29% of this category is services (harder to should-cost); the rest is product spend with clear line items. Services-heavy categories score lower."],"action":"Competitive RFP to consolidate the fragmented supplier base","evidence":"evidence","excl":[{"label":"OEM / sole-source","amount":10881,"reason":"OEM / sole-source spend removed \u2014 can't be competitively bid"}],"caveats":["This is an upper estimate \u2014 the addressable figure is all the non-OEM spend in this category. Some may prove sole-source or already at market; we confirm against the part master before committing."],"ff":{"assetScopeOverlap":{"label":"Asset & scope overlap","verdict":"pass","detail":"Both AT and AOH buy in First Fill Oils (Lubricants) \u2014 genuinely shared scope, so consolidation pools real cross-BU volume."},"vendorIndependence":{"label":"Vendor & brand independence","verdict":"pass","detail":"Only 3% is OEM/sole-source \u2014 the rest can be competitively bid."},"geographyProof":{"label":"Geography","verdict":"pass","detail":"Single geography (Germany) \u2014 no cross-border or multi-region complexity."},"operatingModel":{"label":"Play type","verdict":"info","detail":"Competitive RFP \u2014 no dominant incumbent, so compete the 33-vendor non-OEM base."}},"pe":{"unit":"per litre","blended":6.8,"bench":6.26,"gap":0.54,"vol":49843},"roster":[{"name":"Supplier Blue Ridge Paint Co","share":0.157,"spend":54911,"oem":false,"winner":true,"cap":null,"at":46014,"aoh":8896,"unit":6.39},{"name":"Supplier Precision Bearing Co","share":0.151,"spend":52887,"oem":false,"winner":false,"cap":null,"at":9796,"aoh":43091,"unit":6.81},{"name":"Supplier Pioneer Cages Mfg","share":0.109,"spend":38072,"oem":false,"winner":false,"cap":null,"at":10688,"aoh":27384,"unit":7.03},{"name":"Cline Tool And Service Company","share":0.071,"spend":24903,"oem":false,"winner":false,"cap":"broad-line","at":19410,"aoh":5493,"unit":7.25},{"name":"Hp Products Corp","share":0.061,"spend":21290,"oem":false,"winner":false,"cap":"broad-line","at":0,"aoh":21290,"unit":7.47},{"name":"Rubix Group Europe","share":0.055,"spend":19174,"oem":false,"winner":false,"cap":"broad-line","at":18933,"aoh":240,"unit":7.68}],"restShare":0.396},{"id":"OPP-002","title":"Gas \u00b7 United States","l3":"Gas","l2":"Industrial Gas","country":"United States","route":"rfp","vendors":30,"bu":"Both","pocket":343577,"movable":331030,"lo":16552,"hi":26482,"conf":71,"fit":0.7482,"gapN":20,"status":"rejected","summary":"No dominant incumbent in Gas / United States (largest non-OEM 42%) \u2014 compete the non-OEM base with an RFP rather than folding it to one vendor.","rationale":["No dominant incumbent in Gas / United States (largest non-OEM 42%) \u2014 compete the non-OEM base with an RFP rather than folding it to one vendor.","30 vendors \u00b7 top 3 hold 68% of spend \u2014 surfaced by the scan engine.","Confidence reflects how provable the savings are \u2014 it tracks the product-vs-services mix. 29% of this category is services (harder to should-cost); the rest is product spend with clear line items. Services-heavy categories score lower."],"action":"Competitive RFP to consolidate the fragmented supplier base","evidence":"evidence","excl":[{"label":"OEM / sole-source","amount":12547,"reason":"OEM / sole-source spend removed \u2014 can't be competitively bid"}],"caveats":["This is an upper estimate \u2014 the addressable figure is all the non-OEM spend in this category. Some may prove sole-source or already at market; we confirm against the part master before committing."],"ff":{"assetScopeOverlap":{"label":"Asset & scope overlap","verdict":"pass","detail":"Both AT and AOH buy in Industrial Gas \u2014 genuinely shared scope, so consolidation pools real cross-BU volume."},"vendorIndependence":{"label":"Vendor & brand independence","verdict":"pass","detail":"Only 4% is OEM/sole-source \u2014 the rest can be competitively bid."},"geographyProof":{"label":"Geography","verdict":"pass","detail":"Single geography (United States) \u2014 no cross-border or multi-region complexity."},"operatingModel":{"label":"Play type","verdict":"info","detail":"Competitive RFP \u2014 no dominant incumbent, so compete the 30-vendor non-OEM base."}},"pe":{"unit":"per m\u00b3","blended":1.42,"bench":1.31,"gap":0.11,"vol":233120},"roster":[{"name":"Supplier Northline Abrasives","share":0.415,"spend":142681,"oem":false,"winner":true,"cap":null,"at":136357,"aoh":6324,"unit":1.33},{"name":"Hp Products Corp","share":0.134,"spend":46177,"oem":false,"winner":false,"cap":"broad-line","at":42039,"aoh":4138,"unit":1.42},{"name":"Supplier Ironclad Tooling","share":0.128,"spend":43899,"oem":false,"winner":false,"cap":null,"at":0,"aoh":43899,"unit":1.47},{"name":"Supplier Regal Hydraulics","share":0.049,"spend":16875,"oem":false,"winner":false,"cap":null,"at":7720,"aoh":9155,"unit":1.51},{"name":"R L Guimont Company","share":0.046,"spend":15717,"oem":false,"winner":false,"cap":"specialist","at":14646,"aoh":1071,"unit":1.56},{"name":"Supplier Titan Machine Parts","share":0.034,"spend":11793,"oem":false,"winner":false,"cap":null,"at":0,"aoh":11793,"unit":1.6}],"restShare":0.194},{"id":"OPP-003","title":"Chemicals \u00b7 Mexico","l3":"Chemicals","l2":"Chemicals","country":"Mexico","route":"rfp","vendors":25,"bu":"Both","pocket":350605,"movable":330564,"lo":16528,"hi":26445,"conf":76,"fit":0.7342,"gapN":20,"status":"committed","summary":"No dominant incumbent in Chemicals / Mexico (largest non-OEM 34%) \u2014 compete the non-OEM base with an RFP rather than folding it to one vendor.","rationale":["No dominant incumbent in Chemicals / Mexico (largest non-OEM 34%) \u2014 compete the non-OEM base with an RFP rather than folding it to one vendor.","25 vendors \u00b7 top 3 hold 65% of spend \u2014 surfaced by the scan engine.","Confidence reflects how provable the savings are \u2014 it tracks the product-vs-services mix. 24% of this category is services (harder to should-cost); the rest is product spend with clear line items. Services-heavy categories score lower."],"action":"Competitive RFP to consolidate the fragmented supplier base","evidence":"evidence","excl":[{"label":"OEM / sole-source","amount":20041,"reason":"OEM / sole-source spend removed \u2014 can't be competitively bid"}],"caveats":["This is an upper estimate \u2014 the addressable figure is all the non-OEM spend in this category. Some may prove sole-source or already at market; we confirm against the part master before committing."],"ff":{"assetScopeOverlap":{"label":"Asset & scope overlap","verdict":"pass","detail":"Both AT and AOH buy in Chemicals \u2014 genuinely shared scope, so consolidation pools real cross-BU volume."},"vendorIndependence":{"label":"Vendor & brand independence","verdict":"pass","detail":"Only 6% is OEM/sole-source \u2014 the rest can be competitively bid."},"geographyProof":{"label":"Geography","verdict":"pass","detail":"Single geography (Mexico) \u2014 no cross-border or multi-region complexity."},"operatingModel":{"label":"Play type","verdict":"info","detail":"Competitive RFP \u2014 no dominant incumbent, so compete the 25-vendor non-OEM base."}},"pe":{"unit":"per kg","blended":3.1,"bench":2.85,"gap":0.25,"vol":106634},"roster":[{"name":"Supplier Ironclad Tooling","share":0.342,"spend":119806,"oem":false,"winner":true,"cap":null,"at":115852,"aoh":3954,"unit":2.91},{"name":"United Tool Supply","share":0.206,"spend":72207,"oem":false,"winner":false,"cap":"specialist","at":3305,"aoh":68902,"unit":3.11},{"name":"Bulkmro Marketplace","share":0.106,"spend":37329,"oem":false,"winner":false,"cap":"broad-line","at":1320,"aoh":36009,"unit":3.21},{"name":"Hp Products Corp","share":0.064,"spend":22377,"oem":false,"winner":false,"cap":"broad-line","at":20227,"aoh":2149,"unit":3.3},{"name":"Moglix India","share":0.059,"spend":20613,"oem":false,"winner":false,"cap":"broad-line","at":6534,"aoh":14079,"unit":3.4},{"name":"Kirby Risk Corporation","share":0.04,"spend":14098,"oem":false,"winner":false,"cap":"specialist","at":2529,"aoh":11569,"unit":3.5}],"restShare":0.183},{"id":"OPP-004","title":"Lubricants \u00b7 Mexico","l3":"Lubricants","l2":"First Fill Oils (Lubricants)","country":"Mexico","route":"rfp","vendors":35,"bu":"Both","pocket":364485,"movable":276144,"lo":13807,"hi":22091,"conf":71,"fit":0.8037,"gapN":20,"status":"surfaced","summary":"No dominant incumbent in Lubricants / Mexico (largest non-OEM 26%) \u2014 compete the non-OEM base with an RFP rather than folding it to one vendor.","rationale":["No dominant incumbent in Lubricants / Mexico (largest non-OEM 26%) \u2014 compete the non-OEM base with an RFP rather than folding it to one vendor.","35 vendors \u00b7 top 3 hold 49% of spend \u2014 surfaced by the scan engine.","Confidence reflects how provable the savings are \u2014 it tracks the product-vs-services mix. 29% of this category is services (harder to should-cost); the rest is product spend with clear line items. Services-heavy categories score lower."],"action":"Competitive RFP to consolidate the fragmented supplier base","evidence":"evidence","excl":[{"label":"OEM / sole-source","amount":88342,"reason":"OEM / sole-source spend removed \u2014 can't be competitively bid"}],"caveats":["This is an upper estimate \u2014 the addressable figure is all the non-OEM spend in this category. Some may prove sole-source or already at market; we confirm against the part master before committing."],"ff":{"assetScopeOverlap":{"label":"Asset & scope overlap","verdict":"pass","detail":"Both AT and AOH buy in First Fill Oils (Lubricants) \u2014 genuinely shared scope, so consolidation pools real cross-BU volume."},"vendorIndependence":{"label":"Vendor & brand independence","verdict":"watch","detail":"24% is OEM/sole-source (brand-locked); the remainder is contestable."},"geographyProof":{"label":"Geography","verdict":"pass","detail":"Single geography (Mexico) \u2014 no cross-border or multi-region complexity."},"operatingModel":{"label":"Play type","verdict":"info","detail":"Competitive RFP \u2014 no dominant incumbent, so compete the 35-vendor non-OEM base."}},"pe":{"unit":"per litre","blended":6.8,"bench":6.26,"gap":0.54,"vol":40609},"roster":[{"name":"Supplier Pioneer Cages Mfg","share":0.262,"spend":95470,"oem":false,"winner":true,"cap":null,"at":95470,"aoh":0,"unit":6.39},{"name":"Kuka Robotics","share":0.144,"spend":52565,"oem":true,"winner":false,"cap":"oem","at":13506,"aoh":39059,"unit":null},{"name":"Supplier Redwood Lab Supplies","share":0.087,"spend":31869,"oem":false,"winner":false,"cap":null,"at":0,"aoh":31869,"unit":7.03},{"name":"Siemens Industry Inc","share":0.068,"spend":24680,"oem":true,"winner":false,"cap":"oem","at":24680,"aoh":0,"unit":null},{"name":"Hp Products Corp","share":0.056,"spend":20328,"oem":false,"winner":false,"cap":"broad-line","at":11726,"aoh":8602,"unit":7.47},{"name":"Supplier Precision Bearing Co","share":0.05,"spend":18359,"oem":false,"winner":false,"cap":null,"at":18359,"aoh":0,"unit":7.68}],"restShare":0.333},{"id":"OPP-005","title":"Chemicals \u00b7 Germany","l3":"Chemicals","l2":"Chemicals","country":"Germany","route":"rfp","vendors":30,"bu":"Both","pocket":358574,"movable":266699,"lo":13335,"hi":21336,"conf":76,"fit":0.7342,"gapN":20,"status":"committed","summary":"No dominant incumbent in Chemicals / Germany (largest non-OEM 9%) \u2014 compete the non-OEM base with an RFP rather than folding it to one vendor.","rationale":["No dominant incumbent in Chemicals / Germany (largest non-OEM 9%) \u2014 compete the non-OEM base with an RFP rather than folding it to one vendor.","30 vendors \u00b7 top 3 hold 41% of spend \u2014 surfaced by the scan engine.","Confidence reflects how provable the savings are \u2014 it tracks the product-vs-services mix. 24% of this category is services (harder to should-cost); the rest is product spend with clear line items. Services-heavy categories score lower."],"action":"Competitive RFP to consolidate the fragmented supplier base","evidence":"evidence","excl":[{"label":"OEM / sole-source","amount":91875,"reason":"OEM / sole-source spend removed \u2014 can't be competitively bid"}],"caveats":["This is an upper estimate \u2014 the addressable figure is all the non-OEM spend in this category. Some may prove sole-source or already at market; we confirm against the part master before committing."],"ff":{"assetScopeOverlap":{"label":"Asset & scope overlap","verdict":"pass","detail":"Both AT and AOH buy in Chemicals \u2014 genuinely shared scope, so consolidation pools real cross-BU volume."},"vendorIndependence":{"label":"Vendor & brand independence","verdict":"watch","detail":"26% is OEM/sole-source (brand-locked); the remainder is contestable."},"geographyProof":{"label":"Geography","verdict":"pass","detail":"Single geography (Germany) \u2014 no cross-border or multi-region complexity."},"operatingModel":{"label":"Play type","verdict":"info","detail":"Competitive RFP \u2014 no dominant incumbent, so compete the 30-vendor non-OEM base."}},"pe":{"unit":"per kg","blended":3.1,"bench":2.85,"gap":0.25,"vol":86032},"roster":[{"name":"Abb Inc","share":0.248,"spend":88778,"oem":true,"winner":false,"cap":"oem","at":88778,"aoh":0,"unit":null},{"name":"Kirby Risk Corporation","share":0.091,"spend":32533,"oem":false,"winner":true,"cap":"specialist","at":11094,"aoh":21440,"unit":3.01},{"name":"Procmart Solutions","share":0.072,"spend":25748,"oem":false,"winner":false,"cap":"broad-line","at":19666,"aoh":6082,"unit":3.21},{"name":"Instant Procurement Services Private","share":0.059,"spend":21218,"oem":false,"winner":false,"cap":"broad-line","at":21218,"aoh":0,"unit":3.3},{"name":"Supplier Ace Industrial","share":0.056,"spend":20090,"oem":false,"winner":false,"cap":null,"at":20090,"aoh":0,"unit":3.4},{"name":"Motion Industries Inc","share":0.055,"spend":19836,"oem":false,"winner":false,"cap":"broad-line","at":19836,"aoh":0,"unit":3.5}],"restShare":0.419},{"id":"OPP-006","title":"Lubricants \u00b7 United States","l3":"Lubricants","l2":"First Fill Oils (Lubricants)","country":"United States","route":"rfp","vendors":31,"bu":"Both","pocket":314673,"movable":232642,"lo":11632,"hi":18611,"conf":71,"fit":0.8037,"gapN":20,"status":"parked","summary":"No dominant incumbent in Lubricants / United States (largest non-OEM 15%) \u2014 compete the non-OEM base with an RFP rather than folding it to one vendor.","rationale":["No dominant incumbent in Lubricants / United States (largest non-OEM 15%) \u2014 compete the non-OEM base with an RFP rather than folding it to one vendor.","31 vendors \u00b7 top 3 hold 47% of spend \u2014 surfaced by the scan engine.","Confidence reflects how provable the savings are \u2014 it tracks the product-vs-services mix. 29% of this category is services (harder to should-cost); the rest is product spend with clear line items. Services-heavy categories score lower."],"action":"Competitive RFP to consolidate the fragmented supplier base","evidence":"evidence","excl":[{"label":"OEM / sole-source","amount":82031,"reason":"OEM / sole-source spend removed \u2014 can't be competitively bid"}],"caveats":["This is an upper estimate \u2014 the addressable figure is all the non-OEM spend in this category. Some may prove sole-source or already at market; we confirm against the part master before committing."],"ff":{"assetScopeOverlap":{"label":"Asset & scope overlap","verdict":"pass","detail":"Both AT and AOH buy in First Fill Oils (Lubricants) \u2014 genuinely shared scope, so consolidation pools real cross-BU volume."},"vendorIndependence":{"label":"Vendor & brand independence","verdict":"watch","detail":"26% is OEM/sole-source (brand-locked); the remainder is contestable."},"geographyProof":{"label":"Geography","verdict":"pass","detail":"Single geography (United States) \u2014 no cross-border or multi-region complexity."},"operatingModel":{"label":"Play type","verdict":"info","detail":"Competitive RFP \u2014 no dominant incumbent, so compete the 31-vendor non-OEM base."}},"pe":{"unit":"per litre","blended":6.8,"bench":6.26,"gap":0.54,"vol":34212},"roster":[{"name":"Siemens Industry Inc","share":0.246,"spend":77421,"oem":true,"winner":false,"cap":"oem","at":77421,"aoh":0,"unit":null},{"name":"Supplier Falcon Seals Inc","share":0.149,"spend":46760,"oem":false,"winner":true,"cap":null,"at":43718,"aoh":3042,"unit":6.61},{"name":"Supplier Ironclad Tooling","share":0.075,"spend":23684,"oem":false,"winner":false,"cap":null,"at":23684,"aoh":0,"unit":7.03},{"name":"Supplier Delta Safety Supply","share":0.068,"spend":21375,"oem":false,"winner":false,"cap":null,"at":874,"aoh":20502,"unit":7.25},{"name":"Supplier Ace Industrial","share":0.064,"spend":20033,"oem":false,"winner":false,"cap":null,"at":18670,"aoh":1363,"unit":7.47},{"name":"Rubix Group Europe","share":0.062,"spend":19480,"oem":false,"winner":false,"cap":"broad-line","at":0,"aoh":19480,"unit":7.68}],"restShare":0.336},{"id":"OPP-007","title":"Safety Equipment \u00b7 India","l3":"Safety Equipment","l2":"Industrial Supplies","country":"India","route":"consolidate","vendors":19,"bu":"Both","pocket":311360,"movable":99555,"lo":3982,"hi":6969,"conf":72,"fit":0.9158,"gapN":20,"status":"surfaced","summary":"Bulkmro Marketplace already holds 55% of Safety Equipment in India \u2014 consolidate the tail onto the incumbent rather than competing it.","rationale":["Bulkmro Marketplace already holds 55% of Safety Equipment in India \u2014 consolidate the tail onto the incumbent rather than competing it.","19 vendors \u00b7 top 3 hold 74% of spend \u2014 surfaced by the scan engine.","Confidence reflects how provable the savings are \u2014 it tracks the product-vs-services mix. 29% of this category is services (harder to should-cost); the rest is product spend with clear line items. Services-heavy categories score lower."],"action":"Consolidate the fragmented supplier base onto the incumbent","evidence":"evidence","excl":[{"label":"Winner (incumbent kept)","amount":172729,"reason":"Bulkmro Marketplace retained; only the tail moves"},{"label":"OEM / sole-source","amount":39077,"reason":"OEM / sole-source spend removed \u2014 can't be competitively bid"}],"caveats":["This is an upper estimate \u2014 the addressable figure is the spend beyond the incumbent, and some of it may turn out to be sole-source. We confirm against the part master before committing."],"ff":{"assetScopeOverlap":{"label":"Asset & scope overlap","verdict":"pass","detail":"Both AT and AOH buy in Industrial Supplies \u2014 genuinely shared scope, so consolidation pools real cross-BU volume."},"vendorIndependence":{"label":"Vendor & brand independence","verdict":"pass","detail":"Only 13% is OEM/sole-source \u2014 the rest can be competitively bid."},"geographyProof":{"label":"Geography","verdict":"pass","detail":"Single geography (India) \u2014 no cross-border or multi-region complexity."},"operatingModel":{"label":"Play type","verdict":"info","detail":"Consolidate \u2014 a dominant non-OEM incumbent holds \u226550%, so fold the 19-vendor tail onto them."}},"pe":{"unit":"per unit","blended":9.4,"bench":8.74,"gap":0.66,"vol":10591},"roster":[{"name":"Bulkmro Marketplace","share":0.555,"spend":172729,"oem":false,"winner":true,"cap":"broad-line","at":172729,"aoh":0,"unit":8.84},{"name":"Haas Automation Inc","share":0.126,"spend":39077,"oem":true,"winner":false,"cap":"oem","at":39077,"aoh":0,"unit":null},{"name":"Supplier Apex Chemical Distributors","share":0.058,"spend":18145,"oem":false,"winner":false,"cap":null,"at":0,"aoh":18145,"unit":9.72},{"name":"Kirby Risk Corporation","share":0.057,"spend":17827,"oem":false,"winner":false,"cap":"specialist","at":16178,"aoh":1649,"unit":10.02},{"name":"Instant Procurement Services Private","share":0.047,"spend":14670,"oem":false,"winner":false,"cap":"broad-line","at":5750,"aoh":8920,"unit":10.32},{"name":"Supplier Delta Safety Supply","share":0.026,"spend":8146,"oem":false,"winner":false,"cap":null,"at":7558,"aoh":588,"unit":10.62}],"restShare":0.131}];
+/* ================= State & helpers ================= */
+const TODAY = "2026-07-03";
+const LEVERS = { consolidate:"Consolidate", rfp:"Competitive RFP", "carve-out":"OEM carve-out", "sub-classify":"Sub-classify" };
+const LEVER_VAR = { consolidate:"info", rfp:"neutral", "carve-out":"warning", "sub-classify":"warning" };
+
+function money(n){ if(n==null) return "—"; const a=Math.abs(n);
+  if(a>=1e6) return "$"+(n/1e6).toFixed(2)+"M";
+  if(a>=1e3) return "$"+(n/1e3).toFixed(n%1e3===0?0:1)+"K";
+  return "$"+Math.round(n).toLocaleString(); }
+function moneyFull(n){ return "$"+Math.round(n).toLocaleString(); }
+function range(lo,hi){ return money(lo)+"–"+money(hi); }
+function esc(s){ return String(s??"").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function el(id){ return document.getElementById(id); }
+
+/* Build working state from the live-data extract */
+const S = {
+  page: "opps", tab: "feed",
+  q: "", lever: "", country: "", confMin: 0, groupBy: "none",
+  sort: { field: "impact", dir: "desc" },
+  sel: new Set(),
+  modal: null, modalTab: "summary",
+  act: null,               // opp id open in Act workspace
+  vrSel: null,             // opp id selected in Value Realization
+  dlg: null,               // {kind, ...}
+  mercer: { open:false, ctx:"", oppId:null, thread:[] },
+  sweep: 1,                // sweep counter (demo)
+  honored: null,           // "decision honored" line after demo sweep
+  opps: []
+};
+
+OPPS_RAW.forEach(r => {
+  const o = Object.assign({}, r);
+  o.read = !["surfaced"].includes(r.status);
+  o.signal = null;
+  o.events = [{ kind:"surfaced", actor:"Mercer", at:"2026-07-02", note: r.rationale[1] || "Surfaced by the scan engine." }];
+  o.userInput = { context:"", intel:"", overrideAddr:null, overridePct:null, justification:"" };
+  o.engine = { movable: r.movable, lo: r.lo, hi: r.hi, conf: r.conf, action: r.action };
+  o.regenDiff = null;
+  o.play = { approach:null, done:{}, drafts:{ outreach:[], rfp:[] }, activeVer:{ outreach:0, rfp:0 }, draftKind:"outreach", evidence:[], evNote:"" };
+  o.timing = ""; o.basis = "";
+  o.drift = { flagged:false, note:"" };
+  o.stage = null; o.closure = null; o.signedOff = false;
+  S.opps.push(o);
+});
+
+/* Seed statuses to match the live build */
+const byId = id => S.opps.find(o=>o.id===id);
+(function seed(){
+  const p6 = byId("OPP-006");
+  p6.parkTrigger = { type:"date", value:"2026-07-02", label:"Revisit on Jul 2, 2026" }; // already due → demo shows the ringing snooze
+  p6.events.push({ kind:"parked", actor:"Maria Vance", at:"2026-06-20", note:"Revisit: Jul 2, 2026 · budget review" });
+  const r2 = byId("OPP-002");
+  r2.rejectReason = "Non-negotiable counterparty (gov / utility)";
+  r2.rejectNote = "US gas supply sits under a state utility tariff — no competitive lever.";
+  r2.events.push({ kind:"rejected", actor:"Maria Vance", at:"2026-06-24", note:"Non-negotiable counterparty · note saved" });
+  const a1 = byId("OPP-001");
+  a1.events.push({ kind:"note", actor:"Maria Vance", at:"2026-06-28", note:"Accepted · moved to Act" });
+  a1.play.approach = "rfp-3round";
+  a1.play.done = {0:true,1:true};
+  ["OPP-003","OPP-005"].forEach((id,ix)=>{
+    const o = byId(id);
+    o.stage = ix===0 ? "in-execution" : "committed";
+    o.status = o.stage;
+    o.committedAt = "2026-06-26";
+    o.timing = "next-quarter"; o.basis = "workbook";
+    o.owner = "Maria Vance";
+    o.events.push({ kind:"note", actor:"Maria Vance", at:"2026-06-25", note:"Accepted · moved to Act" });
+    o.events.push({ kind:"committed", actor:"Maria Vance", at:"2026-06-26", note:"Committed "+range(o.lo,o.hi)+" · engine figures" });
+    if(ix===0) o.events.push({ kind:"stage-advanced", actor:"Maria Vance", at:"2026-07-01", note:"Stage advanced · committed → in-execution" });
+    const mid = (o.lo+o.hi)/2;
+    o.ramp = ["Q3 26","Q4 26","Q1 27","Q2 27"].map((q,i)=>({ q, proj: Math.round(mid*(i+1)/4), actual: (ix===0 && i===0) ? Math.round(mid*0.22) : null }));
+  });
+  byId("OPP-004").signal = { kind:"new", label:"New", why:"Surfaced by the Jul 2 scan" };
+  byId("OPP-007").signal = { kind:"new", label:"New", why:"Surfaced by the Jul 2 scan" };
+})();
+
+/* Derived */
+function impact(o){ return o.movable * o.conf / 100; }
+function resolved(o){
+  const addr = o.userInput.overrideAddr ?? o.movable;
+  const loPct = o.lo / o.movable, hiPct = o.hi / o.movable;
+  const pct = o.userInput.overridePct;
+  return {
+    addr,
+    lo: pct!=null ? addr*pct/100*0.8 : addr*loPct,
+    hi: pct!=null ? addr*pct/100 : addr*hiPct,
+    overridden: o.userInput.overrideAddr!=null || o.userInput.overridePct!=null
+  };
+}
+function feedRows(){ return S.opps.filter(o=>["surfaced","qualifying","qualified"].includes(o.status)); }
+function tabRows(tab){
+  if(tab==="feed") return feedRows();
+  if(tab==="act") return S.opps.filter(o=>o.status==="accepted");
+  if(tab==="parked") return S.opps.filter(o=>o.status==="parked");
+  if(tab==="rejected") return S.opps.filter(o=>o.status==="rejected");
+  return [];
+}
+function tracked(){ return S.opps.filter(o=>["committed","in-execution","realized"].includes(o.status)); }
+function pushEv(o, kind, note, actor){ o.events.push({ kind, actor: actor||"Maria Vance", at: TODAY, note }); }
+
+/* Toasts */
+function toast(msg, kind){ const t=document.createElement("div"); t.className="toast "+(kind||""); t.textContent=msg;
+  el("toasts").appendChild(t); setTimeout(()=>{ t.style.opacity="0"; t.style.transition="opacity .3s"; setTimeout(()=>t.remove(),300); }, 3400); }
+
+/* Lineage synth: deterministic pseudo-transactions per figure */
+function lineageRows(o, total, tag){
+  const vend = o.roster.filter(v=>!v.oem).map(v=>v.name);
+  const rows=[]; let rem=total; const n=5;
+  for(let i=0;i<n;i++){
+    const f = i===n-1 ? rem : Math.round(total*[0.31,0.24,0.19,0.15,0.11][i]);
+    rem -= f;
+    rows.push({ po:"PO-"+(4100+((o.id.charCodeAt(4)+i*37)%800)), vendor: vend[i%vend.length]||"Various", date:"2026-0"+((i%5)+2)+"-1"+(i+2), amt:f });
+  }
+  return rows;
+}
+
+/* ================= Core render ================= */
+function render(){
+  const feedN = feedRows().length, actN = tabRows("act").length, parkN = tabRows("parked").length, rejN = tabRows("rejected").length, vrN = tracked().length;
+  el("app").innerHTML = `
+  <div class="topbar">
+    <span class="brand"><span class="logo">N</span> Navanta Lens</span>
+    <div class="nav">
+      <button data-a="nav" data-v="opps" class="${S.page==="opps"?"on":""}">Opportunities <span class="ct">${feedN+actN+parkN+rejN}</span></button>
+      <button data-a="nav" data-v="vr" class="${S.page==="vr"?"on":""}">Value Realization <span class="ct">${vrN}</span></button>
+    </div>
+    <div class="scopewrap">Scope
+      <select data-in="scope-l2">
+        <option value="">MRO ▸ All sub-categories</option>
+        ${[...new Set(S.opps.map(o=>o.l2))].sort().map(l=>`<option ${S.scopeL2===l?"selected":""}>${esc(l)}</option>`).join("")}
+      </select>
+    </div>
+  </div>
+  <div class="page">${S.page==="opps" ? viewOpps() : viewVR()}</div>`;
+  renderLayer();
+}
+
+/* ---------- Opportunities page ---------- */
+function viewOpps(){
+  const rows = tabRows(S.tab);
+  return `
+  ${viewBrief()}
+  <div class="tabs">
+    ${[["feed","Feed"],["act","Act"],["parked","Parked"],["rejected","Rejected"]].map(([k,l])=>
+      `<button data-a="tab" data-v="${k}" class="${S.tab===k?"on":""}">${l}<span class="ct">${tabRows(k).length}</span></button>`).join("")}
+  </div>
+  ${S.tab==="feed" ? `<div class="ranknote">Ranked by <b>Impact = addressable × confidence</b> — click any column to re-sort. Evidence basis shown per row.</div>`:""}
+  <div class="toolbar">
+    <input type="text" placeholder="Search title, sub-category, country, vendor, OPP-ID…" value="${esc(S.q)}" data-in="q">
+    <select data-in="lever"><option value="">Lever · all</option>${Object.entries(LEVERS).map(([k,v])=>`<option value="${k}" ${S.lever===k?"selected":""}>${v}</option>`).join("")}</select>
+    <select data-in="country"><option value="">Country · all</option>${[...new Set(S.opps.map(o=>o.country))].sort().map(c=>`<option ${S.country===c?"selected":""}>${c}</option>`).join("")}</select>
+    <button class="chip ${S.confMin>=75?"on":""}" data-a="confchip">Confidence ≥ 75% ${S.confMin>=75?"✓":""}</button>
+    ${S.tab==="feed" ? `<select data-in="groupby">
+      <option value="none" ${S.groupBy==="none"?"selected":""}>Group · none</option>
+      <option value="l2" ${S.groupBy==="l2"?"selected":""}>Group · sub-category</option>
+      <option value="route" ${S.groupBy==="route"?"selected":""}>Group · lever</option>
+      <option value="country" ${S.groupBy==="country"?"selected":""}>Group · country</option>
+    </select>`:""}
+    <button class="btn ghost sm" data-a="clearfilters">Clear</button>
+  </div>
+  ${S.sel.size ? `<div class="bulkbar"><b>${S.sel.size} selected</b>
+     <button class="btn outline sm" data-a="bulk-park">Park selected…</button>
+     <button class="btn outline sm" data-a="bulk-reject">Dismiss selected…</button>
+     <span style="flex:1"></span><button class="btn outline sm" data-a="bulk-clear">Clear selection</button></div>` : ""}
+  ${viewTable(rows)}`;
+}
+
+function viewBrief(){
+  const f = feedRows(), all = [...f, ...tracked(), ...tabRows("act")];
+  const addr = all.reduce((s,o)=>s+o.movable,0), lo = all.reduce((s,o)=>s+o.lo,0), hi = all.reduce((s,o)=>s+o.hi,0);
+  return `<div class="brief">
+    <div class="bhead"><span class="bstar">✦</span><b>Mercer Brief</b><span class="stamp">Scan run Jul ${S.sweep===1?2:3}, 2026 · sweep #${S.sweep}</span></div>
+    <div class="narr">Mercer's scan covered 3 MRO categories and surfaced ${S.opps.length} opportunities — ${money(addr)} addressable, ${range(lo,hi)} estimated savings. Ranked by impact (addressable × confidence).</div>
+    ${S.honored ? `<div class="honored">✓ ${esc(S.honored)}</div>` : ""}
+    <div class="bcards">
+      <div class="bcard"><div class="l">Total MRO spend</div><div class="v">$10.5M</div><div class="d">of $12.3M indirect scanned</div></div>
+      <div class="bcard"><div class="l">Addressable</div><div class="v">${money(addr)}</div><div class="d">contestable spend</div></div>
+      <div class="bcard"><div class="l">Savings potential</div><div class="v">${range(lo,hi)}</div><div class="d">4–7% of addressable</div></div>
+      <div class="bcard"><div class="l">To triage</div><div class="v">${f.length}</div><div class="d">${f.filter(o=>!o.read).length} unread</div></div>
+      <div class="bcard"><div class="l">Categories</div><div class="v">3 of 15</div><div class="d">scanned · more coming</div></div>
+    </div>
+    <div class="sweepbtn"><button class="btn christy sm" data-a="sweep">✦ Run next sweep (demo)</button>
+    <span class="note">Simulates tomorrow's engine run: diffs the estate, honors your decisions, flags drift &amp; due revisits.</span></div>
+  </div>`;
+}
+
+function filteredSorted(rows){
+  let r = rows.filter(o=>{
+    if(S.scopeL2 && o.l2!==S.scopeL2) return false;
+    if(S.lever && o.route!==S.lever) return false;
+    if(S.country && o.country!==S.country) return false;
+    if(S.confMin && o.conf<S.confMin) return false;
+    if(S.q){ const q=S.q.toLowerCase();
+      const hay = [o.id,o.title,o.l2,o.l3,o.country,...o.roster.map(v=>v.name)].join(" ").toLowerCase();
+      if(!hay.includes(q)) return false; }
+    return true;
+  });
+  const f=S.sort.field, d=S.sort.dir==="asc"?1:-1;
+  const val = o => f==="impact"?impact(o) : f==="savings"?o.hi : f==="pocket"?o.pocket : f==="movable"?o.movable : f==="conf"?o.conf : f==="vendors"?o.vendors : (o[f]||"");
+  r.sort((a,b)=>{ const va=val(a), vb=val(b); return (typeof va==="number" ? va-vb : String(va).localeCompare(String(vb)))*d; });
+  return r;
+}
+
+function sigPill(o){
+  if(!o.signal) return "";
+  const map={ new:"info", changed:"warning", "new-supplier":"info", "revisit-due":"warning", drift:"danger" };
+  return `<div class="signalcell"><span class="pill ${map[o.signal.kind]||"neutral"} xs">${esc(o.signal.label)}</span><span class="sigwhy">${esc(o.signal.why)}</span></div>`;
+}
+
+function viewTable(rows){
+  const r = filteredSorted(rows);
+  if(!r.length) return `<div class="tblwrap"><div class="emptystate"><div class="big">${S.tab==="feed"?"All opportunities reviewed":"Nothing here"}</div>${S.tab==="feed"?"Mercer's next sweep runs at 04:00 — or run the demo sweep above.":"Decisions land here as you make them."}</div></div>`;
+  const th = (label, field, right) => `<th class="${field?"sortable":""} ${right?"r":""}" ${field?`data-a="sort" data-v="${field}"`:""}>${label}${S.sort.field===field?(S.sort.dir==="desc"?" ↓":" ↑"):""}</th>`;
+  const groups = S.tab==="feed" && S.groupBy!=="none"
+    ? Object.entries(r.reduce((m,o)=>{ const k = S.groupBy==="route"?LEVERS[o.route]:o[S.groupBy]; (m[k]=m[k]||[]).push(o); return m; },{}))
+    : [[null, r]];
+  const isFeed = S.tab==="feed";
+  let body = "";
+  groups.forEach(([g, list])=>{
+    if(g) body += `<tr class="grouphead"><td colspan="11">${esc(g)} · ${list.length}<span class="gsum">${money(list.reduce((s,o)=>s+o.movable,0))} addressable</span></td></tr>`;
+    list.forEach(o=>{
+      const parkedDue = o.parkTrigger && o.parkTrigger.due;
+      body += `<tr class="row" data-a="open" data-id="${o.id}">
+        ${isFeed?`<td><input type="checkbox" data-a="selrow" data-id="${o.id}" ${S.sel.has(o.id)?"checked":""}></td>`:""}
+        <td class="oppname">${isFeed?(o.read?'<span class="readgap"></span>':'<span class="unread"></span>'):""}${esc(o.l3)} <span style="color:var(--text-3);font-weight:400">· ${esc(o.id)}</span>
+          ${o.status==="rejected"?`<span class="sub rej">Rejected · ${esc(o.rejectReason||"")}</span>`:`<span class="sub">${esc(o.l2)}</span>`}
+        </td>
+        ${isFeed?`<td>${sigPill(o)}</td>`:""}
+        ${S.tab==="parked"?`<td>${o.parkTrigger?`<span class="pill ${parkedDue?"warning":"neutral"} xs">${parkedDue?"⏰ Due — ":""}${esc(o.parkTrigger.label)}</span>`:"—"}</td>`:""}
+        <td>${esc(o.country)}</td>
+        <td><span class="pill ${LEVER_VAR[o.route]}">${LEVERS[o.route]}</span></td>
+        <td><span class="pill ${o.evidence==="evidence"?"info":"warning"} xs">${o.evidence==="evidence"?"Evidence":"Benchmark"}</span></td>
+        <td class="r tnum">${money(o.pocket)}</td>
+        <td class="r tnum">${money(o.movable)}</td>
+        <td class="r tnum">${o.vendors}</td>
+        <td class="r"><span class="cm"><span class="bar"><i style="width:${o.conf}%"></i></span><span class="tnum">${o.conf}%</span></span></td>
+        <td class="r tnum"><b>${range(o.lo,o.hi)}</b></td>
+      </tr>`;
+    });
+  });
+  return `<div class="tblwrap"><table class="tbl">
+    <thead><tr>
+      ${isFeed?`<th style="width:34px"><input type="checkbox" data-a="selall" ${r.length&&r.every(o=>S.sel.has(o.id))?"checked":""}></th>`:""}
+      ${th("Opportunity","l3")}
+      ${isFeed?`<th>Signal</th>`:""}
+      ${S.tab==="parked"?`<th>Revisit trigger</th>`:""}
+      ${th("Country","country")}
+      <th>Lever</th><th>Basis</th>
+      ${th("Total spend","pocket",1)}${th("Addressable","movable",1)}${th("Vendors","vendors",1)}${th("Confidence","conf",1)}${th("Savings","savings",1)}
+    </tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+/* ================= Details modal ================= */
+function modalRows(){ return filteredSorted(tabRows(S.tab)); }
+
+function viewModal(o){
+  const rows = modalRows(); const ix = rows.findIndex(x=>x.id===o.id);
+  const res = resolved(o);
+  const editable = ["surfaced","qualifying","qualified"].includes(o.status);
+  const isParked = o.status==="parked", isRejected = o.status==="rejected";
+  const isTracked = ["committed","in-execution","realized"].includes(o.status);
+  const tabs = [["summary","Summary"],["pricing","Pricing evidence"],["math","Math"],["roster","Roster"],["fit","Fit"],["derivation","Derivation"],["history","History"]];
+  return `<div class="overlay" data-a="ovclose"><div class="modal">
+    <div class="mhead">
+      <span class="ic">▦</span>
+      <div><h2>${esc(o.id)} <span style="font-weight:400;color:var(--text-3);font-size:14px">${esc(o.title)}</span></h2>
+        <div class="meta"><span class="chipg">${esc(o.l2)} · ${esc(o.country)}</span><span class="pill ${LEVER_VAR[o.route]}">${LEVERS[o.route]}</span><span class="pill ${o.evidence==="evidence"?"info":"warning"} xs">${o.evidence==="evidence"?"Evidence":"Benchmark"}</span>
+        <span class="cm"><span class="bar"><i style="width:${o.conf}%"></i></span><span class="tnum" style="font-size:12px">${o.conf}% · ${o.conf>=70?"well-evidenced":"moderate"}</span></span></div>
+      </div>
+      <div class="navx">
+        ${ix>-1?`<button class="iconbtn" data-a="mnav" data-v="-1" ${ix<=0?"disabled":""}>‹</button><span class="pos">${ix+1} / ${rows.length}</span><button class="iconbtn" data-a="mnav" data-v="1" ${ix>=rows.length-1?"disabled":""}>›</button>`:""}
+        <button class="iconbtn" data-a="mclose">✕</button>
+      </div>
+    </div>
+    <div class="mtabs">${tabs.map(([k,l])=>`<button class="${S.modalTab===k?"on":""}" data-a="mtab" data-v="${k}">${l}</button>`).join("")}</div>
+    <div class="mbody">
+      ${isParked?`<div class="band parked"><b>Parked</b> · revisit: ${esc(o.parkTrigger?.label||"later")} ${o.parkTrigger?.due?'<span class="pill warning xs">⏰ Trigger due</span>':""}<span class="sp"></span>Decide directly below — no need to un-park first.</div>`:""}
+      ${isRejected?`<div class="band rejected"><b>Rejected</b> · ${esc(o.rejectReason||"")}${o.rejectNote?` — <i>${esc(o.rejectNote)}</i>`:""}<span class="sp"></span>Recorded &amp; honored by the next sweep.</div>`:""}
+      ${isTracked?`<div class="band tracked"><b>${o.status==="realized"?"Realized":"Committed"}</b> · tracking in Value Realization<span class="sp"></span><button class="btn outline sm" data-a="goto-vr" data-id="${o.id}">View in Value Realization</button></div>`:""}
+      ${S.modalTab==="summary"?mSummary(o,res,editable):""}
+      ${S.modalTab==="pricing"?mPricing(o,res):""}
+      ${S.modalTab==="math"?mMath(o,res):""}
+      ${S.modalTab==="roster"?mRoster(o):""}
+      ${S.modalTab==="fit"?mFit(o):""}
+      ${S.modalTab==="derivation"?mDerive(o):""}
+      ${S.modalTab==="history"?mHistory(o):""}
+    </div>
+    <div class="mfoot">
+      <button class="btn christy sm" data-a="mercer-open" data-id="${o.id}">✦ Ask Mercer about this</button>
+      <span class="spacer"></span>
+      ${editable?`
+        <button class="btn danger" data-a="dlg-reject" data-id="${o.id}">Reject</button>
+        <button class="btn outline" data-a="dlg-park" data-id="${o.id}">Park</button>
+        ${o.uinDirty?`<span class="gatehint">Save or discard your context edits first</span>
+        <button class="btn primary" disabled>✓ Approve</button>`:`<button class="btn primary" data-a="approve" data-id="${o.id}">✓ Approve</button>`}`:""}
+      ${isParked?`
+        <button class="btn outline" data-a="unpark" data-id="${o.id}">Return to feed</button>
+        <button class="btn danger" data-a="dlg-reject" data-id="${o.id}">Reject</button>
+        <button class="btn primary" data-a="approve" data-id="${o.id}">✓ Approve</button>`:""}
+      ${isRejected?`<button class="btn outline" data-a="dlg-unreject" data-id="${o.id}">Restore to feed…</button>`:""}
+      ${isTracked||o.status==="accepted"?`<button class="btn outline" data-a="mclose">Close</button>`:""}
+    </div>
+  </div></div>`;
+}
+
+function mSummary(o,res,editable){
+  return `
+  <div class="msum"><div class="h"><span class="bstar">✦</span>Mercer Summary</div>
+    <p>${esc(o.summary)}</p>
+    <div class="why"><button data-a="whytoggle">Why? · ${o.rationale.length} signals ${o.whyOpen?"▴":"▾"}</button>
+      ${o.whyOpen?`<ul>${o.rationale.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}</div>
+  </div>
+  <div class="tiles">
+    <div class="tile link" data-a="lineage" data-fig="pocket" data-id="${o.id}"><div class="l">Total spend</div><div class="v tnum">${money(o.pocket)}</div><div class="d">in this pocket</div><div class="lin">▸ view source transactions</div></div>
+    <div class="tile link" data-a="lineage" data-fig="movable" data-id="${o.id}"><div class="l">Addressable</div><div class="v tnum">${money(res.addr)}${res.overridden?' <span class="pill accent xs">override</span>':""}</div><div class="d">contestable spend</div><div class="lin">▸ view source transactions</div></div>
+    <div class="tile"><div class="l">Savings potential</div><div class="v tnum">${range(res.lo,res.hi)}</div><div class="d">${Math.round(res.lo/res.addr*100)}–${Math.round(res.hi/res.addr*100)}% of addressable</div></div>
+    <div class="tile"><div class="l">Confidence</div><div class="v tnum">${o.conf}%</div><div class="d">${o.conf>=70?"well-evidenced":"moderate"} · <span class="vlink" data-a="mtab" data-v="derivation">how?</span></div></div>
+  </div>
+  ${o.caveats.map(c=>`<div class="alert warn">⚠ <b>Data caveat.</b> ${esc(c)}</div>`).join("")}
+  ${o.regenDiff?mDiff(o):""}
+  ${editable?mInput(o):""}`;
+}
+
+function mDiff(o){
+  const d=o.regenDiff;
+  return `<div class="diffbox"><b>Analysis regenerated with your input — what changed:</b>
+    <div class="dr"><span class="dl">Addressable</span><span class="old">${money(d.addr0)}</span> → <span class="new">${money(d.addr1)}</span></div>
+    <div class="dr"><span class="dl">Savings range</span><span class="old">${range(d.lo0,d.hi0)}</span> → <span class="new">${range(d.lo1,d.hi1)}</span></div>
+    <div class="dr"><span class="dl">Basis</span><span class="new">${esc(d.note)}</span></div>
+  </div>`;
+}
+
+function mInput(o){
+  const u=o.userInput;
+  return `<div class="eb uin"><div class="ehead">Your input <span class="right">context &amp; overrides fold into the analysis — justification required</span></div>
+  <div class="ebody">
+    <label>Context — supplier, contract or category knowledge</label>
+    <textarea data-in="uin-context" data-id="${o.id}">${esc(u.context)}</textarea>
+    <div class="grid2">
+      <div><label>Override addressable ($)</label><input type="number" data-in="uin-addr" data-id="${o.id}" value="${u.overrideAddr??""}" placeholder="${o.movable}"></div>
+      <div><label>Override savings rate (%)</label><input type="number" data-in="uin-pct" data-id="${o.id}" value="${u.overridePct??""}" placeholder="e.g. 6"></div>
+    </div>
+    <div style="margin-top:8px"><label>Justification ${(u.overrideAddr!=null||u.overridePct!=null)?"(required for overrides)":""}</label>
+    <input type="text" data-in="uin-just" data-id="${o.id}" value="${esc(u.justification)}" placeholder="Why the engine figure is wrong…"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+      <button class="btn christy sm" data-a="regen" data-id="${o.id}" ${(u.overrideAddr!=null||u.overridePct!=null)&&!u.justification?"disabled":""}>✦ Save &amp; regenerate analysis</button>
+      ${(u.overrideAddr!=null||u.overridePct!=null)&&!u.justification?'<span class="gatehint">Justification required</span>':""}
+      <span class="right" style="font-size:11.5px;color:var(--text-3)">Engine originals are preserved — overrides are labeled, never silent.</span>
+    </div>
+  </div></div>`;
+}
+
+function mPricing(o,res){
+  const pe=o.pe; const gapTotal = pe.gap*pe.vol;
+  return `<div class="eb pe"><div class="ehead">Pricing evidence — the bridge from market to savings<span class="right">ATI transactions · index Q2-2026</span></div>
+  <div class="ebody">
+    <div class="bridge">
+      <div class="bstep"><div class="l">Market benchmark</div><div class="v tnum">$${pe.bench.toFixed(2)}</div><div class="d">${esc(pe.unit)} · ${esc(o.l3)} / ${esc(o.country)}</div></div>
+      <div class="bstep"><div class="l">Your blended rate</div><div class="v tnum">$${pe.blended.toFixed(2)}</div><div class="d">from ${money(o.movable)} ÷ ~${pe.vol.toLocaleString()} units</div></div>
+      <div class="bstep"><div class="l">Gap per unit</div><div class="v tnum">$${pe.gap.toFixed(2)}</div><div class="d">${Math.round(pe.gap/pe.blended*100)}% above market</div></div>
+      <div class="bstep"><div class="l">Gap × volume</div><div class="v tnum">${money(gapTotal)}</div><div class="d">upper bound if all moves to market</div></div>
+    </div>
+    <div class="src">Estimated range <b>${range(res.lo,res.hi)}</b> = lever-tiered 4–7% of addressable — deliberately below the ${money(gapTotal)} price-gap ceiling. Benchmark: category index (Q2 2026); blended rate derived from ATI PO lines. Every figure clickable to lineage in the Math tab.</div>
+  </div></div>
+  <div class="eb"><div class="ehead">Per-vendor blended unit price<span class="right">where line data allows · OEM excluded</span></div>
+  <div class="ebody"><table><thead><tr><th>Vendor</th><th class="r">Unit price</th><th class="r">vs benchmark</th><th class="r">vs your blended</th></tr></thead><tbody>
+    ${o.roster.filter(v=>v.unit).map(v=>`<tr><td>${esc(v.name)}${v.winner?' <span class="pill accent xs">★ Anchor</span>':""}</td>
+      <td class="r tnum">$${v.unit.toFixed(2)}</td>
+      <td class="r tnum" style="color:${v.unit<=o.pe.bench?"var(--good)":"var(--bad)"}">${v.unit<=o.pe.bench?"":"+"}${Math.round((v.unit-o.pe.bench)/o.pe.bench*100)}%</td>
+      <td class="r tnum">${v.unit<=o.pe.blended?"−":"+"}${Math.abs(Math.round((v.unit-o.pe.blended)/o.pe.blended*100))}%</td></tr>`).join("")}
+  </tbody></table></div></div>`;
+}
+
+function mMath(o,res){
+  const exclSum = o.excl.reduce((s,e)=>s+e.amount,0);
+  return `<div class="eb wf"><div class="ehead">Savings derivation — how we got there<span class="right">every row → source transactions</span></div>
+  <div class="ebody">
+    <div class="row clicky" data-a="lineage" data-fig="pocket" data-id="${o.id}"><span class="lbl">Pocket spend <span class="rsn">${esc(o.l3)} · ${esc(o.country)} · 12 months</span></span><span class="amt tnum">${money(o.pocket)}</span></div>
+    ${o.excl.map((e,i)=>`<div class="row clicky" data-a="lineage" data-fig="excl${i}" data-id="${o.id}"><span class="lbl">− ${esc(e.label)} <span class="rsn">${esc(e.reason)}</span></span><span class="amt neg tnum">−${money(e.amount)}</span></div>`).join("")}
+    <div class="row tot"><span class="lbl"><b>Addressable (movable)</b> <span class="rsn">pocket − carve-outs · ${res.overridden?"operator override applied":"engine figure"}</span></span><span class="amt tnum">${money(res.addr)}</span></div>
+    <div class="row"><span class="lbl">Lever-tiered savings rate <span class="rsn">${LEVERS[o.route]} tier · 4–7%</span></span><span class="amt tnum">${Math.round(res.lo/res.addr*100)}–${Math.round(res.hi/res.addr*100)}%</span></div>
+    <div class="row tot"><span class="lbl"><b>Estimated savings</b></span><span class="amt tnum"><b>${range(res.lo,res.hi)}</b></span></div>
+  </div></div>
+  <div class="alert info">Pocket − exclusions (${money(exclSum)}) = addressable. Dispute a carve-out from the row's lineage view — flags to the data steward with your reason.</div>`;
+}
+
+function mRoster(o){
+  return `<div class="eb"><div class="ehead">Vendor roster · this pocket<span class="right">Σ shares = 100% · names link to vendor records</span></div>
+  <div class="ebody"><table><thead><tr><th>Vendor</th><th class="r">Spend</th><th class="r">AT</th><th class="r">AOH</th><th>Share of pocket</th><th>Capability</th></tr></thead><tbody>
+  ${o.roster.map(v=>`<tr>
+    <td><span class="vlink" data-a="vendorpop" data-id="${o.id}" data-vn="${esc(v.name)}">${esc(v.name)}</span>${v.winner?' <span class="pill accent xs">★ Anchor</span>':""}${v.oem?' <span class="pill warning xs">OEM · carved out</span>':""}</td>
+    <td class="r tnum">${money(v.spend)}</td><td class="r tnum">${v.at?money(v.at):"—"}</td><td class="r tnum">${v.aoh?money(v.aoh):"—"}</td>
+    <td><span class="sharebar"><i style="width:${Math.round(v.share*100)}%"></i></span><span class="tnum">${(v.share*100).toFixed(1)}%</span></td>
+    <td>${v.cap?esc(v.cap):"—"}</td></tr>`).join("")}
+  <tr><td style="color:var(--text-3)">+ ${o.vendors-o.roster.length} more vendors (tail)</td><td class="r tnum" style="color:var(--text-3)">${money(o.pocket*o.restShare)}</td><td></td><td></td><td><span class="sharebar"><i style="width:${Math.round(o.restShare*100)}%"></i></span><span class="tnum">${(o.restShare*100).toFixed(1)}%</span></td><td></td></tr>
+  </tbody></table></div></div>
+  ${o.route==="rfp"?`<div class="eb"><div class="ehead">Recommended bidders<span class="right">non-OEM · ≥5% share — shortlist hands into Act</span></div>
+  <div class="ebody" style="display:flex;gap:7px;flex-wrap:wrap">${o.roster.filter(v=>!v.oem&&v.share>=0.05).map(v=>`<span class="pill neutral">${esc(v.name)} · ${Math.round(v.share*100)}%${v.cap?" · "+esc(v.cap):""}</span>`).join("")}</div></div>`:""}`;
+}
+
+function mFit(o){
+  const marks={pass:"✅",watch:"⚠️",info:"ℹ️"};
+  return `<div class="eb fit"><div class="ehead">Functional fit — can this play actually run?</div><div class="ebody">
+  ${Object.values(o.ff).map(f=>`<div class="frow"><span class="fl">${marks[f.verdict]||""} ${esc(f.label)}</span><span>${esc(f.detail)}</span></div>`).join("")}
+  </div></div>`;
+}
+
+function mDerive(o){
+  const gapMult = Math.min(o.gapN,20)/20;
+  return `<div class="eb derive"><div class="ehead">Confidence derivation — what drove ${o.conf}%</div><div class="ebody">
+    <div class="formula">confidence = functional fit × MIN(fragmentation gap, 20) / 20 = ${o.fit.toFixed(2)} × ${gapMult.toFixed(2)} = ${(o.fit*gapMult).toFixed(2)} → ${o.conf}%</div>
+    <table><thead><tr><th>Factor</th><th>Value</th><th>Meaning</th></tr></thead><tbody>
+      <tr><td>Functional fit</td><td class="tnum">${o.fit.toFixed(2)}</td><td>Product-vs-services mix — services are harder to should-cost, products carry clear line items.</td></tr>
+      <tr><td>Fragmentation multiplier</td><td class="tnum">MIN(${o.gapN}, 20) / 20 = ${gapMult.toFixed(2)}</td><td>Gap is capped at 20× — beyond that, more fragmentation no longer lifts confidence.</td></tr>
+      <tr><td><b>Confidence</b></td><td class="tnum"><b>${o.conf}%</b></td><td>Independent of $ size — a small clean play outranks a huge messy one. Ranking uses Impact = addressable × confidence, declared above the feed.</td></tr>
+    </tbody></table>
+  </div></div>`;
+}
+
+function mHistory(o){
+  return `<div class="eb hist"><div class="ehead">Decision history — the full trail<span class="right">every transition, durable</span></div><div class="ebody">
+  ${o.events.slice().reverse().map(e=>`<div class="ev k-${e.kind}"><span class="dot"></span><div><b>${e.kind.replace(/-/g," ")}</b> · ${esc(e.note||"")}<div class="who">${esc(e.actor)} · ${esc(e.at)}</div></div></div>`).join("")}
+  </div></div>`;
+}
+
+/* ================= Act workspace ================= */
+const PLAYBOOKS = [
+  { id:"rfp-3round", label:"Competitive RFP · 3-round", sub:"Aggregate demand, issue RFP, evaluate, award", routes:["rfp"],
+    tasks:["Confirm addressable scope against part master","Aggregate demand across AT + AOH plants","Issue RFP to recommended bidders","Manage Q&A + chase responses","Evaluate bids vs criteria (price · terms · lead time · coverage)","Negotiate finalists & award"] },
+  { id:"consolidate-anchor", label:"Consolidate to anchor", sub:"Fold the tail onto the incumbent, renegotiate rate", routes:["consolidate"],
+    tasks:["Validate anchor capacity & coverage","Baseline current rates vs benchmark","Negotiate volume-tiered pricing with anchor","Plan tail-vendor transition & stock buffer","Update source lists & PO routing"] },
+  { id:"negotiate-direct", label:"Direct renegotiation", sub:"No RFP — leverage benchmark gap with incumbents", routes:["rfp","consolidate"],
+    tasks:["Prepare price-gap evidence pack","Schedule incumbent negotiations","Agree revised rates & terms","Document commitments"] },
+];
+
+function viewAct(o){
+  const p = o.play;
+  const pb = PLAYBOOKS.find(x=>x.id===p.approach);
+  const doneN = pb ? pb.tasks.filter((_,i)=>p.done[i]).length : 0;
+  const res = resolved(o);
+  const kind = p.draftKind;
+  const vers = p.drafts[kind];
+  const activeV = p.activeVer[kind];
+  const draft = vers[activeV-1];
+  const canCommit = o.timing && o.basis;
+  return `<div class="overlay" data-a="ovclose"><div class="modal">
+    <div class="mhead"><span class="ic">⚡</span>
+      <div><h2>Run the play — ${esc(o.id)} <span style="font-weight:400;color:var(--text-3);font-size:14px">${esc(o.title)}</span></h2>
+      <div class="meta"><span class="chipg">${esc(o.l2)} · ${esc(o.country)}</span><span class="pill ${LEVER_VAR[o.route]}">${LEVERS[o.route]}</span><span class="pill neutral xs">Addressable ${money(res.addr)}</span><span class="pill good xs">Target ${range(res.lo,res.hi)}</span></div></div>
+      <div class="navx"><button class="iconbtn" data-a="actclose">✕</button></div>
+    </div>
+    <div class="mbody act">
+      <div class="msum"><div class="h"><span class="bstar">✦</span>Executing · Confidence ${o.conf}%</div><p>${esc(o.action)}</p></div>
+
+      <div class="eb"><div class="ehead">1 · Approach<span class="right">playbooks from the client CDM</span></div>
+      <div class="ebody"><div class="steps">
+        ${PLAYBOOKS.map(x=>`<div class="pb ${p.approach===x.id?"on":""}" data-a="pickpb" data-id="${o.id}" data-v="${x.id}">
+          <div class="t">${x.label} ${x.routes.includes(o.route)?'<span class="pill accent xs">✦ recommended</span>':""}</div><div class="s">${x.sub}</div></div>`).join("")}
+      </div></div></div>
+
+      ${pb?`<div class="eb"><div class="ehead">2 · Checklist<span class="right">${doneN}/${pb.tasks.length} done</span></div>
+      <div class="ebody">${pb.tasks.map((t,i)=>`<div class="task ${p.done[i]?"done":""}" data-a="task" data-id="${o.id}" data-v="${i}"><span class="box">${p.done[i]?"✓":""}</span><span>${esc(t)}</span></div>`).join("")}</div></div>`:""}
+
+      <div class="eb"><div class="ehead">3 · Evidence → analysis → drafts<span class="right">paste a quote, supplier reply or price list</span></div>
+      <div class="ebody">
+        ${p.evidence.length?p.evidence.map(e=>`<div class="evitem"><span class="pill info xs tag">${esc(e.type)}</span><div><b>${esc(e.title)}</b> — folded into ${esc(e.into)}<div style="color:var(--text-3);font-size:11.5px">${esc(e.at)}</div></div></div>`).join(""):'<div style="font-size:12.5px;color:var(--text-3);margin-bottom:6px">No evidence yet — analysis output lands here and versions the drafts.</div>'}
+        <textarea class="uin" style="width:100%;min-height:60px;border:1px solid var(--border);border-radius:9px;padding:9px 11px;font-size:13px;margin-top:8px" placeholder="e.g. 'Apex quote: $2.41/kg net 45, 12-week validity, covers 80% of SKUs…'" data-in="evnote" data-id="${o.id}">${esc(p.evNote)}</textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+          <button class="btn christy sm" data-a="analyze" data-id="${o.id}" ${p.evNote.trim()?"":"disabled"}>✦ Analyze &amp; fold into drafts</button>
+          ${p.lastAnalysis?"":'<span style="font-size:11.5px;color:var(--text-3)">Mercer extracts prices &amp; terms, compares to your blended rate, and writes the next draft version.</span>'}
+        </div>
+        ${p.lastAnalysis?`<div class="analysis" style="margin-top:10px"><b>✦ Mercer's read:</b><ul>${p.lastAnalysis.map(x=>`<li>${x}</li>`).join("")}</ul></div>`:""}
+      </div></div>
+
+      <div class="eb"><div class="ehead">4 · Drafts<span class="right">versioned · edits never destroyed</span></div>
+      <div class="ebody">
+        <div class="seg" style="max-width:340px;margin-bottom:10px">
+          <button class="${kind==="outreach"?"on":""}" data-a="draftkind" data-id="${o.id}" data-v="outreach">Supplier outreach</button>
+          <button class="${kind==="rfp"?"on":""}" data-a="draftkind" data-id="${o.id}" data-v="rfp">RFP</button>
+        </div>
+        ${vers.length?`
+        <div class="vchips">${vers.map(v=>`<button class="vchip ${activeV===v.v?"on":""}" data-a="draftver" data-id="${o.id}" data-v="${v.v}">v${v.v} <span class="by">· ${esc(v.by)}</span></button>`).join("")}</div>
+        <div style="font-size:11.5px;color:var(--text-3);margin-bottom:6px">v${draft.v} · ${esc(draft.by)} · ${esc(draft.note)}</div>
+        <textarea class="draftarea" data-in="drafttext" data-id="${o.id}">${esc(draft.text)}</textarea>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn outline sm" data-a="savever" data-id="${o.id}">Save as new version</button>
+          <button class="btn outline sm" data-a="copydraft" data-id="${o.id}">Copy to clipboard</button>
+          <span style="flex:1"></span><span class="pill warning xs">Template — customize before sending</span>
+        </div>`:`
+        <button class="btn christy sm" data-a="gendraft" data-id="${o.id}">✦ Draft v1 with Mercer</button>
+        <span style="font-size:11.5px;color:var(--text-3);margin-left:8px">Grounded in this pocket's own numbers — labeled template until sent through the copilot.</span>`}
+      </div></div>
+
+      <div class="eb"><div class="ehead">5 · Commit<span class="right">writes the play into Value Realization</span></div>
+      <div class="ebody">
+        <div class="tiles" style="grid-template-columns:repeat(3,1fr)">
+          <div class="tile"><div class="l">Committing target</div><div class="v tnum">${range(res.lo,res.hi)}</div><div class="d">${res.overridden?"operator override":"engine figures"} · editable at Qualify</div></div>
+          <div><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Expected timing *</label>
+            <select data-in="timing" data-id="${o.id}" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-top:3px">
+              <option value="">Select…</option><option value="this-quarter" ${o.timing==="this-quarter"?"selected":""}>This quarter</option><option value="next-quarter" ${o.timing==="next-quarter"?"selected":""}>Next quarter</option><option value="two-quarters" ${o.timing==="two-quarters"?"selected":""}>Two quarters out</option>
+            </select></div>
+          <div><label style="font-size:11.5px;font-weight:700;color:var(--text-2)">Commitment basis *</label>
+            <select data-in="basis" data-id="${o.id}" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-top:3px">
+              <option value="">Select…</option><option value="workbook" ${o.basis==="workbook"?"selected":""}>Workbook figures</option><option value="quote" ${o.basis==="quote"?"selected":""}>Supplier quote in hand</option><option value="negotiated" ${o.basis==="negotiated"?"selected":""}>Negotiated terms</option>
+            </select></div>
+        </div>
+        ${pb&&doneN<pb.tasks.length?`<div class="alert warn" style="margin-top:10px">⚠ ${pb.tasks.length-doneN} checklist step${pb.tasks.length-doneN>1?"s":""} still open — you can commit, but the play starts behind.</div>`:""}
+      </div></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn christy sm" data-a="mercer-open" data-id="${o.id}">✦ Ask Mercer</button>
+      <span class="spacer"></span>
+      ${!canCommit?`<span class="gatehint">Timing and basis required</span>`:""}
+      <button class="btn outline" data-a="saveplay" data-id="${o.id}">Save progress</button>
+      <button class="btn primary" data-a="commit" data-id="${o.id}" ${canCommit?"":"disabled"}>✓ Commit value</button>
+    </div>
+  </div></div>`;
+}
+
+/* ================= Value Realization ================= */
+function viewVR(){
+  const rows = tracked();
+  if(!rows.length) return `<div class="card cardpad emptystate"><div class="big">Nothing committed yet</div>Commit opportunities from the feed to start tracking realization.</div>`;
+  const sel = S.opps.find(o=>o.id===S.vrSel) || rows[0];
+  const committedMid = rows.reduce((s,o)=>s+(o.lo+o.hi)/2,0);
+  const realizedTot = rows.reduce((s,o)=>s+o.ramp.reduce((a,q)=>a+(q.actual||0),0),0);
+  const anyDemo = rows.some(o=>o.ramp.some(q=>q.demo));
+  const driftN = rows.filter(o=>o.drift.flagged).length;
+  return `<div class="vr">
+    <h2 style="font-size:20px;letter-spacing:-.01em;margin:4px 0 14px">Value Realization — Control Tower</h2>
+    <div class="kpis">
+      <div class="bcard"><div class="l">Committed (mid)</div><div class="v tnum">${money(committedMid)}</div><div class="d">${rows.length} plays</div></div>
+      <div class="bcard"><div class="l">Realized to date</div><div class="v tnum">${money(realizedTot)}</div><div class="d">${anyDemo?'<span class="watermark">⚠ includes illustrative actuals</span>':"posted actuals"}</div></div>
+      <div class="bcard"><div class="l">Realization</div><div class="v tnum">${committedMid?Math.round(realizedTot/committedMid*100):0}%</div><div class="d">of committed mid</div></div>
+      <div class="bcard"><div class="l">At risk (drift)</div><div class="v tnum" style="color:${driftN?"var(--bad)":"inherit"}">${driftN?money(rows.filter(o=>o.drift.flagged).reduce((s,o)=>s+(o.lo+o.hi)/2,0)):"$0"}</div><div class="d">${driftN||"no"} play${driftN===1?"":"s"} flagged</div></div>
+    </div>
+    <div class="plays">
+      <div class="plist">${rows.map(o=>`<div class="prow ${sel.id===o.id?"on":""}" data-a="vrsel" data-id="${o.id}">
+        <div class="t">${esc(o.l3)} · ${esc(o.country)} <span style="color:var(--text-3);font-weight:400">${esc(o.id)}</span></div>
+        <div class="meta"><span class="pill ${o.status==="realized"?"good":o.status==="in-execution"?"info":"neutral"} xs">${o.status==="committed"?"Not started":o.status==="in-execution"?"Live":"Realized · closed"}</span>
+        <span class="pill neutral xs tnum">${range(o.lo,o.hi)}</span>
+        ${o.drift.flagged?'<span class="pill danger xs">⚠ Drift</span>':""}</div>
+      </div>`).join("")}</div>
+      <div>${vrPanel(sel)}</div>
+    </div>
+  </div>`;
+}
+
+function vrPanel(o){
+  const realized = o.ramp.reduce((s,q)=>s+(q.actual||0),0);
+  const mid=(o.lo+o.hi)/2;
+  const pct = Math.round(realized/mid*100);
+  const allPosted = o.ramp.every(q=>q.actual!=null);
+  const maxV = Math.max(...o.ramp.map(q=>Math.max(q.proj,q.actual||0)),1);
+  return `<div class="card cardpad">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <h3 style="font-size:16px">${esc(o.title)} <span style="color:var(--text-3);font-weight:400">${esc(o.id)}</span></h3>
+      <span class="pill ${o.status==="realized"?"good":o.status==="in-execution"?"info":"neutral"}">${o.status==="committed"?"Not started":o.status==="in-execution"?"Live":"Realized"}</span>
+      <span style="flex:1"></span>
+      ${o.status==="committed"?`<button class="btn primary sm" data-a="marklive" data-id="${o.id}">Mark live</button>`:""}
+      ${o.status==="in-execution"?`<button class="btn outline sm" data-a="markback" data-id="${o.id}">Mark not started</button>`:""}
+      <button class="btn danger sm" data-a="dlg-uncommit" data-id="${o.id}">Un-commit…</button>
+    </div>
+    <div style="font-size:12px;color:var(--text-3);margin:2px 0 10px">Committed ${range(o.lo,o.hi)} · ${esc(o.committedAt||TODAY)} · ${esc(o.owner||"Maria Vance")} · basis: ${esc(o.basis||"workbook")}</div>
+    ${o.drift.flagged?`<div class="alert drift" style="margin-bottom:10px"><b>⚠ Drift flagged.</b> ${esc(o.drift.note)}
+      <div style="display:flex;gap:8px;margin-top:8px"><button class="btn outline sm" data-a="drift-ramp" data-id="${o.id}">Apply revised ramp (−8%)</button><button class="btn outline sm" data-a="drift-esc" data-id="${o.id}">Escalate &amp; keep plan</button></div></div>`:""}
+    <div class="eb"><div class="ehead">Ramp — projected vs realized<span class="right">${pct}% of committed mid</span></div>
+      <div class="legend" style="padding-top:8px"><span><span class="sw" style="background:#c9d8ef;border:1px dashed #8fabd6"></span>Projected (cumulative)</span><span><span class="sw" style="background:linear-gradient(180deg,#234687,#89a9e5)"></span>Realized</span>${o.ramp.some(q=>q.demo)?'<span class="watermark">⚠ illustrative actuals (demo)</span>':""}</div>
+      <div class="ramp">${o.ramp.map(q=>`<div class="q"><div class="bars">
+        <div class="bar proj" style="height:${Math.max(6,q.proj/maxV*100)}px" title="proj ${money(q.proj)}"></div>
+        ${q.actual!=null?`<div class="bar act" style="height:${Math.max(6,q.actual/maxV*100)}px" title="act ${money(q.actual)}"></div>`:""}
+        </div><span class="ql">${q.q}</span><span class="qv tnum">${q.actual!=null?money(q.actual):"—"} / ${money(q.proj)}</span></div>`).join("")}</div>
+      ${o.status!=="realized"?`<div style="display:flex;gap:8px;padding:4px 6px 8px;align-items:center">
+        <button class="btn outline sm" data-a="postq" data-id="${o.id}" ${allPosted?"disabled":""}>Post next quarter actuals (demo)</button>
+        <span style="font-size:11px;color:var(--text-3)">Fills the next quarter on-pace — labeled illustrative until real ERP lands.</span></div>`:""}
+    </div>
+    ${o.closure?`<div class="closure" style="margin-top:12px"><div class="t">✓ Play closed — realization verdict</div>
+      <div class="grid">
+        <div class="g"><div class="l">Committed (mid)</div><div class="v tnum">${money(o.closure.committed)}</div></div>
+        <div class="g"><div class="l">Realized</div><div class="v tnum">${money(o.closure.realized)}</div></div>
+        <div class="g"><div class="l">Variance</div><div class="v tnum" style="color:${o.closure.variance>=0?"var(--good)":"var(--bad)"}">${o.closure.variance>=0?"+":""}${money(o.closure.variance)}</div></div>
+      </div>
+      <div style="margin-top:8px">${o.signedOff?'<span class="pill good">✓ Signed off · feeds the exec rollup → Shibumi</span>':`<button class="btn primary sm" data-a="signoff" data-id="${o.id}">Sign off realization</button>`}</div>
+    </div>`:""}
+    <div class="eb hist" style="margin-top:12px"><div class="ehead">Activity</div><div class="ebody">
+      ${o.events.slice().reverse().map(e=>`<div class="ev k-${e.kind}"><span class="dot"></span><div><b>${e.kind.replace(/-/g," ")}</b> · ${esc(e.note||"")}<div class="who">${esc(e.actor)} · ${esc(e.at)}</div></div></div>`).join("")}
+    </div></div>
+  </div>`;
+}
+
+/* ================= Layer: modal / dialogs / dock / popover ================= */
+const PARK_CONDS = ["Contract renewal","Next budget cycle","Price movement >5%","Supplier consolidation elsewhere","Volume threshold reached","Other (specify)"];
+const REJ_REASONS = ["Non-negotiable counterparty (gov / utility)","Intercompany spend","OEM-locked sole source","Already contracted / in flight","Data quality too low to act","Strategic supplier — do not touch","Other (specify)"];
+
+function renderLayer(){
+  const L = el("layer");
+  let html = "";
+  if(S.act){ const o=byId(S.act); if(o) html += viewAct(o); }
+  else if(S.modal){ const o=byId(S.modal); if(o) html += viewModal(o); }
+  if(S.dlg) html += viewDialog();
+  if(S.pop) html += viewPop();
+  if(S.mercer.open) html += viewDock();
+  L.innerHTML = html;
+  const dt = L.querySelector('[data-in="drafttext"]'); // keep caret sane on re-render
+  if(S.focusDraft && dt){ dt.focus(); S.focusDraft=false; }
+}
+
+function viewDialog(){
+  const d = S.dlg; const o = d.id ? byId(d.id) : null;
+  const wrap = inner => `<div class="overlay" style="z-index:80;align-items:center" data-a="dlgcancel"><div class="dlg">${inner}</div></div>`;
+
+  if(d.kind==="park") return wrap(`
+    <div class="dhead"><h3>Park ${d.bulk?`${S.sel.size} opportunities`:esc(o.id)}</h3><p>Resurfaces when its revisit trigger fires — the trigger is watched, and Due items get a feed signal.</p></div>
+    <div class="dbody">
+      <div class="seg"><button class="${d.trigType==="date"?"on":""}" data-a="dlgset" data-k="trigType" data-v="date">Revisit on a date</button><button class="${d.trigType==="cond"?"on":""}" data-a="dlgset" data-k="trigType" data-v="cond">On a condition</button></div>
+      ${d.trigType==="date"?`<div><label>Revisit on</label><input type="date" value="${d.date||""}" data-in="dlg-date"></div>`
+      :`<div style="display:flex;flex-direction:column;gap:6px">${PARK_CONDS.map(c=>`<label class="radio ${d.cond===c?"on":""}"><input type="radio" name="pc" ${d.cond===c?"checked":""} data-a="dlgset" data-k="cond" data-v="${esc(c)}"> ${esc(c)}</label>`).join("")}
+      ${d.cond==="Other (specify)"?`<textarea placeholder="Describe the condition…" data-in="dlg-other">${esc(d.other||"")}</textarea>`:""}</div>`}
+    </div>
+    <div class="dfoot"><button class="btn outline" data-a="dlgcancel">Cancel</button>
+    <button class="btn primary" data-a="park-confirm" ${((d.trigType==="date"&&d.date)||(d.trigType==="cond"&&d.cond&&(d.cond!=="Other (specify)"||d.other)))?"":"disabled"}>Park</button></div>`);
+
+  if(d.kind==="reject") return wrap(`
+    <div class="dhead"><h3>Reject ${d.bulk?`${S.sel.size} opportunities`:esc(o.id)}</h3><p>Feeds sweep calibration — the next run honors this and will only re-surface with a "what changed" justification.</p></div>
+    <div class="dbody"><div style="display:flex;flex-direction:column;gap:6px">
+      ${REJ_REASONS.map(c=>`<label class="radio ${d.reason===c?"on":""}"><input type="radio" name="rr" ${d.reason===c?"checked":""} data-a="dlgset" data-k="reason" data-v="${esc(c)}"> ${esc(c)}</label>`).join("")}</div>
+      <div><label>Note ${d.reason==="Other (specify)"?"(required)":"(optional — persisted with the decision)"}</label>
+      <textarea data-in="dlg-note" placeholder="Context for the record…">${esc(d.note||"")}</textarea></div>
+    </div>
+    <div class="dfoot"><button class="btn outline" data-a="dlgcancel">Cancel</button>
+    <button class="btn primary" data-a="reject-confirm" ${d.reason&&(d.reason!=="Other (specify)"||(d.note||"").trim())?"":"disabled"}>Reject</button></div>`);
+
+  if(d.kind==="unreject") return wrap(`
+    <div class="dhead"><h3>Restore ${esc(o.id)} to the feed</h3><p>Un-rejects with a reason — the full history stays on the record.</p></div>
+    <div class="dbody"><div><label>Why restore it? (required)</label><textarea data-in="dlg-note" placeholder="e.g. Tariff structure changed — competitive lever now exists…">${esc(d.note||"")}</textarea></div></div>
+    <div class="dfoot"><button class="btn outline" data-a="dlgcancel">Cancel</button>
+    <button class="btn primary" data-a="unreject-confirm" ${(d.note||"").trim()?"":"disabled"}>Restore to feed</button></div>`);
+
+  if(d.kind==="uncommit") return wrap(`
+    <div class="dhead"><h3>Un-commit ${esc(o.id)}</h3><p>Returns the play to the feed as qualified, restores pre-commit figures, and strips generated milestones. The audit trail keeps everything.</p></div>
+    <div class="dbody"><div><label>Reason (required)</label><textarea data-in="dlg-note" placeholder="e.g. Committed on the wrong basis — quote fell through…">${esc(d.note||"")}</textarea></div></div>
+    <div class="dfoot"><button class="btn outline" data-a="dlgcancel">Cancel</button>
+    <button class="btn danger" data-a="uncommit-confirm" ${(d.note||"").trim()?"":"disabled"}>Un-commit</button></div>`);
+
+  return "";
+}
+
+/* lineage popover */
+function viewPop(){
+  const p=S.pop; const o=byId(p.id);
+  let total = p.fig==="pocket"?o.pocket : p.fig==="movable"?resolved(o).addr : o.excl[+p.fig.slice(4)]?.amount||0;
+  const label = p.fig==="pocket"?"Pocket spend" : p.fig==="movable"?"Addressable" : o.excl[+p.fig.slice(4)]?.label;
+  const rows=lineageRows(o,total,p.fig);
+  return `<div class="overlay" style="z-index:85;background:rgba(15,18,34,.25)" data-a="popclose">
+  <div class="pop" style="position:relative;top:12vh">
+    <div class="phead">Lineage — ${esc(label)} · ${money(total)}<span style="flex:1"></span><button class="iconbtn" data-a="popclose">✕</button></div>
+    <table><thead><tr><th>PO</th><th>Vendor</th><th>Date</th><th class="r">Amount</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr><td class="tnum">${r.po}</td><td>${esc(r.vendor)}</td><td class="tnum">${r.date}</td><td class="r tnum">${money(r.amt)}</td></tr>`).join("")}
+    </tbody></table>
+    <div class="pfoot">Top 5 of the transactions behind this figure (SAP extract s-pr-010 / fbl1n). ${p.fig.startsWith("excl")?`<button class="btn outline sm" data-a="dispute" data-id="${o.id}">Dispute this carve-out → data steward</button>`:""}</div>
+  </div></div>`;
+}
+
+/* Ask Mercer dock */
+const SUGGS = ["Why this lever?","Why is confidence "+"what it is?","What's excluded and why?","Where does the benchmark come from?"];
+function viewDock(){
+  const m=S.mercer; const o=m.oppId?byId(m.oppId):null;
+  return `<div class="dock">
+    <div class="dkhead"><span class="bstar">✦</span><div><b>Ask Mercer</b><div class="ctx">${o?`Scoped to ${esc(o.id)} · ${esc(o.title)}`:"Scoped to the current view"}</div></div>
+    <span style="flex:1"></span><button class="iconbtn" data-a="mercer-close">✕</button></div>
+    <div class="thread" id="mthread">
+      ${m.thread.length?m.thread.map(t=>`<div class="msg ${t.who}">${t.text}${t.cite?`<span class="cite">↳ ${esc(t.cite)}</span>`:""}</div>`).join("")
+      :`<div class="msg mercer">Ask me anything about ${o?esc(o.id):"this view"} — I answer from the pocket's own numbers and cite the source.</div>`}
+    </div>
+    <div class="sugg">${SUGGS.map(s=>`<button data-a="mercer-sugg" data-v="${esc(s)}">${esc(s)}</button>`).join("")}</div>
+    <div class="ask"><input type="text" placeholder="Ask about this opportunity…" value="${esc(m.q||"")}" data-in="mercer-q"><button class="btn christy sm" data-a="mercer-send">Send</button></div>
+  </div>`;
+}
+
+function mercerAnswer(o, q){
+  const ql=q.toLowerCase(); const res=o?resolved(o):null;
+  if(!o) return { text:"Open an opportunity and I'll ground every answer in its own numbers.", cite:"" };
+  if(/lever|consolidat|rfp|route/.test(ql)){
+    const w=o.roster.find(v=>v.winner);
+    return { text: o.route==="consolidate"
+      ? `${w?w.name:"The anchor"} already holds ${w?Math.round(w.share*100):""}% of this pocket — folding the tail onto the incumbent beats competing it, so the engine routed a Consolidate play (winner share ≥ 50%).`
+      : `No dominant incumbent here — the largest non-OEM holds ${Math.round((o.roster.find(v=>!v.oem)?.share||0)*100)}% — so the engine routed a Competitive RFP across the non-OEM base (winner share < 50%).`,
+      cite:`opp.opportunity · winner_share rule v2026-06 · ${o.id}` };
+  }
+  if(/confiden|76|71|72|score/.test(ql)) return { text:`Confidence ${o.conf}% = functional fit ${o.fit.toFixed(2)} × MIN(fragmentation gap ${o.gapN}, 20)/20. It tracks the product-vs-services mix — services are harder to should-cost. It's independent of $ size; ranking uses Impact = addressable × confidence.`, cite:"Derivation tab · methodology v0.4" };
+  if(/exclud|carve|oem|sole/.test(ql)) return { text:`${money(o.excl.reduce((s,e)=>s+e.amount,0))} is carved out: ${o.excl.map(e=>`${e.label} (${money(e.amount)}) — ${e.reason.toLowerCase()}`).join("; ")}. You can dispute any carve-out from its lineage view.`, cite:"Math tab · exclusions" };
+  if(/benchmark|price|unit|index/.test(ql)) return { text:`The ${o.l3} / ${o.country} benchmark is $${o.pe.bench.toFixed(2)} ${o.pe.unit} (category index, Q2-2026). Your blended rate is $${o.pe.blended.toFixed(2)} — a $${o.pe.gap.toFixed(2)} gap. Gap × volume gives an upper bound of ${money(o.pe.gap*o.pe.vol)}; the committed range ${range(res.lo,res.hi)} stays deliberately below it.`, cite:"Pricing evidence tab · index Q2-2026" };
+  if(/park|revisit/.test(ql)) return { text:"Parking stores a typed trigger (date or condition). Date triggers are watched — when due, the item gets a 'Revisit due' signal in the feed and you can approve or reject straight from the Parked panel.", cite:"Parked tab behavior" };
+  return { text:`${o.summary} The estimated range ${range(res.lo,res.hi)} is 4–7% of the ${money(res.addr)} addressable — see the Pricing evidence tab for the market bridge.`, cite:`${o.id} · Mercer summary` };
+}
+
+/* ================= Actions & wiring ================= */
+function openOpp(id){
+  const o=byId(id);
+  if(o.status==="accepted"){ S.act=id; S.modal=null; }
+  else {
+    S.modal=id; S.modalTab="summary"; S.act=null;
+    if(o.status==="surfaced"){ o.status="qualifying"; o.read=true;
+      pushEv(o,"note","Assembling evidence pack…","Mercer");
+      setTimeout(()=>{ if(o.status==="qualifying"){ o.status="qualified"; pushEv(o,"qualified","Evidence pack assembled","Mercer"); render(); } },1200);
+    }
+    o.read=true;
+  }
+  render();
+}
+
+function approve(id){
+  const o=byId(id);
+  if(o.status==="parked"){ o.parkTrigger=null; }
+  o.status="accepted";
+  pushEv(o,"note","Accepted · moved to Act");
+  S.modal=null; S.tab="act";
+  toast("Approved — moved to Act. Decision persisted.","success");
+  render();
+}
+
+function parkConfirm(){
+  const d=S.dlg;
+  const label = d.trigType==="date" ? "Revisit on "+new Date(d.date+"T00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : (d.cond==="Other (specify)"?d.other:d.cond);
+  const trig = { type:d.trigType, value:d.trigType==="date"?d.date:(d.cond==="Other (specify)"?d.other:d.cond), label, due:false };
+  const ids = d.bulk ? [...S.sel] : [d.id];
+  ids.forEach(id=>{ const o=byId(id); if(!["surfaced","qualifying","qualified","parked"].includes(o.status)) return;
+    o.status="parked"; o.parkTrigger={...trig}; pushEv(o,"parked","Revisit: "+label); });
+  S.sel.clear(); S.dlg=null; S.modal=null;
+  toast(`Parked ${ids.length>1?ids.length+" opportunities":ids[0]} — revisit: ${label}. Trigger is watched.`);
+  render();
+}
+
+function rejectConfirm(){
+  const d=S.dlg; const ids = d.bulk ? [...S.sel] : [d.id];
+  ids.forEach(id=>{ const o=byId(id); if(["committed","in-execution","realized","rejected"].includes(o.status)) return;
+    o.status="rejected"; o.rejectReason=d.reason; o.rejectNote=(d.note||"").trim(); o.parkTrigger=null;
+    pushEv(o,"rejected",d.reason+(d.note?" · note saved":"")); });
+  S.sel.clear(); S.dlg=null; S.modal=null;
+  toast(`Rejected ${ids.length>1?ids.length+" opportunities":ids[0]} — reason & note persisted; next sweep honors it.`);
+  render();
+}
+
+function runSweep(){
+  S.sweep++;
+  // 1. changed signal on OPP-001? it's accepted — use OPP-004 (surfaced): addressable shift
+  const c=byId("OPP-004");
+  c.movable=Math.round(c.movable*1.15); c.lo=Math.round(c.lo*1.15); c.hi=Math.round(c.hi*1.15);
+  c.signal={kind:"changed",label:"Changed",why:"Addressable +15% — two new POs landed"}; c.read=false;
+  pushEv(c,"note","Sweep #"+S.sweep+": addressable revised upward — two new POs","Mercer");
+  // 2. new-supplier signal on OPP-007
+  const n=byId("OPP-007");
+  n.signal={kind:"new-supplier",label:"New supplier",why:"Instant Procurement Services entered the pocket"}; n.read=false;
+  pushEv(n,"note","Sweep #"+S.sweep+": new supplier detected in pocket","Mercer");
+  // 3. parked trigger due
+  const p=S.opps.find(o=>o.status==="parked");
+  if(p&&p.parkTrigger){ p.parkTrigger.due=true; p.signal={kind:"revisit-due",label:"Revisit due",why:p.parkTrigger.label}; pushEv(p,"note","Revisit trigger fired — awaiting your decision","Mercer"); }
+  // 4. drift on a committed play
+  const dr=S.opps.find(o=>o.status==="in-execution"||o.status==="committed");
+  if(dr&&!dr.drift.flagged){ dr.drift={flagged:true,note:"Data refresh moved this pocket: incumbent share fell 55%→48% and the blended rate rose 3% — committed ramp may be optimistic."};
+    pushEv(dr,"drift-flagged","Pocket shifted under a committed play","Mercer"); }
+  // 5. honored line
+  const r=S.opps.find(o=>o.status==="rejected");
+  S.honored = `Decisions honored: ${r?r.id+" stayed suppressed ("+ (r.rejectReason||"").toLowerCase()+")":""} · ${S.opps.filter(o=>o.status==="parked").length} parked item held · nothing you dismissed was re-surfaced.`;
+  toast("Sweep #"+S.sweep+" complete — 1 changed, 1 new supplier, 1 revisit due, 1 drift flag.","success");
+  render();
+}
+
+function analyzeEvidence(o){
+  const t=o.play.evNote.toLowerCase(); const out=[]; const pe=o.pe;
+  const priceM = t.match(/\$ ?(\d+(?:\.\d+)?)/);
+  if(priceM){ const q=parseFloat(priceM[1]);
+    const d=Math.round((pe.blended-q)/pe.blended*100);
+    out.push(`Quoted <b>$${q.toFixed(2)}</b> vs your blended <b>$${pe.blended.toFixed(2)}</b> — ${d>0?d+"% below your current rate":"above your current rate"} (benchmark $${pe.bench.toFixed(2)}).`);
+    if(d>0) out.push(`At ~${pe.vol.toLocaleString()} units, holding this price on the addressable base is worth ≈ <b>${money((pe.blended-q)*pe.vol)}</b> — ${(pe.blended-q)*pe.vol>o.hi?"above":"within"} the committed range ${range(o.lo,o.hi)}.`);
+  }
+  if(/net ?\d+/.test(t)) out.push(`Payment terms detected (${t.match(/net ?\d+/)[0].toUpperCase()}) — fold into the negotiation asks alongside price.`);
+  if(/(\d+)\s?%/.test(t) && /sku|cover/.test(t)) out.push(`Partial SKU coverage noted — keep a second bidder for the uncovered tail to protect continuity.`);
+  if(!out.length) out.push("Context noted and saved to the play's evidence. No prices detected — paste the quote's numbers for a rate comparison.");
+  o.play.lastAnalysis = out;
+  o.play.evidence.push({ type:"quote", title:o.play.evNote.slice(0,60)+(o.play.evNote.length>60?"…":""), into:"draft v"+(o.play.drafts[o.play.draftKind].length+1), at:TODAY+" · analyzed by Mercer" });
+  pushDraft(o, o.play.draftKind, "Mercer", "folded evidence: "+o.play.evNote.slice(0,40)+"…");
+  o.play.evNote="";
+  pushEv(o,"note","Evidence analyzed & folded into "+o.play.draftKind+" draft","Mercer");
+  toast("Analyzed — draft v"+o.play.activeVer[o.play.draftKind]+" created from your evidence.","success");
+}
+
+function draftTemplate(o, kind, evidenceNote){
+  const res=resolved(o); const bidders=o.roster.filter(v=>!v.oem&&v.share>=0.05).map(v=>v.name);
+  if(kind==="outreach") return `Subject: ${o.l3} — ${o.country} supply review · Allison Transmission (AT + AOH)
+
+Dear supplier,
+
+Following our post-merger category review of ${o.l3} in ${o.country} (~${money(res.addr)} contestable annual spend), we are consolidating our supply base and reviewing commercial terms.
+
+${evidenceNote?("Based on recent evidence: "+evidenceNote+"\n\n"):""}We'd like to discuss:
+• Volume-tiered pricing vs the current blended rate ($${o.pe.blended.toFixed(2)} ${o.pe.unit})
+• Payment terms and lead-time commitments
+• Coverage of the full SKU range across AT and AOH plants
+
+Please confirm availability this week.
+
+Maria Vance · Category Manager, MRO`;
+  return `RFP — ${o.l3} · ${o.country} · Allison Transmission (AT + AOH)
+
+1. BACKGROUND
+Post-merger sourcing event covering ~${money(res.addr)} contestable annual spend (${o.vendors} incumbent vendors, top-3 ${Math.round(o.roster.slice(0,3).reduce((s,v)=>s+v.share,0)*100)}% share).
+
+2. SCOPE
+Category: ${o.l3} (${o.l2}) · Geography: ${o.country} · OEM/sole-source excluded (${money(o.excl.reduce((s,e)=>s+e.amount,0))}).
+${evidenceNote?("\nEVIDENCE BASELINE: "+evidenceNote+"\n"):""}
+3. INVITED BIDDERS
+${bidders.map(b=>"• "+b).join("\n")}
+
+4. EVALUATION
+Price vs benchmark ($${o.pe.bench.toFixed(2)} ${o.pe.unit}) 40% · Terms 20% · Lead time & continuity 20% · SKU coverage 20%.
+
+5. TIMELINE
+Q&A one week · Bids due in three · Award decision in five.`;
+}
+
+function pushDraft(o, kind, by, note){
+  const vers=o.play.drafts[kind];
+  const evNote = by==="Mercer"&&vers.length? o.play.evidence[o.play.evidence.length-1]?.title : null;
+  const base = vers.length? vers[o.play.activeVer[kind]-1].text : null;
+  const text = by==="Mercer" ? draftTemplate(o, kind, evNote) : base;
+  vers.push({ v:vers.length+1, by, note, text: by==="Mercer"?text:o.play._editBuf ?? base });
+  o.play.activeVer[kind]=vers.length;
+}
+
+function commit(id){
+  const o=byId(id); const res=resolved(o);
+  o.status="committed"; o.stage="committed"; o.committedAt=TODAY; o.owner="Maria Vance";
+  o.lo=Math.round(res.lo); o.hi=Math.round(res.hi);
+  const mid=(o.lo+o.hi)/2;
+  o.ramp=["Q3 26","Q4 26","Q1 27","Q2 27"].map((q,i)=>({q, proj:Math.round(mid*(i+1)/4), actual:null}));
+  pushEv(o,"committed",`Committed ${range(o.lo,o.hi)} · ${res.overridden?"operator override":"engine figures"} · basis: ${o.basis}`);
+  S.act=null; S.page="vr"; S.vrSel=id;
+  toast(o.id+" committed — tracking in Value Realization.","success");
+  render();
+}
+
+function postQuarter(o){
+  const i=o.ramp.findIndex(q=>q.actual==null);
+  if(i<0) return;
+  const prev=i>0?o.ramp[i-1].actual:0;
+  o.ramp[i].actual=Math.round(prev+( (o.lo+o.hi)/2 )/4 * (o.driftAdj?0.92:1));
+  o.ramp[i].demo=true;
+  pushEv(o,"note",`Actuals posted for ${o.ramp[i].q} (illustrative): ${money(o.ramp[i].actual)}`,"Mercer");
+  const realized=o.ramp.reduce((s,q)=>s+(q.actual||0),0), mid=(o.lo+o.hi)/2;
+  if(o.ramp.every(q=>q.actual!=null)){
+    o.status="realized"; o.stage="realized";
+    o.closure={ committed:Math.round(mid), realized, variance:realized-Math.round(mid) };
+    pushEv(o,"realized",`Play closed — realized ${money(realized)} vs committed ${money(mid)}`);
+    toast(o.id+" fully realized — closure card ready to sign off.","success");
+  }
+}
+
+/* -------- events -------- */
+document.addEventListener("click", e=>{
+  const a=e.target.closest("[data-a]"); if(!a) return;
+  const act=a.dataset.a, id=a.dataset.id, v=a.dataset.v;
+  const o = id ? byId(id) : (S.dlg && S.dlg.id ? byId(S.dlg.id) : null);
+  switch(act){
+    case "nav": S.page=v; render(); break;
+    case "tab": S.tab=v; S.sel.clear(); render(); break;
+    case "sort": S.sort = S.sort.field===v ? {field:v,dir:S.sort.dir==="desc"?"asc":"desc"} : {field:v,dir:"desc"}; render(); break;
+    case "confchip": S.confMin=S.confMin?0:75; render(); break;
+    case "clearfilters": Object.assign(S,{q:"",lever:"",country:"",confMin:0,scopeL2:"",groupBy:"none"}); render(); break;
+    case "selall": { const r=filteredSorted(tabRows("feed")); const all=r.every(x=>S.sel.has(x.id)); r.forEach(x=>all?S.sel.delete(x.id):S.sel.add(x.id)); render(); break; }
+    case "selrow": S.sel.has(id)?S.sel.delete(id):S.sel.add(id); render(); break;
+    case "bulk-clear": S.sel.clear(); render(); break;
+    case "bulk-park": S.dlg={kind:"park",bulk:true,trigType:"date"}; render(); break;
+    case "bulk-reject": S.dlg={kind:"reject",bulk:true}; render(); break;
+    case "open": openOpp(id); break;
+    case "mclose": case "actclose": S.modal=null; S.act=null; render(); break;
+    case "ovclose": if(e.target===e.currentTarget||e.target.classList.contains("overlay")){ S.modal=null; S.act=null; render(); } break;
+    case "mtab": S.modalTab=v; render(); break;
+    case "mnav": { const rows=modalRows(); const ix=rows.findIndex(x=>x.id===S.modal); const nx=rows[ix+(+v)]; if(nx) openOpp(nx.id); break; }
+    case "whytoggle": byId(S.modal).whyOpen=!byId(S.modal).whyOpen; render(); break;
+    case "approve": approve(id); break;
+    case "dlg-park": S.dlg={kind:"park",id,trigType:"date"}; render(); break;
+    case "dlg-reject": S.dlg={kind:"reject",id}; render(); break;
+    case "dlg-unreject": S.dlg={kind:"unreject",id}; render(); break;
+    case "dlg-uncommit": S.dlg={kind:"uncommit",id}; render(); break;
+    case "dlgcancel": if(a.tagName==="BUTTON"||e.target.classList.contains("overlay")){ S.dlg=null; render(); } break;
+    case "dlgset": S.dlg[a.dataset.k]=v; render(); break;
+    case "park-confirm": parkConfirm(); break;
+    case "reject-confirm": rejectConfirm(); break;
+    case "unreject-confirm": { o.status="qualified"; pushEv(o,"note","Restored to feed — "+S.dlg.note); o.signal={kind:"changed",label:"Restored",why:"Un-rejected: "+S.dlg.note.slice(0,50)}; S.dlg=null; S.modal=null; S.tab="feed"; toast(o.id+" restored to feed — history preserved.","success"); render(); break; }
+    case "uncommit-confirm": { o.status="qualified"; o.stage=null; o.ramp=null; o.closure=null; pushEv(o,"note","Un-committed — "+S.dlg.note+" · pre-commit figures restored"); S.dlg=null; S.page="opps"; S.tab="feed"; toast(o.id+" un-committed — returned to feed as qualified.","warn"); render(); break; }
+    case "unpark": o.status="qualified"; o.parkTrigger=null; o.signal=null; pushEv(o,"note","Returned to feed from Parked"); S.modal=null; S.tab="feed"; toast("Returned to feed.","success"); render(); break;
+    case "lineage": S.pop={id,fig:a.dataset.fig}; render(); break;
+    case "popclose": if(a.tagName==="BUTTON"||e.target.classList.contains("overlay")){ S.pop=null; render(); } break;
+    case "dispute": S.pop=null; pushEv(byId(id),"note","Carve-out disputed → routed to data steward (P4)"); toast("Dispute recorded — routed to the data steward with your reason."); render(); break;
+    case "vendorpop": toast("Vendor record: "+a.dataset.vn+" — opens the vendor detail panel in the full build."); break;
+    case "regen": { const u=o.userInput; const res0={addr:o.engine.movable,lo:o.engine.lo,hi:o.engine.hi};
+      o.uinDirty=false; const res1=resolved(o);
+      o.regenDiff={addr0:res0.addr,addr1:res1.addr,lo0:res0.lo,hi0:res0.hi,lo1:res1.lo,hi1:res1.hi,note:(u.overrideAddr!=null||u.overridePct!=null)?("Operator override — "+(u.justification||"")):"Context saved — no figure changes"};
+      pushEv(o,"note","Analysis regenerated with operator input"+(u.justification?" · "+u.justification:""));
+      toast("Regenerated — the diff shows exactly what changed.","success"); render(); break; }
+    case "goto-vr": S.page="vr"; S.vrSel=id; S.modal=null; render(); break;
+    /* Act */
+    case "pickpb": o.play.approach=v; render(); break;
+    case "task": o.play.done[v]=!o.play.done[v]; render(); break;
+    case "gendraft": pushDraft(o,o.play.draftKind,"Mercer","initial template · grounded in "+o.id); pushEv(o,"note","Draft v1 generated ("+o.play.draftKind+")","Mercer"); render(); break;
+    case "draftkind": o.play._editBuf=null; o.play.draftKind=v; render(); break;
+    case "draftver": o.play.activeVer[o.play.draftKind]=+v; o.play._editBuf=null; render(); break;
+    case "savever": { const k=o.play.draftKind; if(o.play._editBuf!=null){ pushDraft(o,k,"Maria Vance","manual edit"); o.play._editBuf=null; toast("Saved as v"+o.play.activeVer[k]+".","success"); } else toast("No edits to save — the draft is unchanged."); render(); break; }
+    case "copydraft": { const k=o.play.draftKind; const d=o.play.drafts[k][o.play.activeVer[k]-1]; navigator.clipboard?.writeText(d.text); toast("Draft copied to clipboard."); break; }
+    case "analyze": analyzeEvidence(o); render(); break;
+    case "saveplay": pushEv(o,"note","Play progress saved (approach + checklist + drafts)"); toast("Progress saved — survives reload & engine re-runs.","success"); break;
+    case "commit": commit(id); break;
+    /* VR */
+    case "vrsel": S.vrSel=id; render(); break;
+    case "marklive": o.status="in-execution"; o.stage="in-execution"; pushEv(o,"stage-advanced","Stage advanced · committed → in-execution"); toast(o.id+" marked live."); render(); break;
+    case "markback": o.status="committed"; o.stage="committed"; pushEv(o,"stage-advanced","Stage moved back · in-execution → committed"); render(); break;
+    case "postq": postQuarter(o); render(); break;
+    case "signoff": o.signedOff=true; pushEv(o,"note","Realization signed off — feeds exec rollup → Shibumi"); toast("Signed off — realized value locked into the rollup.","success"); render(); break;
+    case "drift-ramp": o.drift={flagged:false,note:""}; o.driftAdj=true; o.ramp.forEach(q=>{ if(q.actual==null) q.proj=Math.round(q.proj*0.92); }); pushEv(o,"drift-cleared","Applied revised ramp (−8%) after drift review"); toast("Revised ramp applied — projections trimmed 8%.","success"); render(); break;
+    case "drift-esc": o.drift={flagged:false,note:""}; pushEv(o,"drift-cleared","Drift reviewed — escalated, original plan kept"); toast("Escalated — original ramp kept; noted in the trail.","success"); render(); break;
+    /* sweep + mercer */
+    case "sweep": runSweep(); break;
+    case "mercer-open": S.mercer={open:true,oppId:id||S.modal||S.act,thread:S.mercer.oppId===(id||S.modal||S.act)?S.mercer.thread:[],q:""}; render(); break;
+    case "mercer-close": S.mercer.open=false; render(); break;
+    case "mercer-sugg": S.mercer.q=v; mercerSend(); break;
+    case "mercer-send": mercerSend(); break;
+  }
+});
+
+function mercerSend(){
+  const m=S.mercer; const q=(m.q||"").trim(); if(!q) return;
+  const o=m.oppId?byId(m.oppId):null;
+  m.thread.push({who:"user",text:esc(q)});
+  const ans=mercerAnswer(o,q);
+  m.thread.push({who:"mercer",text:ans.text,cite:ans.cite});
+  m.q="";
+  render();
+  const th=el("mthread"); if(th) th.scrollTop=th.scrollHeight;
+}
+
+/* inputs — surgical updates, no full re-render on keystrokes */
+document.addEventListener("input", e=>{
+  const t=e.target; const k=t.dataset.in; if(!k) return;
+  const o=t.dataset.id?byId(t.dataset.id):null;
+  switch(k){
+    case "q": S.q=t.value; renderSoft(); break;
+    case "lever": S.lever=t.value; renderSoft(); break;
+    case "country": S.country=t.value; renderSoft(); break;
+    case "groupby": S.groupBy=t.value; renderSoft(); break;
+    case "scope-l2": S.scopeL2=t.value; renderSoft(); break;
+    case "uin-context": o.userInput.context=t.value; o.uinDirty=true; break;
+    case "uin-addr": o.userInput.overrideAddr=t.value===""?null:+t.value; o.uinDirty=true; softGate(o); break;
+    case "uin-pct": o.userInput.overridePct=t.value===""?null:+t.value; o.uinDirty=true; softGate(o); break;
+    case "uin-just": o.userInput.justification=t.value; softGate(o); break;
+    case "evnote": o.play.evNote=t.value; { const b=document.querySelector('[data-a="analyze"]'); if(b) b.disabled=!t.value.trim(); } break;
+    case "drafttext": o.play._editBuf=t.value; break;
+    case "dlg-date": S.dlg.date=t.value; renderLayer(); break;
+    case "dlg-other": S.dlg.other=t.value; { const b=document.querySelector('[data-a="park-confirm"]'); if(b) b.disabled=!t.value.trim(); } break;
+    case "dlg-note": S.dlg.note=t.value; { const b=document.querySelector('[data-a="reject-confirm"],[data-a="unreject-confirm"],[data-a="uncommit-confirm"]'); if(b&&S.dlg.kind!=="reject") b.disabled=!t.value.trim(); if(b&&S.dlg.kind==="reject") b.disabled=!(S.dlg.reason&&(S.dlg.reason!=="Other (specify)"||t.value.trim())); } break;
+    case "mercer-q": S.mercer.q=t.value; break;
+    case "timing": o.timing=t.value; renderLayer(); break;
+    case "basis": o.basis=t.value; renderLayer(); break;
+  }
+});
+function softGate(o){ const b=document.querySelector('[data-a="regen"]'); if(!b) return;
+  const need=(o.userInput.overrideAddr!=null||o.userInput.overridePct!=null); b.disabled=need&&!o.userInput.justification.trim(); }
+function renderSoft(){ // re-render but keep focus in the search box
+  const focused=document.activeElement; const key=focused?.dataset?.in; const pos=focused?.selectionStart;
+  render();
+  if(key){ const nf=document.querySelector(`[data-in="${key}"]`); if(nf){ nf.focus(); if(pos!=null&&nf.setSelectionRange) try{nf.setSelectionRange(pos,pos);}catch(_){} } }
+}
+document.addEventListener("keydown", e=>{
+  if(e.key==="Enter"&&e.target.dataset?.in==="mercer-q") mercerSend();
+  if(e.key==="Escape"){ if(S.pop){S.pop=null;} else if(S.dlg){S.dlg=null;} else if(S.mercer.open){S.mercer.open=false;} else {S.modal=null;S.act=null;} render(); }
+});
+
+render();
+</script></body></html>

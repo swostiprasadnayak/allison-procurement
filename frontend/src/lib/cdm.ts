@@ -986,6 +986,54 @@ export async function getCategoryFootprint(): Promise<CategoryFootprint> {
 }
 
 // ---------------------------------------------------------------------------
+// getGeography — region/country footprint (opp.fact_spend)
+// ---------------------------------------------------------------------------
+
+export interface GeographyCountry {
+  name: string;
+  spend: number;
+}
+
+export interface GeographyRegion {
+  name: string;
+  spend: number;
+  countries: GeographyCountry[];
+}
+
+/** Real region -> country spend hierarchy from the line-item fact table
+ *  (`Cleaned Purchasing Region` / `Cleaned Purchasing Country` on the cube).
+ *  Opportunities only carry `purchasing_country` (region isn't part of the
+ *  pocket grain — see engine/core/opportunities/generate.py), so "region" as
+ *  a scope level is a UI grouping over its member countries, not a native
+ *  opportunity field: filtering by region means "country in this list."
+ *  Plant/location is intentionally absent — `location_id` is NULL engine-wide
+ *  until the SAP location-master feed lands (same designed-for gap as
+ *  vendor_performance's on_time_pct/fill_rate_pct). */
+export async function getGeography(): Promise<GeographyRegion[]> {
+  const rows = await q<{ region: string | null; country: string | null; spend: number | null }>(
+    `SELECT region, purchasing_country AS country, sum(net_spend_usd) AS spend
+       FROM opp.fact_spend
+      WHERE l1_code = 'L1|MRO'
+      GROUP BY region, purchasing_country`,
+  );
+  const byRegion = new Map<string, GeographyRegion>();
+  for (const r of rows) {
+    const regionName = r.region?.trim() || "Unspecified";
+    const countryName = r.country?.trim() || "Unspecified";
+    const spend = Number(r.spend) || 0;
+    if (!byRegion.has(regionName)) byRegion.set(regionName, { name: regionName, spend: 0, countries: [] });
+    const region = byRegion.get(regionName)!;
+    region.spend += spend;
+    const existing = region.countries.find((c) => c.name === countryName);
+    if (existing) existing.spend += spend;
+    else region.countries.push({ name: countryName, spend });
+  }
+  return [...byRegion.values()]
+    .sort((a, b) => b.spend - a.spend)
+    .map((r) => ({ ...r, countries: r.countries.sort((a, b) => b.spend - a.spend) }));
+}
+
+// ---------------------------------------------------------------------------
 // getEngineParameters — the engine's decision knobs (opp.engine_parameter)
 // ---------------------------------------------------------------------------
 

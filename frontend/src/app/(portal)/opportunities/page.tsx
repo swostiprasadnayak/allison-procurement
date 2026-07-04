@@ -16,6 +16,7 @@ import { Briefcase, CheckCircle } from "@phosphor-icons/react";
 import type { Opportunity, OpportunityStatus } from "@/types/opportunity";
 import { useOpportunityStore } from "@/context/OpportunityStoreContext";
 import { useScope } from "@/context/ScopeContext";
+import { useGeography } from "@/lib/useGeography";
 import { buildOpportunityColumns } from "./_components/opportunityColumns";
 import { MorningBrief } from "./_components/MorningBrief";
 import { ReviewPanel } from "./_components/ReviewPanel";
@@ -57,10 +58,11 @@ export default function OpportunitiesPage() {
   // ── Table state ─────────────────────────────────────────────────────────
   const [tab, setTab] = useState<TabId>("feed");
   const [search, setSearch] = useState("");
-  const { l2, setL2 } = useScope(); // sub-category scope is global (persists across pages)
+  // Business unit ▸ region/country ▸ L1 ▸ L2 all live in the global header
+  // scope now (ScopeMenu + SubCategoryFilter) — persists across pages.
+  const { l2, setL2, businessUnit, setBusinessUnit, region, setRegion, country, setCountry } = useScope();
+  const geography = useGeography();
   const [lever, setLever] = useState<string | null>(null);
-  const [bu, setBu] = useState<string | null>(null);
-  const [country, setCountry] = useState<string | null>(null);
   const [highConfOnly, setHighConfOnly] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -243,17 +245,29 @@ export default function OpportunitiesPage() {
     );
   }, [tabRows, q]);
 
+  // A region has no native opportunity column (see ScopeContext) — it filters
+  // as "country in this region's list," resolved from the live geography.
+  const regionCountries = useMemo(() => {
+    if (!region) return null;
+    return new Set(geography.find((r) => r.name === region)?.countries.map((c) => c.name) ?? []);
+  }, [region, geography]);
+
+  // o.businessUnit is the FE display label (cdm.ts): raw "AT" stays "AT", "OH"
+  // -> "AOH", "both" -> "Both". A cross-BU ("Both") opportunity touches every
+  // entity, so it matches whichever single BU is selected.
+  const buLabel = businessUnit === "OH" ? "AOH" : businessUnit;
   const filtered = useMemo(
     () =>
       searchedRows.filter(
         (o) =>
           (!l2 || o.l2 === l2) &&
           (!lever || o.playRoute === lever) &&
-          (!bu || o.businessUnit === bu) &&
+          (businessUnit === "ALL" || o.businessUnit === buLabel || o.businessUnit === "Both") &&
           (!country || o.country === country) &&
+          (country || !regionCountries || regionCountries.has(o.country)) &&
           (!highConfOnly || o.confidencePct >= 60),
       ),
-    [searchedRows, l2, lever, bu, country, highConfOnly],
+    [searchedRows, l2, lever, businessUnit, country, regionCountries, highConfOnly],
   );
 
   // Sort the FULL filtered set (pagination needs a global order); semantics
@@ -301,26 +315,6 @@ export default function OpportunitiesPage() {
     [searchedRows],
   );
 
-  const buOptions = useMemo<FacetOption[]>(() => {
-    const all = Array.from(
-      new Set(opportunities.map((o) => o.businessUnit).filter((x): x is string => !!x)),
-    ).sort();
-    return all.map((value) => ({
-      value,
-      label: value,
-      count: searchedRows.filter((o) => o.businessUnit === value).length,
-    }));
-  }, [opportunities, searchedRows]);
-
-  const countryOptions = useMemo<FacetOption[]>(() => {
-    const all = Array.from(new Set(opportunities.map((o) => o.country))).sort();
-    return all.map((c) => ({
-      value: c,
-      label: c,
-      count: searchedRows.filter((o) => o.country === c).length,
-    }));
-  }, [opportunities, searchedRows]);
-
   const highConfCount = useMemo(
     () => searchedRows.filter((o) => o.confidencePct >= 60).length,
     [searchedRows],
@@ -345,20 +339,6 @@ export default function OpportunitiesPage() {
       options: leverOptions,
     },
     {
-      kind: "select",
-      key: "country",
-      label: "Country",
-      promoted: true,
-      group: "Scope",
-      placeholder: "All countries",
-      value: country,
-      onChange: (v) => {
-        setCountry(v);
-        setPage(1);
-      },
-      options: countryOptions,
-    },
-    {
       kind: "toggle",
       key: "high-confidence",
       label: "High confidence ≥60%",
@@ -372,32 +352,25 @@ export default function OpportunitiesPage() {
         setPage(1);
       },
     },
-    {
-      kind: "select",
-      key: "businessUnit",
-      label: "Business Unit",
-      group: "Scope",
-      placeholder: "All business units",
-      value: bu,
-      onChange: (v) => {
-        setBu(v);
-        setPage(1);
-      },
-      options: buOptions,
-    },
   ];
 
-  // l2 is filtered from the TopBar now, so it's outside `facets` — fold it in.
-  const isFiltered = q !== "" || l2 != null || facetsActiveCount(facets) > 0;
-
-  // Sub-category scope now lives in the global header filter (persists across
-  // pages); the feed reads it via useScope() and filters `o.l2 === l2` above.
+  // l2, Business Unit, Region/Country are filtered from the TopBar's ScopeMenu
+  // now (global, persists across pages), so they're outside `facets` — fold
+  // them in here rather than duplicating a second set of controls.
+  const isFiltered =
+    q !== "" ||
+    l2 != null ||
+    businessUnit !== "ALL" ||
+    region != null ||
+    country != null ||
+    facetsActiveCount(facets) > 0;
 
   const clearAllFilters = useCallback(() => {
     setSearch("");
     setL2(null);
     setLever(null);
-    setBu(null);
+    setBusinessUnit("ALL");
+    setRegion(null);
     setCountry(null);
     setHighConfOnly(false);
     setPage(1);

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Navanta Lens — Act Automation (Run the Play)</title>
+<style>
+:root{
+  --background:#ffffff; --foreground:#09090b;
+  --primary:#232122; --primary-foreground:#ffffff;
+  --accent:#6440b6; --accent-soft:#f5efff;
+  --christy:linear-gradient(154.42deg,#1d4a86 1.66%,#3d348b 83.4%);
+  --muted:#f4f4f5; --muted-2:#fafafa;
+  --border:#e4e4e7; --border-2:#d4d4d8;
+  --text-2:#52525b; --text-3:#8b8b94;
+  --pill-info-bg:#eff6ff; --pill-info-fg:#1e40af;
+  --pill-danger-bg:#fff1f2; --pill-danger-fg:#a7000f;
+  --pill-warning-bg:#fffbeb; --pill-warning-fg:#92400e;
+  --pill-neutral-bg:#f4f4f5; --pill-neutral-fg:#52525b;
+  --good:#1e7d4f; --good-bg:#e7f4ed;
+  --bad:#a7000f; --bad-bg:#fff1f2;
+  --warn:#92400e; --warn-bg:#fffbeb;
+  --blue:#1d4a86; --blue-bg:#eaf1fb;
+  --shadow:0 4px 24px rgba(9,9,11,.10);
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;background:#fafafa;color:var(--foreground);font-size:14px;line-height:1.5}
+button{font:inherit;cursor:pointer;border:none;background:none}
+input,select,textarea{font:inherit;color:inherit}
+.tnum{font-variant-numeric:tabular-nums}
+
+.topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:14px;background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:54px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
+.brand .logo{width:22px;height:22px;border-radius:6px;background:var(--christy);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800}
+.crumb{color:var(--text-3);font-size:13px}
+.crumb b{color:var(--foreground)}
+
+.wrap{max-width:1080px;margin:0 auto;padding:22px 24px 100px}
+
+/* opp context header */
+.opphead{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:18px}
+.opphead .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.opphead h1{font-size:20px;letter-spacing:-.01em}
+.opphead .sub{color:var(--text-3);font-size:13px;margin-top:2px}
+.opphead .chips{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap}
+.mini{border:1px solid var(--border);border-radius:10px;padding:8px 13px;min-width:120px}
+.mini .l{font-size:10.5px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.mini .v{font-size:16px;font-weight:700;margin-top:1px}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:7px;border-radius:9px;padding:8px 14px;font-weight:600;font-size:13px;border:1px solid transparent;white-space:nowrap}
+.btn.primary{background:var(--primary);color:#fff}.btn.primary:hover{background:#3a3738}
+.btn.christy{background:var(--christy);color:#fff}
+.btn.outline{background:#fff;border-color:var(--border-2);color:var(--foreground)}.btn.outline:hover{background:var(--muted)}
+.btn.ghost{color:var(--text-2)}.btn.ghost:hover{background:var(--muted)}
+.btn.danger{background:#fff;border-color:#f3c1c6;color:var(--bad)}.btn.danger:hover{background:var(--bad-bg)}
+.btn.sm{padding:5px 10px;font-size:12px;border-radius:8px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.gatehint{font-size:11.5px;color:var(--bad);font-weight:600}
+
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;white-space:nowrap}
+.pill.info{background:var(--pill-info-bg);color:var(--pill-info-fg)}
+.pill.danger{background:var(--pill-danger-bg);color:var(--pill-danger-fg)}
+.pill.warning{background:var(--pill-warning-bg);color:var(--pill-warning-fg)}
+.pill.neutral{background:var(--pill-neutral-bg);color:var(--pill-neutral-fg)}
+.pill.good{background:var(--good-bg);color:var(--good)}
+.pill.accent{background:var(--accent-soft);color:var(--accent)}
+.pill.xs{font-size:10px;padding:1px 7px}
+
+/* section card */
+.sec{background:#fff;border:1px solid var(--border);border-radius:14px;margin-bottom:16px;overflow:hidden}
+.sechead{display:flex;align-items:center;gap:9px;padding:14px 20px;border-bottom:1px solid var(--border)}
+.sechead .n{width:24px;height:24px;border-radius:7px;background:var(--accent-soft);color:var(--accent);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
+.sechead h2{font-size:15px}
+.sechead .right{margin-left:auto;font-size:12px;color:var(--text-3)}
+.secbody{padding:18px 20px}
+
+/* approach picker — tiered */
+.recwrap{display:flex;gap:14px;align-items:stretch}
+.reccard{flex:1;border:2px solid var(--accent);border-radius:12px;padding:15px 17px;background:var(--accent-soft);position:relative}
+.reccard .rb{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.reccard h3{font-size:17px;letter-spacing:-.01em}
+.reccard .tag{color:var(--text-2);font-size:12.5px;margin-top:2px}
+.reccard .why{margin-top:9px;font-size:12.5px;color:#3f3564;background:#fff;border:1px solid #e6ddf6;border-radius:8px;padding:8px 11px}
+.altlabel{font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 8px}
+.altrow{display:flex;gap:10px;flex-wrap:wrap}
+.altcard{flex:1;min-width:190px;border:1px solid var(--border);border-radius:11px;padding:11px 14px;background:#fff;cursor:pointer;transition:border-color .15s}
+.altcard:hover{border-color:var(--accent)}
+.altcard.on{border-color:var(--accent);background:var(--accent-soft)}
+.altcard .t{font-weight:700;font-size:13.5px}
+.altcard .s{font-size:11.5px;color:var(--text-3);margin-top:1px}
+.divider{display:flex;align-items:center;gap:12px;margin:18px 0 10px;color:var(--text-3);font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border)}
+.manualrow{display:flex;gap:10px;flex-wrap:wrap}
+.manualcard{flex:1;min-width:190px;border:1px dashed var(--border-2);border-radius:11px;padding:11px 14px;background:var(--muted-2);cursor:pointer}
+.manualcard:hover{border-color:var(--warn)}
+.manualcard.on{border-color:var(--warn);border-style:solid;background:var(--warn-bg)}
+.manualcard .t{font-weight:700;font-size:13.5px}
+.manualcard .s{font-size:11.5px;color:var(--text-3);margin-top:1px}
+.manualcard .np{font-size:10px;color:var(--warn);font-weight:700;margin-top:5px}
+
+/* degrade banner */
+.degrade{border:1px solid #f0e0b8;background:var(--warn-bg);border-radius:11px;padding:13px 16px;color:var(--warn);font-size:13px;margin-bottom:16px}
+.degrade b{font-weight:800}
+
+/* evidence inbox */
+.dropzone{border:2px dashed var(--border-2);border-radius:12px;padding:30px;text-align:center;cursor:pointer;transition:all .15s;background:var(--muted-2)}
+.dropzone:hover{border-color:var(--accent);background:var(--accent-soft)}
+.dropzone .ic{font-size:30px;color:var(--accent)}
+.dropzone .big{font-size:16px;font-weight:700;margin-top:6px}
+.dropzone .sm{font-size:12.5px;color:var(--text-3);margin-top:3px}
+.pastebox{margin-top:12px}
+.pastebox textarea{width:100%;min-height:56px;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13px;resize:vertical}
+.pasterow{display:flex;gap:8px;margin-top:8px;align-items:center}
+.humannote{font-size:11.5px;color:var(--text-3)}
+
+/* AI pipeline stepper */
+.pipe{display:flex;align-items:center;gap:0;margin:14px 0}
+.pipe .stp{display:flex;align-items:center;gap:8px}
+.pipe .dot{width:26px;height:26px;border-radius:50%;background:var(--muted);color:var(--text-3);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pipe .stp.done .dot{background:var(--good);color:#fff}
+.pipe .stp.active .dot{background:var(--accent);color:#fff;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+.pipe .lbl{font-size:12.5px;font-weight:600;color:var(--text-2)}
+.pipe .stp.pending .lbl{color:var(--text-3)}
+.pipe .conn{flex:1;height:2px;background:var(--border);margin:0 10px;min-width:24px}
+.pipe .conn.done{background:var(--good)}
+
+/* analysis output */
+.analysis{background:var(--accent-soft);border:1px solid #e6ddf6;border-radius:11px;padding:13px 16px;margin-top:14px}
+.analysis .h{font-weight:800;font-size:12.5px;color:var(--accent);margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.analysis ul{margin-left:17px;font-size:12.5px;color:#3f3564}
+.analysis li{margin:4px 0}
+.analysis .did{margin-top:9px;padding-top:9px;border-top:1px solid #e6ddf6;font-size:11.5px;color:var(--text-2)}
+.analysis .did b{color:var(--good)}
+
+.evlist{margin-top:12px}
+.evrow{display:flex;gap:9px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--border);font-size:12.5px}
+.evrow:last-child{border-bottom:none}
+.evrow .nm{font-weight:600}
+.evrow .meta{color:var(--text-3);font-size:11.5px}
+
+/* artifact: accordion */
+.acc{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:4px}
+.acc .item{border-bottom:1px solid var(--border)}
+.acc .item:last-child{border-bottom:none}
+.acc .ah{display:flex;align-items:center;gap:8px;padding:12px 15px;cursor:pointer;font-weight:600;font-size:13.5px}
+.acc .ah:hover{background:var(--muted-2)}
+.acc .ah .chev{margin-left:auto;color:var(--text-3);transition:transform .15s}
+.acc .ah.open .chev{transform:rotate(90deg)}
+.acc .ab{padding:0 15px 14px;font-size:12.5px;color:var(--text-2);white-space:pre-wrap;line-height:1.6}
+.filled{color:var(--good);font-size:11px;font-weight:700}
+
+/* bid comparison */
+.bidtbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
+.bidtbl th{text-align:left;background:var(--muted-2);border-bottom:1px solid var(--border);padding:8px 11px;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3);font-weight:700}
+.bidtbl td{padding:9px 11px;border-bottom:1px solid var(--border)}
+.bidtbl tr.win td{background:var(--good-bg)}
+.bidtbl .r{text-align:right}
+.bidempty{padding:18px;text-align:center;color:var(--text-3);font-size:12.5px;border:1px dashed var(--border);border-radius:10px}
+
+/* benchmark pack */
+.bpack{display:flex;gap:0;flex-wrap:wrap}
+.bpack .st{flex:1;min-width:120px;padding:10px 13px;border:1px solid var(--border);background:var(--muted-2)}
+.bpack .st:first-child{border-radius:9px 0 0 9px}
+.bpack .st:last-child{border-radius:0 9px 9px 0;background:var(--good-bg);border-color:#cfe7da}
+.bpack .st .l{font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase}
+.bpack .st .v{font-size:15px;font-weight:700}
+.talklist{margin:10px 0 0 17px;font-size:12.5px}
+.talklist li{margin:5px 0}
+
+/* drafts */
+.seg{display:flex;border:1px solid var(--border);border-radius:9px;overflow:hidden;max-width:420px;margin-bottom:10px}
+.seg button{flex:1;padding:8px;font-weight:600;font-size:12.5px;color:var(--text-2);background:#fff}
+.seg button.on{background:var(--primary);color:#fff}
+.vchips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.vchip{border:1px solid var(--border);border-radius:99px;padding:3px 11px;font-size:11.5px;font-weight:700;color:var(--text-2);background:#fff;cursor:pointer}
+.vchip.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.vchip .by{font-weight:500;color:var(--text-3)}
+.draftarea{width:100%;min-height:180px;border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:var(--mono);font-size:12px;line-height:1.55;resize:vertical}
+.draftmeta{font-size:11.5px;color:var(--text-3);margin-bottom:6px}
+.draftactions{display:flex;gap:8px;margin-top:9px;align-items:center;flex-wrap:wrap}
+
+/* checklist */
+.task{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:13px;border-bottom:1px dashed var(--border)}
+.task:last-child{border-bottom:none}
+.task .box{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border-2);display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0;cursor:pointer}
+.task.done .box{background:var(--good);border-color:var(--good)}
+.task.done .tx{color:var(--text-3);text-decoration:line-through}
+.task .auto{margin-left:auto;font-size:10px;font-weight:700;color:var(--good);background:var(--good-bg);border-radius:99px;padding:1px 8px}
+.addtask{display:flex;gap:8px;margin-top:12px}
+.addtask input{flex:1;border:1px solid var(--border);border-radius:9px;padding:8px 11px;font-size:13px}
+
+/* commit */
+.commitbar{position:sticky;bottom:0;background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px 18px;box-shadow:0 -4px 18px rgba(9,9,11,.06);display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-top:6px}
+.commitbar .grow{flex:1}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:3px}
+.field select{border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;min-width:150px}
+.committed{border:1px solid #cfe7da;background:var(--good-bg);border-radius:14px;padding:16px 20px;margin-top:6px}
+.committed .t{font-weight:800;color:var(--good);font-size:15px;margin-bottom:6px}
+.committed .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:12.5px}
+.committed .g .l{font-size:10.5px;text-transform:uppercase;color:var(--text-3);font-weight:700}
+.committed .g .v{font-weight:700;font-size:15px}
+
+/* modal (sample picker + confirm) */
+.overlay{position:fixed;inset:0;background:rgba(15,18,34,.45);z-index:60;display:flex;align-items:center;justify-content:center;padding:24px}
+.dlg{background:#fff;border-radius:14px;width:min(560px,96vw);box-shadow:var(--shadow);display:flex;flex-direction:column;max-height:86vh}
+.dlg .dh{padding:16px 20px 6px}.dlg .dh h3{font-size:16px}.dlg .dh p{font-size:12.5px;color:var(--text-3);margin-top:2px}
+.dlg .db{padding:10px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.dlg .df{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid var(--border)}
+.sample{display:flex;align-items:center;gap:11px;border:1px solid var(--border);border-radius:10px;padding:11px 13px;cursor:pointer;text-align:left;width:100%}
+.sample:hover{border-color:var(--accent);background:var(--accent-soft)}
+.sample .fi{width:32px;height:32px;border-radius:8px;background:var(--blue-bg);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.sample .nm{font-weight:700;font-size:13px}
+.sample .de{font-size:11.5px;color:var(--text-3)}
+
+/* mercer dock */
+.dock{position:fixed;top:54px;right:0;bottom:0;width:390px;background:#fff;border-left:1px solid var(--border);z-index:70;display:flex;flex-direction:column;box-shadow:-8px 0 30px rgba(9,9,11,.08)}
+.dkhead{display:flex;align-items:center;gap:9px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.thread{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:88%;border-radius:12px;padding:9px 13px;font-size:12.5px;line-height:1.5}
+.msg.user{align-self:flex-end;background:var(--primary);color:#fff}
+.msg.mercer{align-self:flex-start;background:var(--accent-soft);border:1px solid #e6ddf6}
+.msg.mercer .cite{display:block;margin-top:6px;font-size:10.5px;color:var(--accent);font-weight:700}
+.sugg{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 10px}
+.sugg button{border:1px solid var(--border);border-radius:99px;padding:4px 11px;font-size:11.5px;color:var(--text-2)}
+.sugg button:hover{border-color:var(--accent);color:var(--accent)}
+.ask{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--border)}
+.ask input{flex:1;border:1px solid var(--border);border-radius:9px;padding:9px 12px;font-size:13px}
+.bstar{width:20px;height:20px;border-radius:6px;background:var(--christy);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+
+.toasts{position:fixed;bottom:18px;right:18px;z-index:100;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--primary);color:#fff;border-radius:11px;padding:11px 16px;font-size:13px;box-shadow:var(--shadow);max-width:400px}
+.toast.success{background:#14532d}.toast.warn{background:#7c4a03}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="brand"><span class="logo">N</span> Navanta Lens</span>
+  <span class="crumb">Opportunities › <b>Act — Run the play</b></span>
+</div>
+<div id="app"></div>
+<div id="layer"></div>
+<div class="toasts" id="toasts"></div>
+<input type="file" id="fileinput" style="display:none">
+<script>
+/* ===================== Data ===================== */
+const OPP = {
+  id:"OPP-001", title:"Lubricants · Germany", l3:"Lubricants",
+  l2:"First Fill Oils (Lubricants)", country:"Germany", route:"rfp",
+  vendors:33, addr:167640, lo:16947, hi:27114, conf:71,
+  blended:6.80, bench:6.26, unit:"per litre", vol:24653, exclusions:20041,
+  bidders:["Supplier Blue Ridge Paint Co","Rubix Group Europe","Cline Tool And Service Company","Hp Products Corp"],
+  anchor:"Supplier Blue Ridge Paint Co", anchorShare:16,
+};
+
+/* Real playbooks (jobs/seed_playbooks.py). recRoutes = auto-recommend when lever matches. */
+const PLAYBOOKS = {
+  consolidate:{ label:"Consolidate", tag:"tail → incumbent", recRoutes:["consolidate"], manual:false, kinds:[["proposal","Consolidation proposal"],["outreach","Supplier outreach"]], artifact:"model",
+    tasks:["Confirm scope & OEM / sole-source carve-outs","Validate the incumbent's capacity, service & terms","Model the consolidated volume & target price","Draft the consolidation proposal (Mercer)","Align plants / sites on the transition","Negotiate & sign consolidated terms","Plan phased migration; set cutover dates","Award & capture committed savings"] },
+  rfp:{ label:"Competitive RFP", tag:"aggregate demand · score on total cost", recRoutes:["rfp"], manual:false, kinds:[["rfp","RFP"],["outreach","Supplier outreach"]], artifact:"rfp",
+    tasks:["Confirm scope & SKUs against the part master","Confirm sites & delivery points in scope","Finalize the qualified supplier shortlist","Set evaluation criteria & weights","Issue the RFP (Mercer draft)","Collect & score bids on total cost","Select supplier(s); negotiate terms","Award & capture committed savings"] },
+  negotiate:{ label:"Negotiate / Benchmark", tag:"terms & price", recRoutes:["carve-out"], manual:false, kinds:[["talking","Talking points"],["outreach","Supplier outreach"]], artifact:"benchmark",
+    tasks:["Pull current terms, price & payment terms","Benchmark vs market / should-cost","Identify negotiation levers & targets","Prepare talking points (Mercer)","Run the supplier conversation(s)","Agree & document revised terms","Capture committed savings"] },
+  transition:{ label:"Supplier transition", tag:"move volume to a better-fit supplier", recRoutes:[], manual:true, kinds:[["outreach","Supplier outreach"]], artifact:"none",
+    tasks:["Qualify the target supplier's capability","Confirm scope, specs & quality requirements","Plan the volume migration","Run a dual-source pilot","Validate quality, lead time & service","Ramp volume; award","Capture committed volume & savings"] },
+  services:{ label:"Services rate-card", tag:"labor / repair rate panel", recRoutes:[], manual:true, kinds:[["outreach","Supplier outreach"]], artifact:"none",
+    tasks:["Define SOW & rate-card scope","Collect current labor / repair rates","Benchmark rates & set targets","Negotiate the rate-card panel","Agree SLAs & coverage","Award & capture committed rates"] },
+};
+const RECOMMENDED = Object.keys(PLAYBOOKS).find(k => PLAYBOOKS[k].recRoutes.includes(OPP.route)) || "rfp";
+const REC_REASON = { rfp:"No dominant incumbent — the largest non-OEM holds only 16%. Compete the fragmented base on total cost.",
+  consolidate:"A dominant incumbent already holds ≥50% — fold the tail onto them rather than competing.",
+  negotiate:"OEM / sole-source dominates — no competitive lever, so negotiate on benchmarked price & terms." }[RECOMMENDED];
+
+const SAMPLES = [
+  { id:"apex", name:"Apex_quote.pdf", type:"quote", vendor:"Rubix Group Europe", price:6.10, terms:"Net 45", coverage:78, lead:"3 wk",
+    desc:"Supplier quote · price + terms + coverage", text:"Rubix Group quote: $6.10 per litre, Net 45, 12-week validity, covers 78% of SKUs." },
+  { id:"blue", name:"BlueRidge_bid.csv", type:"bid", vendor:"Supplier Blue Ridge Paint Co", price:6.45, terms:"Net 60", coverage:100, lead:"2 wk",
+    desc:"Incumbent bid · full coverage", text:"Blue Ridge bid: $6.45 per litre, Net 60, full SKU coverage, 2-week lead." },
+  { id:"cline", name:"Cline_bid.pdf", type:"bid", vendor:"Cline Tool And Service Company", price:5.95, terms:"Net 30", coverage:90, lead:"3 wk",
+    desc:"Challenger bid · lowest price", text:"Cline bid: $5.95 per litre, Net 30, covers 90% of SKUs, 3-week lead." },
+  { id:"notes", name:"Kickoff_notes.txt", type:"notes", vendor:null,
+    desc:"Call notes · shortlist & scope", text:"Kickoff: shortlist confirmed (Rubix, Blue Ridge, Cline). Scope & SKUs agreed against part master. Bids due in 3 weeks." },
+  { id:"signed", name:"Award_signed.pdf", type:"contract", vendor:"Cline Tool And Service Company", price:5.95, terms:"Net 45",
+    desc:"Signed award · final terms", text:"Signed award: Cline at $5.95/L, Net 45, 3-year, effective Q3." },
+];
+
+const TODAY = "2026-07-03";
+
+/* ===================== State ===================== */
+const S = {
+  approach: RECOMMENDED,
+  play: newPlay(RECOMMENDED),
+  timing:"", basis:"",
+  committed:false, committedSummary:null,
+  pipe:{running:false,step:0}, evPaste:"",
+  dlg:null, mercer:{open:false,thread:[],q:""},
+};
+function newPlay(app){ const pb=PLAYBOOKS[app]; return {
+  done:{}, drafts:Object.fromEntries(pb.kinds.map(k=>[k[0],[]])), activeVer:Object.fromEntries(pb.kinds.map(k=>[k[0],0])),
+  draftKind:pb.kinds[0][0], evidence:[], bids:[], lastAnalysis:null, lastDid:null, _editBuf:null };
+}
+
+/* helpers */
+function money(n){ if(n==null)return"—"; const a=Math.abs(n); if(a>=1e6)return"$"+(n/1e6).toFixed(2)+"M"; if(a>=1e3)return"$"+(n/1e3).toFixed(n%1e3===0?0:1)+"K"; return "$"+Math.round(n).toLocaleString(); }
+function range(l,h){ return money(l)+"–"+money(h); }
+function esc(s){ return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function el(id){ return document.getElementById(id); }
+function toast(m,k){ const t=document.createElement("div"); t.className="toast "+(k||""); t.textContent=m; el("toasts").appendChild(t); setTimeout(()=>{t.style.opacity="0";t.style.transition="opacity .3s";setTimeout(()=>t.remove(),300);},3400); }
+function pb(){ return PLAYBOOKS[S.approach]; }
+
+/* ===================== Render ===================== */
+function render(){
+  el("app").innerHTML = `<div class="wrap">
+    ${viewOppHead()}
+    ${viewPicker()}
+    ${S.committed ? viewCommitted() : viewWorkspace()}
+  </div>`;
+  renderLayer();
+}
+
+function viewOppHead(){
+  return `<div class="opphead">
+    <div class="top">
+      <h1>Run the play — ${OPP.id}</h1>
+      <span class="pill accent">✦ Approved · in Act</span>
+      <span style="flex:1"></span>
+      <button class="btn christy sm" data-a="mercer-open">✦ Ask Mercer</button>
+    </div>
+    <div class="sub">${esc(OPP.title)} · ${esc(OPP.l2)} · ${OPP.vendors} vendors</div>
+    <div class="chips">
+      <div class="mini"><div class="l">Addressable</div><div class="v tnum">${money(OPP.addr)}</div></div>
+      <div class="mini"><div class="l">Target savings</div><div class="v tnum">${range(OPP.lo,OPP.hi)}</div></div>
+      <div class="mini"><div class="l">Confidence</div><div class="v tnum">${OPP.conf}%</div></div>
+      <div class="mini"><div class="l">Blended rate</div><div class="v tnum">$${OPP.blended.toFixed(2)}</div></div>
+      <div class="mini"><div class="l">Market benchmark</div><div class="v tnum">$${OPP.bench.toFixed(2)}</div></div>
+    </div>
+  </div>`;
+}
+
+/* ---- Step 1: tiered approach picker ---- */
+function viewPicker(){
+  const rec = PLAYBOOKS[RECOMMENDED];
+  const alts = Object.keys(PLAYBOOKS).filter(k=>!PLAYBOOKS[k].manual && k!==RECOMMENDED);
+  const manuals = Object.keys(PLAYBOOKS).filter(k=>PLAYBOOKS[k].manual);
+  return `<div class="sec"><div class="sechead"><span class="n">1</span><h2>Choose an approach</h2>
+    <span class="right">the engine routed a lever at Qualify — one approach is pre-selected</span></div>
+  <div class="secbody">
+    <div class="recwrap"><div class="reccard ${S.approach===RECOMMENDED?"":""}" data-a="approach" data-v="${RECOMMENDED}">
+      <div class="rb">✦ Recommended ${S.approach===RECOMMENDED?"· selected":""}</div>
+      <h3>${rec.label}</h3><div class="tag">${rec.tag}</div>
+      <div class="why">${esc(REC_REASON)}</div>
+    </div></div>
+    <div class="altlabel">Not right? Switch to another engine-routed approach</div>
+    <div class="altrow">
+      ${alts.map(k=>`<div class="altcard ${S.approach===k?"on":""}" data-a="approach" data-v="${k}">
+        <div class="t">${PLAYBOOKS[k].label}</div><div class="s">${PLAYBOOKS[k].tag}</div></div>`).join("")}
+    </div>
+    <div class="divider">Different kind of decision?</div>
+    <div class="manualrow">
+      ${manuals.map(k=>`<div class="manualcard ${S.approach===k?"on":""}" data-a="approach-manual" data-v="${k}">
+        <div class="t">${PLAYBOOKS[k].label}</div><div class="s">${PLAYBOOKS[k].tag}</div>
+        <div class="np">Manual · not engine-recommended</div></div>`).join("")}
+    </div>
+  </div></div>`;
+}
+
+/* ---- Step 2: the workspace ---- */
+function viewWorkspace(){
+  const p = pb();
+  return `
+  ${p.manual ? `<div class="degrade">⚠ <b>${p.label} isn't a spend-driven play.</b> The engine can't recommend it, and automation is limited here — there's no ${S.approach==="transition"?"supplier-performance data":"rate-card data model"} yet, so Mercer can't run supplier analysis or build the artifact. You still get evidence capture, a plain draft, and the checklist. <span style="opacity:.8">(Full support is a Phase-2 build.)</span></div>`:""}
+  ${viewEvidence()}
+  ${!p.manual ? viewArtifact() : ""}
+  ${viewDrafts()}
+  ${viewChecklist()}
+  ${viewCommit()}`;
+}
+
+function viewEvidence(){
+  const p=pb();
+  return `<div class="sec"><div class="sechead"><span class="n">2</span><h2>Evidence inbox</h2>
+    <span class="right">${p.manual?"drop a file — captured to the record":"drop a quote, bid, or notes — Mercer analyzes &amp; folds it in"}</span></div>
+  <div class="secbody">
+    ${S.pipe.running ? viewPipe() : `
+    <div class="dropzone" data-a="pickfile"><div class="ic">⤒</div>
+      <div class="big">Drop a file or browse</div>
+      <div class="sm">CSV · PDF · Excel · TXT — or paste below. Mercer classifies it and routes it.</div>
+    </div>
+    <div class="pastebox">
+      <textarea placeholder="…or paste a supplier quote, email thread, or call notes — e.g. 'Cline bid: $5.95/L net 30, covers 90% of SKUs'" data-in="evpaste">${esc(S.evPaste)}</textarea>
+      <div class="pasterow">
+        <button class="btn christy sm" data-a="analyze-paste" ${S.evPaste.trim()?"":"disabled"}>✦ Analyze &amp; fold in</button>
+        <span class="humannote">Mercer drafts &amp; suggests — you approve. Nothing is sent automatically.</span>
+      </div>
+    </div>`}
+    ${S.play.lastAnalysis ? viewAnalysis() : ""}
+    ${S.play.evidence.length ? `<div class="evlist">${S.play.evidence.map(e=>`<div class="evrow"><span class="pill info xs">${esc(e.type)}</span><span class="nm">${esc(e.name)}</span><span class="meta">→ ${esc(e.into)} · ${esc(e.at)}</span></div>`).join("")}</div>`:""}
+  </div></div>`;
+}
+
+function viewPipe(){
+  const steps=["Parse data","Analyze suppliers","Draft update","Version & save"];
+  return `<div class="pipe">${steps.map((s,i)=>{
+    const cls = S.pipe.step>i?"done":S.pipe.step===i?"active":"pending";
+    return `<div class="stp ${cls}"><span class="dot">${S.pipe.step>i?"✓":i+1}</span><span class="lbl">${s}</span></div>${i<steps.length-1?`<span class="conn ${S.pipe.step>i?"done":""}"></span>`:""}`;
+  }).join("")}</div>
+  <div style="font-size:12.5px;color:var(--text-3)">Mercer is reading the evidence…</div>`;
+}
+
+function viewAnalysis(){
+  return `<div class="analysis"><div class="h"><span class="bstar">✦</span>Mercer's read</div>
+    <ul>${S.play.lastAnalysis.map(x=>`<li>${x}</li>`).join("")}</ul>
+    ${S.play.lastDid?`<div class="did"><b>✓ Done automatically:</b> ${S.play.lastDid}</div>`:""}
+  </div>`;
+}
+
+/* ---- approach-shaped artifact ---- */
+function viewArtifact(){
+  const p=pb();
+  if(p.artifact==="rfp") return artifactRFP();
+  if(p.artifact==="model") return artifactModel();
+  if(p.artifact==="benchmark") return artifactBenchmark();
+  return "";
+}
+function bidTable(){
+  if(!S.play.bids.length) return `<div class="bidempty">No bids yet — drop a supplier quote or bid in the evidence inbox and it lands here, scored against your $${OPP.blended.toFixed(2)} blended rate.</div>`;
+  const min=Math.min(...S.play.bids.map(b=>b.price));
+  return `<table class="bidtbl"><thead><tr><th>Vendor</th><th class="r">Unit price</th><th class="r">vs blended</th><th>Terms</th><th class="r">Coverage</th><th>Lead</th></tr></thead><tbody>
+    ${S.play.bids.slice().sort((a,b)=>a.price-b.price).map(b=>`<tr class="${b.price===min?"win":""}">
+      <td>${esc(b.vendor)} ${b.price===min?'<span class="pill good xs">best price</span>':""}</td>
+      <td class="r tnum">$${b.price.toFixed(2)}</td>
+      <td class="r tnum" style="color:${b.price<=OPP.blended?"var(--good)":"var(--bad)"}">${b.price<=OPP.blended?"−":"+"}${Math.abs(Math.round((b.price-OPP.blended)/OPP.blended*100))}%</td>
+      <td>${esc(b.terms)}</td><td class="r tnum">${b.coverage?b.coverage+"%":"—"}</td><td>${esc(b.lead||"—")}</td></tr>`).join("")}
+  </tbody></table>`;
+}
+function artifactRFP(){
+  const secs=[["Scope",`${OPP.l3} (${OPP.l2}) · ${OPP.country}. ~${money(OPP.addr)} contestable annual spend across ${OPP.vendors} vendors. OEM / sole-source excluded (${money(OPP.exclusions)}).`],
+    ["Requirements","Full SKU coverage across AT + AOH plants · delivery to all German sites · quality & lead-time commitments · pricing held for the contract term."],
+    ["Evaluation criteria",`Price vs benchmark ($${OPP.bench.toFixed(2)} ${OPP.unit}) — 40% · Payment terms — 20% · Lead time & continuity — 20% · SKU coverage — 20%.`],
+    ["Timeline & terms","Q&A one week · bids due in three · award in five. 3-year term, volume-tiered pricing."]];
+  return `<div class="sec"><div class="sechead"><span class="n">3</span><h2>RFP scaffold</h2><span class="right">auto-filled from the pocket · <span class="filled">✓ grounded in real data</span></span></div>
+  <div class="secbody"><div class="acc">${secs.map((s,i)=>`<div class="item"><div class="ah ${i===0?"open":""}" data-a="acc" data-v="${i}"><span>${s[0]}</span><span class="chev">›</span></div>${i===0?`<div class="ab">${esc(s[1])}</div>`:`<div class="ab" style="display:none">${esc(s[1])}</div>`}</div>`).join("")}</div>
+  <h2 style="font-size:13px;margin:18px 0 8px;color:var(--text-2)">Bid comparison</h2>${bidTable()}</div></div>`;
+}
+function artifactModel(){
+  const min=S.play.bids.length?Math.min(...S.play.bids.map(b=>b.price)):OPP.bench;
+  return `<div class="sec"><div class="sechead"><span class="n">3</span><h2>Consolidation model</h2><span class="right">anchor: ${esc(OPP.anchor)} (${OPP.anchorShare}%)</span></div>
+  <div class="secbody">
+    <div class="bpack"><div class="st"><div class="l">Current blended</div><div class="v tnum">$${OPP.blended.toFixed(2)}</div></div>
+      <div class="st"><div class="l">Anchor share</div><div class="v tnum">${OPP.anchorShare}%</div></div>
+      <div class="st"><div class="l">Consolidated volume</div><div class="v tnum">${OPP.vol.toLocaleString()}</div></div>
+      <div class="st"><div class="l">Target rate</div><div class="v tnum">$${min.toFixed(2)}</div></div></div>
+    <p style="font-size:12.5px;color:var(--text-2);margin-top:10px">Folding the tail onto ${esc(OPP.anchor)} at the target rate captures ~${money((OPP.blended-min)*OPP.vol)} on the addressable base. Drop the anchor's revised quote in evidence to firm the target.</p>
+    <h2 style="font-size:13px;margin:16px 0 8px;color:var(--text-2)">Quotes captured</h2>${bidTable()}</div></div>`;
+}
+function artifactBenchmark(){
+  return `<div class="sec"><div class="sechead"><span class="n">3</span><h2>Benchmark pack &amp; levers</h2><span class="right">your leverage is data, not competition</span></div>
+  <div class="secbody">
+    <div class="bpack"><div class="st"><div class="l">You pay</div><div class="v tnum">$${OPP.blended.toFixed(2)}</div></div>
+      <div class="st"><div class="l">Market benchmark</div><div class="v tnum">$${OPP.bench.toFixed(2)}</div></div>
+      <div class="st"><div class="l">Gap</div><div class="v tnum">$${(OPP.blended-OPP.bench).toFixed(2)}</div></div>
+      <div class="st"><div class="l">Target saving</div><div class="v tnum">${money((OPP.blended-OPP.bench)*OPP.vol)}</div></div></div>
+    <ul class="talklist"><li><b>Lever 1 · Price:</b> market clears at $${OPP.bench.toFixed(2)} — you're ${Math.round((OPP.blended-OPP.bench)/OPP.bench*100)}% above. Anchor the ask there.</li>
+      <li><b>Lever 2 · Terms:</b> push payment terms out to match the benchmark cohort.</li>
+      <li><b>Lever 3 · Volume:</b> commit AT + AOH volume in exchange for the rate.</li></ul></div></div>`;
+}
+
+/* ---- drafts ---- */
+function viewDrafts(){
+  const p=pb(); const kind=S.play.draftKind; const vers=S.play.drafts[kind]; const av=S.play.activeVer[kind]; const d=vers[av-1];
+  return `<div class="sec"><div class="sechead"><span class="n">${p.manual?"3":"4"}</span><h2>Drafts</h2><span class="right">versioned · authored · edits never destroyed · never auto-sent</span></div>
+  <div class="secbody">
+    <div class="seg">${p.kinds.map(k=>`<button class="${kind===k[0]?"on":""}" data-a="draftkind" data-v="${k[0]}">${k[1]}</button>`).join("")}</div>
+    ${vers.length?`
+      <div class="vchips">${vers.map(v=>`<button class="vchip ${av===v.v?"on":""}" data-a="draftver" data-v="${v.v}">v${v.v} <span class="by">· ${esc(v.by)}</span></button>`).join("")}</div>
+      <div class="draftmeta">v${d.v} · ${esc(d.by)} · ${esc(d.note)}</div>
+      <textarea class="draftarea" data-in="drafttext">${esc(d.text)}</textarea>
+      <div class="draftactions">
+        <button class="btn outline sm" data-a="savever">Save as new version</button>
+        <button class="btn outline sm" data-a="copy">Copy</button>
+        <button class="btn primary sm" data-a="send">Mark as sent</button>
+        <span style="flex:1"></span><span class="pill warning xs">Template — customize before sending</span>
+      </div>`:`
+      <button class="btn christy sm" data-a="gendraft">✦ Draft v1 with Mercer</button>
+      <span style="font-size:11.5px;color:var(--text-3);margin-left:8px">Grounded in this pocket's own numbers. A labeled template until you send it.</span>`}
+  </div></div>`;
+}
+
+/* ---- checklist ---- */
+function viewChecklist(){
+  const p=pb(); const tasks=p.tasks; const doneN=tasks.filter((_,i)=>S.play.done[i]).length;
+  return `<div class="sec"><div class="sechead"><span class="n">${p.manual?"4":"5"}</span><h2>Checklist</h2><span class="right">${doneN}/${tasks.length} done · evidence auto-advances matching steps</span></div>
+  <div class="secbody">
+    ${tasks.map((t,i)=>`<div class="task ${S.play.done[i]?"done":""}"><span class="box" data-a="task" data-v="${i}">${S.play.done[i]?"✓":""}</span><span class="tx">${esc(t)}</span>${S.play.autoTasks&&S.play.autoTasks.includes(i)?'<span class="auto">auto ✓ from evidence</span>':""}</div>`).join("")}
+    <div class="addtask"><input type="text" placeholder="Add a task…" data-in="newtask" value="${esc(S.play.newtask||"")}"><button class="btn outline sm" data-a="addtask">+ Add</button></div>
+  </div></div>`;
+}
+
+/* ---- commit ---- */
+function viewCommit(){
+  const p=pb(); const tasks=p.tasks; const doneN=tasks.filter((_,i)=>S.play.done[i]).length;
+  const canCommit=S.timing&&S.basis;
+  return `<div class="commitbar">
+    <div class="field"><label>Committing target</label><div style="font-size:16px;font-weight:700" class="tnum">${range(OPP.lo,OPP.hi)}</div></div>
+    <div class="field"><label>Expected timing *</label><select data-in="timing">
+      <option value="">Select…</option><option value="this" ${S.timing==="this"?"selected":""}>This quarter</option><option value="next" ${S.timing==="next"?"selected":""}>Next quarter</option><option value="two" ${S.timing==="two"?"selected":""}>Two quarters out</option></select></div>
+    <div class="field"><label>Commitment basis *</label><select data-in="basis">
+      <option value="">Select…</option><option value="workbook" ${S.basis==="workbook"?"selected":""}>Workbook figures</option><option value="quote" ${S.basis==="quote"?"selected":""}>Supplier quote in hand</option><option value="negotiated" ${S.basis==="negotiated"?"selected":""}>Negotiated terms</option></select></div>
+    <div class="grow"></div>
+    ${doneN<tasks.length?`<span class="gatehint" style="color:var(--warn)">⚠ ${tasks.length-doneN} step${tasks.length-doneN>1?"s":""} open — you can still commit</span>`:""}
+    ${!canCommit?`<span class="gatehint">Timing &amp; basis required</span>`:""}
+    <button class="btn outline" data-a="saveprog">Save progress</button>
+    <button class="btn primary" data-a="commit" ${canCommit?"":"disabled"}>✓ Commit value</button>
+  </div>`;
+}
+
+function viewCommitted(){
+  const s=S.committedSummary;
+  return `<div class="committed"><div class="t">✓ Committed — handed to Value Realization</div>
+    <div class="grid">
+      <div class="g"><div class="l">Approach</div><div class="v">${esc(s.approach)}</div></div>
+      <div class="g"><div class="l">Committed value</div><div class="v tnum">${range(OPP.lo,OPP.hi)}</div></div>
+      <div class="g"><div class="l">Basis · timing</div><div class="v" style="font-size:13px">${esc(s.basis)} · ${esc(s.timing)}</div></div>
+    </div>
+    <p style="font-size:12.5px;color:var(--text-2);margin-top:10px">${s.tasks} of ${s.total} checklist steps complete · ${s.evidence} evidence items on record · ${s.drafts} draft versions saved. The ramp now tracks in the Value Realization control tower.</p>
+    <button class="btn outline sm" data-a="reset" style="margin-top:10px">← Run another play (reset demo)</button>
+  </div>`;
+}
+
+/* ===================== Layer (dialogs + dock) ===================== */
+function renderLayer(){
+  let h="";
+  if(S.dlg==="samples") h+=viewSamplePicker();
+  if(S.dlg&&S.dlg.kind==="manualConfirm") h+=viewManualConfirm();
+  if(S.mercer.open) h+=viewDock();
+  el("layer").innerHTML=h;
+}
+function viewSamplePicker(){
+  return `<div class="overlay" data-a="ovclose"><div class="dlg">
+    <div class="dh"><h3>Add evidence</h3><p>Pick a sample file (a real upload works the same way — Mercer classifies it and routes it).</p></div>
+    <div class="db">${SAMPLES.map(s=>`<button class="sample" data-a="picksample" data-v="${s.id}">
+      <span class="fi">${s.type==="notes"?"📝":s.type==="contract"?"✍":"📄"}</span>
+      <span><span class="nm">${esc(s.name)}</span><br><span class="de">${esc(s.desc)}</span></span></button>`).join("")}</div>
+    <div class="df"><button class="btn ghost" data-a="browsereal">Browse a real file instead</button><span style="flex:1"></span><button class="btn outline" data-a="ovclose">Cancel</button></div>
+  </div></div>`;
+}
+function viewManualConfirm(){
+  const k=S.dlg.approach; const p=PLAYBOOKS[k];
+  return `<div class="overlay" data-a="ovclose"><div class="dlg">
+    <div class="dh"><h3>Switch to ${esc(p.label)}?</h3><p>This overrides the engine's read of the opportunity.</p></div>
+    <div class="db"><p style="font-size:13px;color:var(--text-2)">${esc(p.label)} is triggered by ${k==="transition"?"a supplier-performance problem":"a services category"}, not the spend pattern the engine scored. Mercer can't recommend it, and automation is limited — you'll get evidence capture, a plain draft, and the checklist, but no supplier analysis or generated artifact (no ${k==="transition"?"performance data":"rate-card model"} yet).</p></div>
+    <div class="df"><button class="btn outline" data-a="ovclose">Cancel</button><button class="btn primary" data-a="approach-confirm" data-v="${k}">Continue with ${esc(p.label)}</button></div>
+  </div></div>`;
+}
+const SUGGS=["Why this approach?","Where's the benchmark from?","Which bid should I pick?","What's left before I commit?"];
+function viewDock(){
+  const m=S.mercer;
+  return `<div class="dock"><div class="dkhead"><span class="bstar">✦</span><div><b>Ask Mercer</b><div style="font-size:11.5px;color:var(--text-3)">Scoped to ${OPP.id} · ${esc(pb().label)}</div></div><span style="flex:1"></span><button class="btn ghost sm" data-a="mercer-close">✕</button></div>
+  <div class="thread" id="mthread">${m.thread.length?m.thread.map(t=>`<div class="msg ${t.who}">${t.text}${t.cite?`<span class="cite">↳ ${esc(t.cite)}</span>`:""}</div>`).join(""):`<div class="msg mercer">Ask me anything about running this play — I answer from the pocket's own numbers.</div>`}</div>
+  <div class="sugg">${SUGGS.map(s=>`<button data-a="mercer-sugg" data-v="${esc(s)}">${esc(s)}</button>`).join("")}</div>
+  <div class="ask"><input type="text" placeholder="Ask about this play…" value="${esc(m.q||"")}" data-in="mercer-q"><button class="btn christy sm" data-a="mercer-send">Send</button></div></div>`;
+}
+function mercerAnswer(q){
+  const ql=q.toLowerCase(); const p=pb();
+  if(/approach|why|lever|recommend/.test(ql)) return {text:`This opportunity was routed as "${OPP.route}" by the engine, so ${PLAYBOOKS[RECOMMENDED].label} is recommended: ${REC_REASON}`,cite:`${OPP.id} · winner-share rule`};
+  if(/benchmark|market|price/.test(ql)) return {text:`The ${OPP.l3}/${OPP.country} benchmark is $${OPP.bench.toFixed(2)} ${OPP.unit} (category index, Q2-2026). You pay $${OPP.blended.toFixed(2)} — a $${(OPP.blended-OPP.bench).toFixed(2)} gap worth up to ${money((OPP.blended-OPP.bench)*OPP.vol)} on the addressable base.`,cite:"Pricing evidence · index Q2-2026"};
+  if(/bid|pick|which|supplier/.test(ql)){ if(S.play.bids.length){ const w=S.play.bids.slice().sort((a,b)=>a.price-b.price)[0]; return {text:`On price, ${w.vendor} leads at $${w.price.toFixed(2)} (${Math.round((OPP.blended-w.price)/OPP.blended*100)}% below your blended). Weigh coverage & lead time before awarding — the evaluation is 40% price, 60% terms/coverage/continuity.`,cite:"Bid comparison"}; } return {text:"No bids captured yet — drop supplier quotes in the evidence inbox and I'll score them against your blended rate.",cite:"Evidence inbox"}; }
+  if(/commit|left|before|checklist/.test(ql)){ const open=p.tasks.filter((_,i)=>!S.play.done[i]); return {text:open.length?`${open.length} checklist step${open.length>1?"s":""} still open — next up: "${open[0]}". Commit also needs a timing and a basis selected.`:"Checklist is complete — set timing and basis and you're clear to commit.",cite:"Checklist"}; }
+  return {text:`You're running the ${p.label} play on ${OPP.title}. Target ${range(OPP.lo,OPP.hi)} on ${money(OPP.addr)} addressable. Drop evidence and I'll fold it into your drafts and score bids.`,cite:OPP.id};
+}
+
+/* ===================== Pipeline + evidence ===================== */
+function runPipeline(ev){
+  S.pipe={running:true,step:0}; render();
+  const iv=setInterval(()=>{
+    S.pipe.step++;
+    if(S.pipe.step>=4){ clearInterval(iv); applyEvidence(ev); S.pipe={running:false,step:0}; render(); }
+    else render();
+  },250);
+}
+function applyEvidence(ev){
+  const out=[]; let did=[];
+  const p=pb();
+  // price extraction
+  const price = ev.price ?? (ev.text.match(/\$ ?(\d+(?:\.\d+)?)/)?.[1] && parseFloat(ev.text.match(/\$ ?(\d+(?:\.\d+)?)/)[1]));
+  if(price){
+    const d=Math.round((OPP.blended-price)/OPP.blended*100);
+    out.push(`Extracted <b>$${price.toFixed(2)} ${OPP.unit}</b> — ${d>0?`<b>${d}% below</b>`:`${Math.abs(d)}% above`} your $${OPP.blended.toFixed(2)} blended rate (market $${OPP.bench.toFixed(2)}).`);
+    if(d>0 && (ev.type==="bid"||ev.type==="quote")) out.push(`Holding this on the addressable base ≈ <b>${money((OPP.blended-price)*OPP.vol)}</b> — ${(OPP.blended-price)*OPP.vol>OPP.hi?"above":"within"} the committed range ${range(OPP.lo,OPP.hi)}.`);
+  }
+  if(/net ?\d+/i.test(ev.text)) out.push(`Payment terms detected (${ev.text.match(/net ?\d+/i)[0]}) — captured for the negotiation asks.`);
+  if(ev.coverage && ev.coverage<100) out.push(`Covers ${ev.coverage}% of SKUs — keep a second source for the ${100-ev.coverage}% tail to protect continuity.`);
+  if(ev.type==="notes") out.push("Parsed call notes — shortlist and scope confirmations detected.");
+  if(ev.type==="contract") out.push("Final award terms detected — this is a commitment-grade document.");
+  if(!out.length) out.push("Captured to the play's evidence. No prices detected — paste the quote's figures for a rate comparison.");
+
+  // bid row (rfp/consolidate)
+  if((ev.type==="bid"||ev.type==="quote"||ev.type==="contract") && price && !p.manual && p.artifact!=="benchmark"){
+    if(!S.play.bids.some(b=>b.vendor===ev.vendor)){ S.play.bids.push({vendor:ev.vendor,price,terms:ev.terms||"—",coverage:ev.coverage,lead:ev.lead}); did.push("added to the bid comparison"); }
+  }
+  // create or fold into current draft — evidence always produces a draft version
+  { const had=S.play.drafts[S.play.draftKind].length; pushDraft(S.play.draftKind,"Mercer",(had?"folded evidence: ":"drafted from evidence: ")+ev.name);
+    did.push(`${had?"updated":"created"} ${S.play.draftKind} draft → v${S.play.activeVer[S.play.draftKind]}`); }
+
+  // checklist auto-advance
+  const checked=autoCheck(ev); if(checked.length){ S.play.autoTasks=(S.play.autoTasks||[]).concat(checked); did.push(`checked "${p.tasks[checked[0]]}"${checked.length>1?` +${checked.length-1} more`:""}`); }
+  // basis suggestion from a contract
+  if(ev.type==="contract" && !S.basis){ S.basis="negotiated"; did.push("set commitment basis → negotiated terms"); }
+
+  S.play.evidence.push({name:ev.name,type:ev.type,into:S.play.drafts[S.play.draftKind].length?("draft v"+S.play.activeVer[S.play.draftKind]):"record",at:TODAY});
+  S.play.lastAnalysis=out; S.play.lastDid=did.length?did.join(" · "):null;
+  toast("Analyzed "+ev.name+(did.length?" — "+did[0]:""),"success");
+}
+function autoCheck(ev){
+  const tasks=pb().tasks; const hits=[];
+  tasks.forEach((t,i)=>{ if(S.play.done[i]) return; const tl=t.toLowerCase();
+    if(ev.type==="notes" && /(shortlist|scope|sku|sites|part master)/.test(tl)) hits.push(i);
+    if((ev.type==="bid"||ev.type==="quote") && /(collect|score|bid)/.test(tl) && S.play.bids.length>=1) hits.push(i);
+    if(ev.type==="contract" && /(select|award|agree|document|capture|sign|negotiate)/.test(tl)) hits.push(i);
+  });
+  hits.forEach(i=>S.play.done[i]=true);
+  return hits;
+}
+function pushDraft(kind,by,note){
+  const vers=S.play.drafts[kind];
+  const text = by==="Mercer" ? draftText(kind) : (S.play._editBuf ?? (vers.length?vers[S.play.activeVer[kind]-1].text:""));
+  vers.push({v:vers.length+1,by,note,text}); S.play.activeVer[kind]=vers.length; S.play._editBuf=null;
+}
+function draftText(kind){
+  const evLine = S.play.evidence.length ? "\n\n[Updated from evidence: "+S.play.evidence[S.play.evidence.length-1].name+"]" : "";
+  const bidLine = S.play.bids.length ? "\n\nLeading bid: "+S.play.bids.slice().sort((a,b)=>a.price-b.price)[0].vendor+" @ $"+S.play.bids.slice().sort((a,b)=>a.price-b.price)[0].price.toFixed(2) : "";
+  if(kind==="outreach") return `Subject: ${OPP.l3} — ${OPP.country} supply review · Allison Transmission (AT + AOH)\n\nDear supplier,\n\nFollowing our post-merger review of ${OPP.l3} in ${OPP.country} (~${money(OPP.addr)} contestable spend), we're reviewing supply and commercial terms.\n\nWe'd like to discuss volume-tiered pricing vs the current blended rate ($${OPP.blended.toFixed(2)} ${OPP.unit}), payment terms, and full SKU coverage across AT + AOH plants.\n\nCould we set up a 30-minute call this week?${bidLine}${evLine}\n\nMaria Vance · Category Manager, MRO`;
+  if(kind==="rfp") return `RFP — ${OPP.l3} · ${OPP.country} · Allison Transmission (AT + AOH)\n\n1. BACKGROUND\n~${money(OPP.addr)} contestable spend, ${OPP.vendors} incumbents.\n\n2. SCOPE\n${OPP.l2} · ${OPP.country} · OEM/sole-source excluded (${money(OPP.exclusions)}).\n\n3. INVITED BIDDERS\n${OPP.bidders.map(b=>"• "+b).join("\n")}\n\n4. EVALUATION\nPrice vs benchmark ($${OPP.bench.toFixed(2)}) 40% · Terms 20% · Lead time 20% · Coverage 20%.${bidLine}${evLine}`;
+  if(kind==="proposal") return `CONSOLIDATION PROPOSAL — ${OPP.l3} · ${OPP.country}\n\nAnchor: ${OPP.anchor} (${OPP.anchorShare}% of pocket).\nProposal: fold the ${OPP.vendors-1}-vendor tail onto the anchor at a volume-tiered rate below the $${OPP.blended.toFixed(2)} blended.\nAddressable: ${money(OPP.addr)} · target saving ${range(OPP.lo,OPP.hi)}.${bidLine}${evLine}`;
+  if(kind==="talking") return `NEGOTIATION TALKING POINTS — ${OPP.l3} · ${OPP.country}\n\n• Market clears at $${OPP.bench.toFixed(2)} ${OPP.unit}; we pay $${OPP.blended.toFixed(2)} (${Math.round((OPP.blended-OPP.bench)/OPP.bench*100)}% above).\n• Ask: match benchmark + extend payment terms.\n• Offer: commit AT + AOH volume for the rate.\n• Walk-away: re-open to competition.${evLine}`;
+  return "";
+}
+
+/* ===================== Events ===================== */
+document.addEventListener("click", e=>{
+  const a=e.target.closest("[data-a]"); if(!a) return;
+  const act=a.dataset.a, v=a.dataset.v;
+  switch(act){
+    case "approach": if(S.approach!==v){ S.approach=v; S.play=newPlay(v); S.timing=S.basis=""; } render(); break;
+    case "approach-manual": S.dlg={kind:"manualConfirm",approach:v}; render(); break;
+    case "approach-confirm": S.approach=v; S.play=newPlay(v); S.timing=S.basis=""; S.dlg=null; render(); break;
+    case "pickfile": S.dlg="samples"; render(); break;
+    case "browsereal": S.dlg=null; render(); el("fileinput").click(); break;
+    case "picksample": { S.dlg=null; const s=SAMPLES.find(x=>x.id===v); render(); runPipeline(s); break; }
+    case "analyze-paste": { if(!S.evPaste.trim()) break; const txt=S.evPaste.trim();
+      const type=/net ?\d+|\$/i.test(txt)?(/award|signed/i.test(txt)?"contract":"quote"):"notes";
+      const price=txt.match(/\$ ?(\d+(?:\.\d+)?)/)?parseFloat(txt.match(/\$ ?(\d+(?:\.\d+)?)/)[1]):null;
+      const cov=txt.match(/(\d+)\s?%/)?parseInt(txt.match(/(\d+)\s?%/)[1]):null;
+      const vend=(txt.match(/^([A-Z][A-Za-z&.\- ]+?)(?:\s+(?:quote|bid|:))/)||[])[1]||"Pasted supplier";
+      const ev={name:"Pasted note",type,vendor:vend.trim(),price,coverage:cov,terms:(txt.match(/net ?\d+/i)||[])[0]||"—",lead:null,text:txt};
+      S.evPaste=""; render(); runPipeline(ev); break; }
+    case "acc": { const items=document.querySelectorAll(".acc .item"); const it=items[+v]; const h=it.querySelector(".ah"); const b=it.querySelector(".ab");
+      const open=h.classList.toggle("open"); b.style.display=open?"block":"none"; break; }
+    case "gendraft": pushDraft(S.play.draftKind,"Mercer","initial template · grounded in "+OPP.id); render(); break;
+    case "draftkind": S.play._editBuf=null; S.play.draftKind=v; render(); break;
+    case "draftver": S.play._editBuf=null; S.play.activeVer[S.play.draftKind]=+v; render(); break;
+    case "savever": if(S.play._editBuf!=null){ pushDraft(S.play.draftKind,"Maria Vance","manual edit"); toast("Saved as v"+S.play.activeVer[S.play.draftKind],"success"); render(); } else toast("No edits to save."); break;
+    case "copy": { const d=S.play.drafts[S.play.draftKind][S.play.activeVer[S.play.draftKind]-1]; navigator.clipboard?.writeText(d.text); toast("Copied to clipboard."); break; }
+    case "send": S.play.evidence.push({name:"Outreach sent",type:"sent",into:"record",at:TODAY}); toast("Marked as sent — logged to the record. Nothing left the building automatically."); render(); break;
+    case "task": S.play.done[+v]=!S.play.done[+v]; render(); break;
+    case "addtask": if((S.play.newtask||"").trim()){ pb().tasks.push(S.play.newtask.trim()); S.play.newtask=""; render(); } break;
+    case "saveprog": toast("Progress saved — approach, checklist, drafts & evidence persisted.","success"); break;
+    case "commit": { const tasks=pb().tasks; S.committed=true; S.committedSummary={approach:pb().label,basis:S.basis,timing:S.timing,tasks:tasks.filter((_,i)=>S.play.done[i]).length,total:tasks.length,evidence:S.play.evidence.length,drafts:Object.values(S.play.drafts).reduce((s,a)=>s+a.length,0)}; toast(OPP.id+" committed — tracking in Value Realization.","success"); render(); break; }
+    case "reset": S.committed=false; S.approach=RECOMMENDED; S.play=newPlay(RECOMMENDED); S.timing=S.basis=""; render(); break;
+    case "ovclose": if(e.target===a || e.target.classList.contains("overlay")){ S.dlg=null; render(); } break;
+    case "mercer-open": S.mercer.open=true; render(); break;
+    case "mercer-close": S.mercer.open=false; render(); break;
+    case "mercer-sugg": S.mercer.q=v; mercerSend(); break;
+    case "mercer-send": mercerSend(); break;
+  }
+});
+function mercerSend(){ const q=(S.mercer.q||"").trim(); if(!q) return; S.mercer.thread.push({who:"user",text:esc(q)}); const ans=mercerAnswer(q); S.mercer.thread.push({who:"mercer",text:ans.text,cite:ans.cite}); S.mercer.q=""; render(); const th=el("mthread"); if(th) th.scrollTop=th.scrollHeight; }
+
+document.addEventListener("input", e=>{
+  const t=e.target, k=t.dataset.in; if(!k) return;
+  switch(k){
+    case "evpaste": S.evPaste=t.value; { const b=document.querySelector('[data-a="analyze-paste"]'); if(b) b.disabled=!t.value.trim(); } break;
+    case "drafttext": S.play._editBuf=t.value; break;
+    case "newtask": S.play.newtask=t.value; break;
+    case "timing": S.timing=t.value; { const b=document.querySelector('[data-a="commit"]'); if(b) b.disabled=!(S.timing&&S.basis); } break;
+    case "basis": S.basis=t.value; { const b=document.querySelector('[data-a="commit"]'); if(b) b.disabled=!(S.timing&&S.basis); } break;
+    case "mercer-q": S.mercer.q=t.value; break;
+  }
+});
+document.addEventListener("keydown", e=>{
+  if(e.key==="Enter"&&e.target.dataset?.in==="mercer-q") mercerSend();
+  if(e.key==="Escape"){ if(S.mercer.open) S.mercer.open=false; else S.dlg=null; render(); }
+});
+el("fileinput").addEventListener("change", e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const n=f.name.toLowerCase();
+  const type=/sign|award|contract/.test(n)?"contract":/note|call|txt/.test(n)?"notes":"quote";
+  runPipeline({name:f.name,type,vendor:"Uploaded supplier",price:null,coverage:null,terms:"—",lead:null,text:"Uploaded "+f.name});
+  e.target.value="";
+});
+
+render();
+</script></body></html>

@@ -3,7 +3,7 @@
 import { q } from "@/lib/db";
 import { buildRamp } from "@/lib/ramp";
 import { buildPerformance } from "@/lib/vendorPerformance";
-import type { Opportunity, OppExclusion, FunctionalFitCheck } from "@/types/opportunity";
+import type { Opportunity, OppExclusion, FunctionalFitCheck, DraftVersion } from "@/types/opportunity";
 import type {
   ScoreCriterion,
   Vendor,
@@ -229,6 +229,8 @@ interface ActionRow {
   status: string | null;
   approach: string | null;
   done_tasks: string[] | null;
+  custom_tasks: string[] | null;
+  draft_versions: DraftVersion[] | null;
   notes: string | null;
   park_trigger: string | null;
   reject_reason: string | null;
@@ -292,9 +294,9 @@ export async function getOpportunities(): Promise<Opportunity[]> {
          FROM opp.opportunity_trigger`,
     ),
     q<ActionRow>(
-      `SELECT opportunity_id, status, approach, done_tasks, notes, park_trigger,
-              reject_reason, committed_at, committed_timing, committed_basis,
-              committed_low, committed_high
+      `SELECT opportunity_id, status, approach, done_tasks, custom_tasks, draft_versions,
+              notes, park_trigger, reject_reason, committed_at, committed_timing,
+              committed_basis, committed_low, committed_high
          FROM opp.opportunity_action`,
     ),
   ]);
@@ -526,6 +528,8 @@ export async function getOpportunities(): Promise<Opportunity[]> {
       status: (action?.status ?? "surfaced") as Opportunity["status"],
       approach: action?.approach ?? undefined,
       doneTasks: Array.isArray(action?.done_tasks) ? action.done_tasks : undefined,
+      customTasks: Array.isArray(action?.custom_tasks) ? action.custom_tasks : undefined,
+      draftVersions: Array.isArray(action?.draft_versions) ? action.draft_versions : undefined,
       parkTrigger: action?.park_trigger ?? undefined,
       rejectReason: action?.reject_reason ?? undefined,
       committedAt: action?.committed_at ?? undefined,
@@ -894,6 +898,8 @@ const ACTION_COLUMNS = [
   "status",
   "approach",
   "done_tasks",
+  "custom_tasks",
+  "draft_versions",
   "notes",
   "park_trigger",
   "reject_reason",
@@ -904,17 +910,20 @@ const ACTION_COLUMNS = [
   "committed_high",
 ] as const;
 
+const JSONB_COLUMNS = new Set(["done_tasks", "custom_tasks", "draft_versions"]);
+
 type ActionPatch = Partial<Record<(typeof ACTION_COLUMNS)[number], unknown>>;
 
 /** Upsert a user action onto an opportunity. Only whitelisted columns are set;
- *  `done_tasks` is written as jsonb. Survives engine reloads. */
+ *  `done_tasks`/`custom_tasks`/`draft_versions` are written as jsonb. Survives
+ *  engine reloads. */
 export async function applyOpportunityAction(id: string, patch: ActionPatch): Promise<void> {
   const cols = ACTION_COLUMNS.filter((c) => c in patch);
   const values: unknown[] = [id];
   const valSql: string[] = [];
   cols.forEach((c, i) => {
     const ph = `$${i + 2}`;
-    if (c === "done_tasks") {
+    if (JSONB_COLUMNS.has(c)) {
       valSql.push(`${ph}::jsonb`);
       values.push(JSON.stringify(patch[c] ?? []));
     } else {

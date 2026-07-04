@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
 /** "ALL" = both entities. Mirrors the CDM's raw business_unit code (AT/OH); "both" is an
  *  opportunity-level value (cross-BU pockets), not a filter choice, so it isn't a BusinessUnit. */
@@ -47,16 +47,17 @@ export function ScopeProvider({ children }: { children: ReactNode }) {
 
   // Picking a region clears any previously-picked country (it likely belongs
   // to a different region); picking a country leaves region as-is (the menu
-  // always sets both together from the same row).
-  const setRegion = (r: string | null) => {
+  // always sets both together from the same row). useCallback keeps these
+  // referentially stable, same as the plain useState setters above.
+  const setRegion = useCallback((r: string | null) => {
     setRegionState(r);
     setCountryState(null);
-  };
-  const setCountry = (c: string | null) => setCountryState(c);
+  }, []);
+  const setCountry = useCallback((c: string | null) => setCountryState(c), []);
 
   const value = useMemo<ScopeState>(
     () => ({ l1, l2, businessUnit, region, country, setL1, setL2, setBusinessUnit, setRegion, setCountry }),
-    [l1, l2, businessUnit, region, country],
+    [l1, l2, businessUnit, region, country, setRegion, setCountry],
   );
   return <ScopeContext.Provider value={value}>{children}</ScopeContext.Provider>;
 }

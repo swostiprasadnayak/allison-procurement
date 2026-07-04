@@ -49,9 +49,14 @@ function actionToPatch(
     case "stage":
       return { status: str(body.status) };
     case "save":
+      // Every field is the caller's full current state (the store resolves
+      // "unchanged" fallbacks before calling persistAction) — same contract
+      // as approach/done_tasks already had.
       return {
         approach: str(body.approach),
         done_tasks: Array.isArray(body.doneTasks) ? body.doneTasks : [],
+        custom_tasks: Array.isArray(body.customTasks) ? body.customTasks : [],
+        draft_versions: Array.isArray(body.draftVersions) ? body.draftVersions : [],
       };
     case "commit":
       return {

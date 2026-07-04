@@ -38,6 +38,11 @@ DDL = [
       updated_by       text
     )
     """,
+    # Act workspace: operator-edited checklist + draft version history.
+    # ADD COLUMN IF NOT EXISTS keeps this idempotent against tables created
+    # before these fields existed (local + already-loaded Neon databases).
+    "ALTER TABLE opp.opportunity_action ADD COLUMN IF NOT EXISTS custom_tasks jsonb",
+    "ALTER TABLE opp.opportunity_action ADD COLUMN IF NOT EXISTS draft_versions jsonb",
 ]
 
 

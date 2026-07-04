@@ -252,23 +252,21 @@ export default function OpportunitiesPage() {
     return new Set(geography.find((r) => r.name === region)?.countries.map((c) => c.name) ?? []);
   }, [region, geography]);
 
-  // o.businessUnit is the FE display label (cdm.ts): raw "AT" stays "AT", "OH"
-  // -> "AOH", "both" -> "Both". A cross-BU ("Both") opportunity touches every
-  // entity, so it matches whichever single BU is selected.
-  const buLabel = businessUnit === "OH" ? "AOH" : businessUnit;
-  const filtered = useMemo(
-    () =>
-      searchedRows.filter(
-        (o) =>
-          (!l2 || o.l2 === l2) &&
-          (!lever || o.playRoute === lever) &&
-          (businessUnit === "ALL" || o.businessUnit === buLabel || o.businessUnit === "Both") &&
-          (!country || o.country === country) &&
-          (country || !regionCountries || regionCountries.has(o.country)) &&
-          (!highConfOnly || o.confidencePct >= 60),
-      ),
-    [searchedRows, l2, lever, businessUnit, country, regionCountries, highConfOnly],
-  );
+  const filtered = useMemo(() => {
+    // o.businessUnit is the FE display label (cdm.ts): raw "AT" stays "AT",
+    // "OH" -> "AOH", "both" -> "Both". A cross-BU ("Both") opportunity
+    // touches every entity, so it matches whichever single BU is selected.
+    const buLabel = businessUnit === "OH" ? "AOH" : businessUnit;
+    return searchedRows.filter(
+      (o) =>
+        (!l2 || o.l2 === l2) &&
+        (!lever || o.playRoute === lever) &&
+        (businessUnit === "ALL" || o.businessUnit === buLabel || o.businessUnit === "Both") &&
+        (!country || o.country === country) &&
+        (country || !regionCountries || regionCountries.has(o.country)) &&
+        (!highConfOnly || o.confidencePct >= 60),
+    );
+  }, [searchedRows, l2, lever, businessUnit, country, regionCountries, highConfOnly]);
 
   // Sort the FULL filtered set (pagination needs a global order); semantics
   // mirror the DataTable client comparator so its in-page re-sort is a no-op.
@@ -374,7 +372,7 @@ export default function OpportunitiesPage() {
     setCountry(null);
     setHighConfOnly(false);
     setPage(1);
-  }, []);
+  }, [setL2, setBusinessUnit, setRegion, setCountry]);
 
   const tabs: TabItem[] = [
     { id: "feed", label: "Feed", badge: feed.length },

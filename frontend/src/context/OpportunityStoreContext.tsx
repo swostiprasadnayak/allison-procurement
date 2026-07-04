@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import type {
+  DraftVersion,
   Milestone,
   OppEvent,
   Opportunity,
@@ -48,7 +49,20 @@ export interface OpportunityStore {
   reject: (id: string, reason: string, note?: string) => void;
   park: (id: string, trigger: string) => void;
   unpark: (id: string) => void;
-  savePlay: (id: string, patch: { approach?: string; doneTasks?: string[] }) => void;
+  savePlay: (
+    id: string,
+    patch: {
+      approach?: string;
+      doneTasks?: string[];
+      customTasks?: string[];
+      draftVersions?: DraftVersion[];
+      /** Human-readable note appended to the audit trail (e.g. "Mercer marked
+       *  2 tasks done from your upload"). Omit for a routine manual save. */
+      note?: string;
+      /** Who to attribute the note to — defaults to the operator. */
+      actor?: OppEvent["actor"];
+    },
+  ) => void;
   advanceStage: (id: string) => void;
   regressStage: (id: string) => void;
   clearDrift: (id: string, action: string) => void;
@@ -368,21 +382,43 @@ export function OpportunityStoreProvider({ children }: { children: ReactNode }) 
   // Save Act progress (chosen approach + completed tasks) — persists to the CDM
   // so the operator can leave and return, tracking progress before commit.
   const savePlay = useCallback(
-    (id: string, patch: { approach?: string; doneTasks?: string[] }) => {
+    (
+      id: string,
+      patch: {
+        approach?: string;
+        doneTasks?: string[];
+        customTasks?: string[];
+        draftVersions?: DraftVersion[];
+        note?: string;
+        actor?: OppEvent["actor"];
+      },
+    ) => {
+      // Merge against the CURRENT opp (not just the incoming patch) so a call
+      // that only touches one field — e.g. an upload-analysis pass updating
+      // just doneTasks, or a draft save updating just draftVersions — doesn't
+      // blank the fields it left out. persistAction below sends this same
+      // merged state, not the raw partial patch.
+      const current = oppsRef.current.find((o) => o.id === id);
+      const merged = {
+        approach: patch.approach ?? current?.approach,
+        doneTasks: patch.doneTasks ?? current?.doneTasks ?? [],
+        customTasks: patch.customTasks ?? current?.customTasks ?? [],
+        draftVersions: patch.draftVersions ?? current?.draftVersions ?? [],
+      };
       setOpportunities((prev) =>
-        prev.map((opp) =>
-          opp.id === id
-            ? {
-                ...opp,
-                approach: patch.approach ?? opp.approach,
-                doneTasks: patch.doneTasks ?? opp.doneTasks,
-              }
-            : opp,
-        ),
+        prev.map((opp) => {
+          if (opp.id !== id) return opp;
+          const next = { ...opp, ...merged };
+          if (!patch.note) return next;
+          const event: OppEvent = { kind: "note", actor: patch.actor ?? CURRENT_USER.name, at: TODAY, note: patch.note };
+          return { ...next, events: [...opp.events, event] };
+        }),
       );
       persistAction(keyOf(id), "save", {
-        approach: patch.approach ?? null,
-        doneTasks: patch.doneTasks ?? [],
+        approach: merged.approach ?? null,
+        doneTasks: merged.doneTasks,
+        customTasks: merged.customTasks,
+        draftVersions: merged.draftVersions,
       });
     },
     [],

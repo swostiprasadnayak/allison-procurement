@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@navanta-ai/design-system";
 import { Check, Lightning } from "@phosphor-icons/react";
 import type { Opportunity } from "@/types/opportunity";
@@ -33,12 +33,16 @@ export function RunPlayModal({ opp, open, onClose, onCommit }: RunPlayModalProps
 
   // Commit inputs live here (owned by the modal) so both the ActStep body and
   // the footer's Commit button share them; reset when a different play opens.
+  // Adjusted during render (React's documented pattern for "reset on prop
+  // change") rather than in an effect, matching the `snapshot` line above.
   const [timing, setTiming] = useState("");
   const [basis, setBasis] = useState("");
-  useEffect(() => {
+  const [lastOppId, setLastOppId] = useState<string | undefined>(opp?.id);
+  if (opp?.id !== lastOppId) {
+    setLastOppId(opp?.id);
     setTiming("");
     setBasis("");
-  }, [opp?.id]);
+  }
 
   const anchorName = view?.consolidatedSide.anchorVendorId
     ? vendors.find((v) => v.id === view.consolidatedSide.anchorVendorId)?.name

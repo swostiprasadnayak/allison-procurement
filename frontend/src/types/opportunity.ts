@@ -93,6 +93,21 @@ export interface FunctionalFitCheck {
 }
 
 /**
+ * One saved state of a draft (Act workspace "Draft with Mercer"). `source`
+ * records how it came to exist: the initial template, an upload Mercer
+ * analyzed for requirements/terms and folded in, or a manual edit the
+ * operator explicitly saved as a version.
+ */
+export interface DraftVersion {
+  id: string;
+  kind: "outreach" | "rfp";
+  at: string; // ISO date
+  label: string; // e.g. "Template" · "Upgraded from attachment" · "Manual edit"
+  source: "template" | "upload-analysis" | "manual-edit";
+  text: string;
+}
+
+/**
  * Human context layered on top of Mercer's sweep — supplier knowledge, market
  * intel and figure overrides captured in the "Your Input" card. Overrides flow
  * through `resolveSavings()` into the savings waterfall and the committed
@@ -168,6 +183,14 @@ export interface Opportunity {
   committedBasis?: string; // operator's commitment basis captured at commit (e.g. "signed terms")
   approach?: string; // chosen playbook id (Act workspace), persisted
   doneTasks?: string[]; // completed task labels (Act workspace), persisted
+  /** Operator-edited task list overriding the playbook's default checklist
+   *  (Act workspace) — undefined until the operator adds/renames/removes a
+   *  task, at which point it becomes the source of truth over playbook.tasks. */
+  customTasks?: string[];
+  /** Draft history (Act workspace "Draft with Mercer") — every generated,
+   *  upload-upgraded, or manually-saved version, newest last. Lets the
+   *  operator track changes and revert to an earlier version. */
+  draftVersions?: DraftVersion[];
   milestones?: Milestone[];
   ramp?: RampPoint[];
   /** DEMO-ONLY, in-memory: forces the RAG level so a "simulate SAP" trigger can

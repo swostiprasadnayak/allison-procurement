@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Navanta Lens — Value Realization</title>
+<style>
+:root{
+  --background:#ffffff; --foreground:#09090b;
+  --primary:#232122; --primary-foreground:#ffffff;
+  --accent:#6440b6; --accent-soft:#f5efff;
+  --christy:linear-gradient(154.42deg,#1d4a86 1.66%,#3d348b 83.4%);
+  --muted:#f4f4f5; --muted-2:#fafafa;
+  --border:#e4e4e7; --border-2:#d4d4d8;
+  --text-2:#52525b; --text-3:#8b8b94;
+  --pill-info-bg:#eff6ff; --pill-info-fg:#1e40af;
+  --pill-danger-bg:#fff1f2; --pill-danger-fg:#a7000f;
+  --pill-warning-bg:#fffbeb; --pill-warning-fg:#92400e;
+  --pill-neutral-bg:#f4f4f5; --pill-neutral-fg:#52525b;
+  --good:#1e7d4f; --good-bg:#e7f4ed;
+  --bad:#a7000f; --bad-bg:#fff1f2;
+  --warn:#92400e; --warn-bg:#fffbeb;
+  --blue:#1d4a86; --blue-bg:#eaf1fb;
+  --chart-proj:#4b83f0; --chart-real:#2fa568;
+  --shadow:0 4px 24px rgba(9,9,11,.10);
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;background:#f7f7f8;color:var(--foreground);font-size:14px;line-height:1.5}
+button{font:inherit;cursor:pointer;border:none;background:none}
+input,select,textarea{font:inherit;color:inherit}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ===== Shell: sidebar + main ===== */
+.shell{display:flex;min-height:100vh}
+.sidebar{width:228px;flex-shrink:0;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.sb-logo{display:flex;align-items:center;gap:9px;padding:18px 18px 14px;font-weight:800;font-size:14.5px;letter-spacing:-.01em}
+.sb-logo .mark{width:26px;height:26px;border-radius:7px;background:var(--christy);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+.sb-group{padding:12px 12px 2px}
+.sb-label{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:0 10px 6px}
+.sb-item{display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border-radius:8px;font-weight:600;font-size:13.5px;color:var(--text-2);text-align:left}
+.sb-item:hover{background:var(--muted)}
+.sb-item.on{background:var(--muted);color:var(--foreground)}
+.sb-item .ic{width:17px;text-align:center;font-size:14px;opacity:.75}
+.sb-item .ct{margin-left:auto;min-width:17px;padding:0 5px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-size:10.5px;font-weight:800;text-align:center}
+.sb-user{margin-top:auto;display:flex;align-items:center;gap:9px;padding:14px 16px;border-top:1px solid var(--border)}
+.sb-user .av{width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+.sb-user .nm{font-weight:700;font-size:12.5px}
+.sb-user .rl{font-size:11px;color:var(--text-3)}
+
+.main{flex:1;min-width:0}
+.pagehead{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;background:#fff;border-bottom:1px solid var(--border);padding:0 22px;height:54px}
+.pagehead h1{font-size:15.5px;font-weight:700;display:flex;align-items:center;gap:8px}
+.pagehead .scopes{margin-left:auto;display:flex;align-items:center;gap:8px}
+.pagehead select{border:1px solid var(--border);border-radius:8px;padding:7px 10px;background:#fff;font-size:12.5px;font-weight:600}
+.content{max-width:1220px;margin:0 auto;padding:18px 22px 90px}
+
+/* ===== Buttons / pills ===== */
+.btn{display:inline-flex;align-items:center;gap:7px;border-radius:9px;padding:8px 14px;font-weight:600;font-size:13px;border:1px solid transparent;white-space:nowrap}
+.btn.primary{background:var(--primary);color:#fff}.btn.primary:hover{background:#3a3738}
+.btn.christy{background:var(--christy);color:#fff}
+.btn.outline{background:#fff;border-color:var(--border-2);color:var(--foreground)}.btn.outline:hover{background:var(--muted)}
+.btn.ghost{color:var(--text-2)}.btn.ghost:hover{background:var(--muted)}
+.btn.sm{padding:5px 10px;font-size:12px;border-radius:8px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;white-space:nowrap}
+.pill.info{background:var(--pill-info-bg);color:var(--pill-info-fg)}
+.pill.danger{background:var(--pill-danger-bg);color:var(--pill-danger-fg)}
+.pill.warning{background:var(--pill-warning-bg);color:var(--pill-warning-fg)}
+.pill.neutral{background:var(--pill-neutral-bg);color:var(--pill-neutral-fg)}
+.pill.good{background:var(--good-bg);color:var(--good)}
+.pill.accent{background:var(--accent-soft);color:var(--accent)}
+.pill.xs{font-size:10px;padding:1px 7px}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.dot.g{background:#2fa568}.dot.r{background:#e02d3c}.dot.a{background:#e8a13c}
+.risktag{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600}
+.risktag .how{font-size:10px;color:var(--text-3);font-weight:600}
+
+/* ===== Demo strip ===== */
+.demo{display:flex;align-items:center;gap:10px;border:1px dashed var(--border-2);background:#fff;border-radius:10px;padding:8px 14px;margin-bottom:14px;font-size:12px;color:var(--text-3)}
+.demo .lb{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+.demo .nowq{font-weight:800;color:var(--foreground);font-size:12px;background:var(--muted);border-radius:7px;padding:2px 9px}
+
+/* ===== KPI cards ===== */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:15px 17px}
+.kpi .l{font-size:12.5px;font-weight:700;color:var(--text-2);display:flex;align-items:center;gap:6px}
+.kpi .l .i{color:var(--text-3);font-size:11px;font-weight:600;border:1px solid var(--border);border-radius:50%;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center}
+.kpi .v{font-size:23px;font-weight:800;letter-spacing:-.01em;margin-top:6px}
+.kpi .v.bad{color:#d0333f}
+.kpi .d{font-size:11.5px;color:var(--text-3);margin-top:2px}
+
+/* ===== Cards ===== */
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:16px}
+.card .chead{display:flex;align-items:center;gap:9px;padding:14px 18px 4px}
+.card .chead h2{font-size:14.5px;font-weight:700}
+.card .chead .sub{font-size:12px;color:var(--text-3);font-weight:400}
+.card .chead .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.card .cbody{padding:10px 18px 16px}
+
+/* ===== Ramp chart ===== */
+.legend{display:flex;gap:16px;font-size:12px;color:var(--text-2);padding:6px 0 2px}
+.legend .sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px}
+.ramp{display:flex;gap:14px;align-items:flex-end;height:190px;padding:26px 4px 2px;overflow-x:auto}
+.ramp .q{flex:1;min-width:64px;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end}
+.ramp .bars{display:flex;gap:5px;align-items:flex-end;height:128px}
+.ramp .barw{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.ramp .bval{font-size:9.5px;color:var(--text-2);font-weight:700;margin-bottom:2px;white-space:nowrap}
+.ramp .bar{width:24px;border-radius:4px 4px 0 0}
+.ramp .bar.proj{background:var(--chart-proj)}
+.ramp .bar.real{background:var(--chart-real)}
+.ramp .ql{font-size:10.5px;color:var(--text-3);font-weight:700}
+.rampnote{font-size:11.5px;color:var(--text-3);padding-top:8px;border-top:1px solid var(--border);margin-top:6px}
+.rampnote b{color:var(--text-2)}
+
+/* ===== Table ===== */
+.toolrow{display:flex;align-items:center;gap:10px;padding:6px 0 10px}
+.toolrow input{border:1px solid var(--border);border-radius:9px;padding:8px 12px;width:250px;background:#fff;font-size:13px}
+.toolrow .right{margin-left:auto}
+.toolrow select{border:1px solid var(--border);border-radius:8px;padding:7px 10px;background:#fff;font-size:12.5px;font-weight:600}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border)}
+.tabs button{padding:8px 13px;font-weight:600;font-size:13px;color:var(--text-2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--foreground);border-bottom-color:var(--primary)}
+.tabs .ct{display:inline-block;min-width:17px;padding:0 5px;margin-left:5px;border-radius:99px;background:var(--muted);font-size:10.5px;font-weight:800;text-align:center;color:var(--text-2)}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;padding:10px 12px;font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);white-space:nowrap}
+.tbl td{padding:12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tbody tr{cursor:pointer}
+.tbl tbody tr:hover td{background:#f8f7fb}
+.tbl tbody tr.sel td{background:var(--accent-soft)}
+.tbl .oppname{font-weight:600}
+.tbl .sub{display:block;font-size:11.5px;color:var(--text-3);font-weight:400}
+.tbl .r{text-align:right}
+.prog{display:inline-flex;align-items:center;gap:8px}
+.prog .bar{width:76px;height:6px;border-radius:3px;background:var(--muted);overflow:hidden}
+.prog .bar i{display:block;height:100%;border-radius:3px;background:var(--chart-real)}
+.prog .bar i.over{background:var(--accent)}
+.tfoot{display:flex;align-items:center;padding:12px 2px 0;font-size:12.5px;color:var(--text-3)}
+.tfoot .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.emptytab{padding:34px;text-align:center;color:var(--text-3);font-size:13px}
+
+/* ===== Right panel (drawer) ===== */
+.panelwrap{position:fixed;top:54px;right:0;bottom:0;z-index:40;display:flex;align-items:stretch;pointer-events:none}
+.panel{pointer-events:auto;width:400px;background:#fff;border-left:1px solid var(--border);box-shadow:-10px 0 34px rgba(9,9,11,.10);display:flex;flex-direction:column;margin:10px;border:1px solid var(--border);border-radius:14px;max-height:calc(100vh - 20px);overflow:hidden}
+.phead{display:flex;align-items:flex-start;gap:10px;padding:16px 18px 10px}
+.phead h3{font-size:16.5px;font-weight:800}
+.phead .sub{font-size:12.5px;color:var(--text-3)}
+.phead .x{margin-left:auto}
+.pbody{overflow-y:auto;padding:0 18px 16px;display:flex;flex-direction:column;gap:13px}
+.banner{border-radius:10px;padding:11px 14px;font-size:12.5px;border:1px solid}
+.banner.risk{background:var(--bad-bg);border-color:#f3c1c6;color:var(--bad)}
+.banner.behind{background:var(--warn-bg);border-color:#f0e0b8;color:var(--warn)}
+.banner.ok{background:var(--good-bg);border-color:#cfe7da;color:var(--good)}
+.banner.info{background:var(--blue-bg);border-color:#d5e3f5;color:var(--blue)}
+.banner b{font-weight:800}
+.kv{border:1px solid var(--border);border-radius:11px;overflow:hidden}
+.kv .kvh{padding:10px 14px;font-weight:700;font-size:12.5px;border-bottom:1px solid var(--border);background:var(--muted-2)}
+.kv .row{display:flex;justify-content:space-between;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);font-size:12.5px}
+.kv .row:last-child{border-bottom:none}
+.kv .row .k{color:var(--text-2)}
+.kv .row .v{font-weight:700;text-align:right}
+.pbar{height:8px;border-radius:4px;background:var(--muted);overflow:hidden;margin-top:6px}
+.pbar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#7fc9a5,#2fa568)}
+.pbar i.over{background:linear-gradient(90deg,#a98ee0,#6440b6)}
+.pnote{font-size:11px;color:var(--text-3);margin-top:5px}
+.seg{display:flex;border:1px solid var(--border);border-radius:9px;overflow:hidden}
+.seg button{flex:1;padding:8px 4px;font-weight:600;font-size:12px;color:var(--text-2);background:#fff}
+.seg button.on.g{background:var(--good-bg);color:var(--good)}
+.seg button.on.a{background:var(--warn-bg);color:var(--warn)}
+.seg button.on.r{background:var(--bad-bg);color:var(--bad)}
+.seg button:disabled{opacity:.5;cursor:not-allowed}
+.seghint{font-size:11px;color:var(--text-3);margin-top:6px}
+.hist{border:1px solid var(--border);border-radius:11px;padding:6px 14px}
+.hist .hh{font-weight:700;font-size:12.5px;padding:6px 0}
+.hist .ev{display:flex;gap:9px;padding:7px 0;border-top:1px dashed var(--border);font-size:12px}
+.hist .dotm{width:7px;height:7px;border-radius:50%;background:var(--border-2);margin-top:5px;flex-shrink:0}
+.hist .who{color:var(--text-3);font-size:11px}
+.pfoot{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--border)}
+.pfoot .spacer{flex:1}
+
+/* ===== Dialog ===== */
+.overlay{position:fixed;inset:0;background:rgba(15,18,34,.45);z-index:70;display:flex;align-items:center;justify-content:center;padding:24px}
+.dlg{background:#fff;border-radius:14px;width:min(480px,94vw);box-shadow:var(--shadow)}
+.dlg .dh{padding:16px 20px 6px}.dlg .dh h3{font-size:16px}.dlg .dh p{font-size:12.5px;color:var(--text-3);margin-top:3px}
+.dlg .db{padding:8px 20px 4px;display:flex;flex-direction:column;gap:9px}
+.dlg .db textarea{width:100%;min-height:64px;border:1px solid var(--border);border-radius:9px;padding:9px 11px;font-size:13px;resize:vertical}
+.dlg .db label{font-size:12px;font-weight:700;color:var(--text-2)}
+.dlg .df{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px}
+
+/* ===== Mercer dock ===== */
+.dock{position:fixed;top:0;right:0;bottom:0;width:380px;background:#fff;border-left:1px solid var(--border);z-index:80;display:flex;flex-direction:column;box-shadow:-8px 0 30px rgba(9,9,11,.08)}
+.dkhead{display:flex;align-items:center;gap:9px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.bstar{width:20px;height:20px;border-radius:6px;background:var(--christy);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+.thread{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:88%;border-radius:12px;padding:9px 13px;font-size:12.5px;line-height:1.5}
+.msg.user{align-self:flex-end;background:var(--primary);color:#fff}
+.msg.mercer{align-self:flex-start;background:var(--accent-soft);border:1px solid #e6ddf6}
+.msg.mercer .cite{display:block;margin-top:6px;font-size:10.5px;color:var(--accent);font-weight:700}
+.sugg{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 10px}
+.sugg button{border:1px solid var(--border);border-radius:99px;padding:4px 11px;font-size:11.5px;color:var(--text-2)}
+.sugg button:hover{border-color:var(--accent);color:var(--accent)}
+.ask{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--border)}
+.ask input{flex:1;border:1px solid var(--border);border-radius:9px;padding:9px 12px;font-size:13px}
+
+.toasts{position:fixed;bottom:18px;right:18px;z-index:100;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--primary);color:#fff;border-radius:11px;padding:11px 16px;font-size:13px;box-shadow:var(--shadow);max-width:420px}
+.toast.success{background:#14532d}.toast.warn{background:#7c4a03}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="layer"></div>
+<div class="toasts" id="toasts"></div>
+<script>
+/* ===================== Data & state ===================== */
+const QUARTERS = ["Q2 '26","Q3 '26","Q4 '26","Q1 '27","Q2 '27","Q3 '27","Q4 '27","Q1 '28"];
+const RAMP_LEN = 4; // each play realizes over 4 quarters from its live quarter
+
+/* Tracked plays — real opportunity data from the deployed build.
+   status: committed (Not started) | live | realized
+   goLiveQ: index into QUARTERS when it auto-lives
+   dataOk: ERP feed mapped? if false → status set manually (spec)
+   risk: on-track (default) | behind | at-risk · riskMode: auto | manual */
+const PLAYS = [
+  { id:"OPP-001", title:"Lubricants · Germany", l3:"Lubricants", sub:"First Fill Oils (Lubricants)", geo:"Germany",
+    lo:16947, hi:27114, owner:"Maria Vance", committedOn:"Jun 26, 2026", conf:71,
+    status:"committed", goLiveQ:2, liveQ:null, dataOk:true, risk:null, riskMode:null, actuals:{}, realizedTotal:0 },
+  { id:"OPP-002", title:"Gas · United States", l3:"Gas", sub:"Industrial Gas", geo:"United States",
+    lo:16552, hi:26482, owner:"Maria Vance", committedOn:"Jun 26, 2026", conf:71,
+    status:"committed", goLiveQ:1, liveQ:null, dataOk:true, risk:null, riskMode:null, actuals:{}, realizedTotal:0 },
+  { id:"OPP-003", title:"Chemicals · Mexico", l3:"Chemicals", sub:"Chemicals", geo:"Mexico",
+    lo:16528, hi:26445, owner:"Maria Vance", committedOn:"Jun 12, 2026", conf:76,
+    status:"live", goLiveQ:0, liveQ:0, dataOk:true, risk:"at-risk", riskMode:"auto", actuals:{0:2600}, realizedTotal:0 },
+  { id:"OPP-004", title:"Lubricants · Mexico", l3:"Lubricants", sub:"First Fill Oils (Lubricants)", geo:"Mexico",
+    lo:13807, hi:22091, owner:"Maria Vance", committedOn:"Jun 12, 2026", conf:71,
+    status:"live", goLiveQ:0, liveQ:0, dataOk:false, risk:"on-track", riskMode:"manual", actuals:{}, realizedTotal:0 },
+  { id:"OPP-005", title:"Chemicals · Germany", l3:"Chemicals", sub:"Chemicals", geo:"Germany",
+    lo:13335, hi:21336, owner:"Maria Vance", committedOn:"May 30, 2026", conf:76,
+    status:"realized", goLiveQ:0, liveQ:0, dataOk:true, risk:null, riskMode:null,
+    actuals:{0:4600,1:4700,2:4500,3:4300}, realizedTotal:18100, realizedQ:3 },
+];
+
+const S = {
+  nowQ: 0,                 // current quarter index (demo-advanced)
+  tab: "all",              // all | committed | live | realized
+  q: "", subcat: "",
+  sel: null,               // selected play id (panel)
+  dlg: null,               // {kind:'forcelive'|'manualrisk', id, ...}
+  mercer: { open:false, thread:[], q:"" },
+  events: {},              // id -> [{note, who, at}]
+};
+PLAYS.forEach(p=>{
+  S.events[p.id]=[{note:"Committed "+fmtRange(p.lo,p.hi)+" · basis: workbook", who:"Maria Vance", at:p.committedOn}];
+  if(p.status!=="committed") S.events[p.id].push({note:"Went live · "+QUARTERS[p.liveQ]+(p.id==="OPP-005"?"":" · status defaults to On track"), who:"System", at:QUARTERS[p.liveQ]});
+  if(p.id==="OPP-003") S.events[p.id].push({note:"Auto-flagged At risk — ERP pace $2.6K vs $5.4K planned", who:"System", at:QUARTERS[0]});
+  if(p.id==="OPP-004") S.events[p.id].push({note:"No ERP feed mapped for this site — status set manually", who:"System", at:QUARTERS[0]});
+  if(p.id==="OPP-005") S.events[p.id].push({note:"Realized $18.1K vs committed $17.3K — moved to Realized", who:"System", at:QUARTERS[3]});
+});
+
+/* ---------- helpers ---------- */
+function money(n){ if(n==null) return "—"; const a=Math.abs(n);
+  if(a>=1e6) return "$"+(n/1e6).toFixed(2)+"M";
+  if(a>=1e3) return "$"+(n/1e3).toFixed(n%1e3===0?0:1)+"K";
+  return "$"+Math.round(n).toLocaleString(); }
+function fmtRange(l,h){ return money(l)+"–"+money(h); }
+function esc(s){ return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function el(id){ return document.getElementById(id); }
+function toast(m,k){ const t=document.createElement("div"); t.className="toast "+(k||""); t.textContent=m;
+  el("toasts").appendChild(t); setTimeout(()=>{t.style.opacity="0";t.style.transition="opacity .3s";setTimeout(()=>t.remove(),300);},3600); }
+function byId(id){ return PLAYS.find(p=>p.id===id); }
+function mid(p){ return Math.round((p.lo+p.hi)/2); }
+function planPerQ(p){ return mid(p)/RAMP_LEN; }
+function cumActual(p){ return Object.values(p.actuals).reduce((s,v)=>s+v,0); }
+function lastPostedQ(p){ const ks=Object.keys(p.actuals).map(Number); return ks.length?Math.max(...ks):null; }
+function plannedCumAt(p,q){ if(p.liveQ==null) return 0; const n=Math.min(Math.max(q-p.liveQ+1,0),RAMP_LEN); return n*planPerQ(p); }
+function realizedPct(p){ const c=p.status==="realized"?p.realizedTotal:cumActual(p); return Math.round(c/mid(p)*100); }
+function pushEv(id,note,who){ S.events[id].unshift({note,who:who||"Maria Vance",at:QUARTERS[S.nowQ]}); }
+
+/* auto risk: only when ERP data exists (dataOk) AND at least one actual posted.
+   Behind-pace threshold 80% of planned cumulative → At risk (auto). Else On track. */
+function recalcAutoRisk(p){
+  if(p.status!=="live"||!p.dataOk) return;
+  const lq=lastPostedQ(p);
+  if(lq==null){ p.risk="on-track"; p.riskMode="auto"; return; }   // just live, no data yet → default
+  const pace = cumActual(p)/plannedCumAt(p,lq);
+  const newRisk = pace < 0.8 ? "at-risk" : "on-track";
+  if(newRisk!==p.risk){ p.risk=newRisk; pushEv(p.id, newRisk==="at-risk"
+    ? "Auto-flagged At risk — ERP pace "+money(cumActual(p))+" vs "+money(plannedCumAt(p,lq))+" planned"
+    : "Back On track — ERP pace recovered to "+Math.round(pace*100)+"% of plan","System"); }
+  p.riskMode="auto";
+}
+/* realization check: crossed committed mid → move to Realized tab */
+function checkRealized(p){
+  if(p.status!=="live") return false;
+  const c=cumActual(p);
+  if(c>=mid(p)){ p.status="realized"; p.realizedTotal=c; p.realizedQ=S.nowQ; p.risk=null; p.riskMode=null;
+    pushEv(p.id,"Realized "+money(c)+" vs committed "+money(mid(p))+(c>mid(p)?" — over-realized":"")+" · moved to Realized","System");
+    return true; }
+  return false;
+}
+function goLive(p, forced, reason){
+  p.status="live"; p.liveQ=S.nowQ; p.risk="on-track"; p.riskMode=p.dataOk?"auto":"manual";
+  pushEv(p.id, forced?("Forced live ahead of "+QUARTERS[p.goLiveQ]+(reason?" — "+reason:"")):("Went live automatically — "+QUARTERS[p.goLiveQ]+" arrived"), forced?"Maria Vance":"System");
+  pushEv(p.id,"Status defaults to On track"+(p.dataOk?" · auto from ERP pace":" · manual (no ERP feed mapped)"),"System");
+}
+
+/* ---------- derived sets ---------- */
+function setOf(tab){
+  if(tab==="committed") return PLAYS.filter(p=>p.status==="committed");
+  if(tab==="live") return PLAYS.filter(p=>p.status==="live");
+  if(tab==="realized") return PLAYS.filter(p=>p.status==="realized");
+  return PLAYS.slice();
+}
+function filtered(){
+  return setOf(S.tab).filter(p=>{
+    if(S.subcat && p.sub!==S.subcat) return false;
+    if(S.q){ const h=(p.id+" "+p.title+" "+p.sub+" "+p.geo).toLowerCase(); if(!h.includes(S.q.toLowerCase())) return false; }
+    return true;
+  });
+}
+
+/* ===================== Render ===================== */
+function render(){
+  const live=setOf("live"), committed=setOf("committed"), realized=setOf("realized");
+  const committedTotal = PLAYS.reduce((s,p)=>s+mid(p),0);
+  const inFlight = live.reduce((s,p)=>s+mid(p),0);
+  const realizedYTD = PLAYS.reduce((s,p)=>s+(p.status==="realized"?p.realizedTotal:cumActual(p)),0);
+  const attn = live.filter(p=>p.risk==="at-risk"||p.risk==="behind");
+  const attnSum = attn.reduce((s,p)=>s+mid(p),0);
+
+  el("app").innerHTML = `<div class="shell">
+    ${sidebar()}
+    <div class="main">
+      <div class="pagehead"><h1>▦ Value Realization</h1>
+        <div class="scopes">
+          <select data-in="scope-l1"><option>MRO $10.5M</option></select>
+          <select data-in="scope-l2"><option>All sub-categories</option></select>
+          <button class="btn christy sm" data-a="mercer-open">✦ Ask Mercer</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="demo"><span class="lb">⚗ Demo · Simulate</span>
+          <span class="nowq">Now: ${QUARTERS[S.nowQ]}</span>
+          <button class="btn outline sm" data-a="advq">Advance quarter</button>
+          <button class="btn outline sm" data-a="postq">Post quarter actuals</button>
+          <button class="btn ghost sm" data-a="reset">Reset</button>
+          <span>Auto-live fires when a play's committed quarter arrives · actuals post from the ERP feed.</span>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi"><div class="l">Committed value <span class="i">i</span></div><div class="v tnum">${money(committedTotal)}</div><div class="d">${PLAYS.length} opportunities tracked</div></div>
+          <div class="kpi"><div class="l">Live <span class="i">i</span></div><div class="v tnum">${live.length}</div><div class="d">${money(inFlight)} in flight</div></div>
+          <div class="kpi"><div class="l">Realized YTD <span class="i">i</span></div><div class="v tnum">${money(realizedYTD)}</div><div class="d">of ${money(committedTotal)} committed</div></div>
+          <div class="kpi"><div class="l">At risk ⚠</div><div class="v tnum ${attn.length?"bad":""}">${money(attnSum)}</div><div class="d">${attn.length?attn.length+" live play"+(attn.length>1?"s":"")+" behind pace":"no live plays flagged"}</div></div>
+        </div>
+
+        ${rampCard(live)}
+        ${tableCard()}
+      </div>
+    </div>
+  </div>`;
+  renderLayer();
+}
+
+function sidebar(){
+  return `<div class="sidebar">
+    <div class="sb-logo"><span class="mark">A</span> Allison Transmission</div>
+    <div class="sb-group">
+      <button class="sb-item" data-a="nav" data-v="dashboard"><span class="ic">⌂</span> Dashboard</button>
+    </div>
+    <div class="sb-group"><div class="sb-label">Operate</div>
+      <button class="sb-item" data-a="nav" data-v="opps"><span class="ic">▤</span> Opportunities <span class="ct">4</span></button>
+      <button class="sb-item" data-a="nav" data-v="vendors"><span class="ic">▥</span> Vendors</button>
+      <button class="sb-item on"><span class="ic">▦</span> Value Realization</button>
+    </div>
+    <div class="sb-group"><div class="sb-label">Admin</div>
+      <button class="sb-item" data-a="nav" data-v="method"><span class="ic">≋</span> Methodology</button>
+    </div>
+    <div class="sb-user"><span class="av">MV</span><div><div class="nm">Maria Vance</div><div class="rl">Commodity Manager · MRO</div></div></div>
+  </div>`;
+}
+
+/* ---- ramp: LIVE opportunities only ---- */
+function rampCard(live){
+  const horizon = 8;
+  const proj=[], real=[];
+  for(let q=0;q<horizon;q++){
+    proj.push(live.reduce((s,p)=>(p.liveQ!=null && q>=p.liveQ && q<p.liveQ+RAMP_LEN)?s+planPerQ(p):s,0));
+    real.push(live.reduce((s,p)=>s+(p.actuals[q]||0),0));
+  }
+  const maxV=Math.max(...proj,...real,1);
+  const anyLive=live.length>0;
+  return `<div class="card">
+    <div class="chead"><h2>Savings ramp · quarterly</h2><span class="sub">— live opportunities only</span>
+      <div class="right"><span class="pill accent xs">${live.length} live of ${PLAYS.length} tracked</span></div></div>
+    <div class="cbody">
+      <div class="legend"><span><span class="sw" style="background:var(--chart-proj)"></span>Projected</span><span><span class="sw" style="background:var(--chart-real)"></span>Realized</span></div>
+      ${anyLive?`<div class="ramp">${QUARTERS.map((qq,i)=>`<div class="q"><div class="bars">
+          <div class="barw">${proj[i]>0?`<span class="bval tnum">${money(proj[i])}</span>`:""}<div class="bar proj" style="height:${proj[i]>0?Math.max(6,proj[i]/maxV*100):0}px"></div></div>
+          <div class="barw">${real[i]>0?`<span class="bval tnum">${money(real[i])}</span>`:""}<div class="bar real" style="height:${real[i]>0?Math.max(6,real[i]/maxV*100):0}px"></div></div>
+        </div><span class="ql">${qq}</span></div>`).join("")}</div>`
+      :`<div class="emptytab">No live opportunities yet — plays join this ramp when they go live.</div>`}
+      <div class="rampnote">Ramp includes <b>live opportunities only (${live.length})</b>. Not-started plays join when their committed quarter arrives (or they're forced live); realized plays graduate to the Realized tab.</div>
+    </div>
+  </div>`;
+}
+
+/* ---- committed opportunities table ---- */
+function goLiveCell(p){
+  if(p.status==="committed"){
+    const overdue = p.goLiveQ<=S.nowQ;
+    return overdue?`<span class="pill warning xs">⏰ Due now · auto</span>`:`<span class="tnum" style="font-weight:600">${QUARTERS[p.goLiveQ]}</span> <span class="sub">auto-live</span>`;
+  }
+  return `<span class="sub" style="display:inline">Went live ${QUARTERS[p.liveQ]}</span>`;
+}
+function statusPill(p){
+  if(p.status==="committed") return `<span class="pill neutral xs">Not started</span>`;
+  if(p.status==="live") return `<span class="pill info xs">Live</span>`;
+  const over=p.realizedTotal>mid(p);
+  return `<span class="pill good xs">Realized</span>${over?' <span class="pill accent xs">Over-realized</span>':""}`;
+}
+function riskCell(p){
+  if(p.status!=="live") return `<span style="color:var(--text-3)">—</span>`;
+  const map={"on-track":["g","On track"],"behind":["a","Behind"],"at-risk":["r","At risk"]};
+  const [c,l]=map[p.risk]||["g","On track"];
+  return `<span class="risktag"><span class="dot ${c}"></span>${l} <span class="how">· ${p.riskMode==="auto"?"auto":"manual"}</span></span>`;
+}
+function realizedCell(p){
+  if(p.status==="committed") return `<span style="color:var(--text-3)">—</span>`;
+  if(p.status==="live" && !p.dataOk && lastPostedQ(p)==null) return `<span class="sub" style="display:inline">No ERP data · manual</span>`;
+  const pct=realizedPct(p);
+  return `<span class="prog"><span class="bar"><i class="${pct>100?"over":""}" style="width:${Math.min(pct,100)}%"></i></span><span class="tnum">${pct}%</span></span>`;
+}
+function tableCard(){
+  const rows=filtered();
+  const counts={all:PLAYS.length, committed:setOf("committed").length, live:setOf("live").length, realized:setOf("realized").length};
+  return `<div class="card">
+    <div class="chead"><h2>▤ Committed opportunities</h2></div>
+    <div class="cbody">
+      <div class="toolrow">
+        <input type="text" placeholder="Search opportunities…" value="${esc(S.q)}" data-in="q">
+        <div class="right"><select data-in="subcat">
+          <option value="">All sub-categories</option>
+          ${[...new Set(PLAYS.map(p=>p.sub))].sort().map(s=>`<option ${S.subcat===s?"selected":""}>${esc(s)}</option>`).join("")}
+        </select></div>
+      </div>
+      <div class="tabs">
+        ${[["all","All"],["committed","Not started"],["live","Live"],["realized","Realized"]].map(([k,l])=>
+          `<button class="${S.tab===k?"on":""}" data-a="tab" data-v="${k}">${l}<span class="ct">${counts[k]}</span></button>`).join("")}
+      </div>
+      ${rows.length?`<table class="tbl"><thead><tr>
+        <th>Opportunity</th><th>Sub-category</th><th class="r">Committed savings</th><th>Goes live</th><th>Status</th><th>Realized</th><th>Owner</th><th>Risk</th>
+      </tr></thead><tbody>
+        ${rows.map(p=>`<tr class="${S.sel===p.id?"sel":""}" data-a="open" data-id="${p.id}">
+          <td><span class="oppname">${esc(p.title)}</span><span class="sub">${esc(p.id)}</span></td>
+          <td>${esc(p.sub)}<span class="sub">${esc(p.geo)}</span></td>
+          <td class="r tnum"><b>${fmtRange(p.lo,p.hi)}</b></td>
+          <td>${goLiveCell(p)}</td>
+          <td>${statusPill(p)}</td>
+          <td>${realizedCell(p)}</td>
+          <td>${esc(p.owner)}</td>
+          <td>${riskCell(p)}</td>
+        </tr>`).join("")}
+      </tbody></table>`
+      :`<div class="emptytab">${S.tab==="live"?"Nothing live yet — plays go live automatically in their committed quarter, or force one live from its panel.":S.tab==="realized"?"Nothing realized yet — live plays move here when realized crosses the committed target.":"No matches."}</div>`}
+      <div class="tfoot"><span>1–${rows.length} of ${rows.length}</span><div class="right">Show per Page <select><option>10</option></select></div></div>
+    </div>
+  </div>`;
+}
+
+/* ===================== Right panel ===================== */
+function renderLayer(){
+  let h="";
+  if(S.sel){ const p=byId(S.sel); if(p) h+=panel(p); }
+  if(S.dlg) h+=dialog();
+  if(S.mercer.open) h+=dock();
+  el("layer").innerHTML=h;
+}
+
+function panel(p){
+  const m=mid(p);
+  return `<div class="panelwrap"><div class="panel">
+    <div class="phead"><div><h3>${esc(p.id)}</h3><div class="sub">${esc(p.title)}</div></div>
+      <button class="iconx x btn ghost sm" data-a="pclose">✕</button></div>
+    <div class="pbody">
+      ${p.status==="committed"?panelCommitted(p):p.status==="live"?panelLive(p):panelRealized(p)}
+      <div class="hist"><div class="hh">Activity</div>
+        ${S.events[p.id].slice(0,6).map(e=>`<div class="ev"><span class="dotm"></span><div>${esc(e.note)}<div class="who">${esc(e.who)} · ${esc(e.at)}</div></div></div>`).join("")}
+      </div>
+    </div>
+    ${p.status==="committed"?`<div class="pfoot"><span class="spacer"></span><button class="btn primary" data-a="dlg-forcelive" data-id="${p.id}">Force live now</button></div>`:""}
+  </div></div>`;
+}
+
+function panelCommitted(p){
+  const dueNow = p.goLiveQ<=S.nowQ;
+  return `
+  <div class="banner info"><b>Not started.</b> Goes live <b>${QUARTERS[p.goLiveQ]}</b> automatically${dueNow?" — <b>due now</b>, it will flip on the next quarter tick":" ("+(p.goLiveQ-S.nowQ)+" quarter"+(p.goLiveQ-S.nowQ>1?"s":"")+" away)"}. Use Force live if the switch already happened on the ground.</div>
+  <div class="kv"><div class="kvh">Commitment</div>
+    <div class="row"><span class="k">Committed savings</span><span class="v tnum">${fmtRange(p.lo,p.hi)}</span></div>
+    <div class="row"><span class="k">Goes live</span><span class="v">${QUARTERS[p.goLiveQ]} · automatic</span></div>
+    <div class="row"><span class="k">Owner</span><span class="v">${esc(p.owner)}</span></div>
+    <div class="row"><span class="k">Committed on</span><span class="v">${esc(p.committedOn)}</span></div>
+    <div class="row"><span class="k">Source</span><span class="v">Mercer sweep · confidence ${p.conf}% at commit</span></div>
+  </div>`;
+}
+
+function panelLive(p){
+  const m=mid(p); const c=cumActual(p); const pct=realizedPct(p);
+  const lq=lastPostedQ(p);
+  const riskBanner = p.risk==="at-risk"
+    ? `<div class="banner risk"><b>At risk${p.riskMode==="auto"?" · auto-flagged":" · set manually"}.</b> ${p.riskMode==="auto"?`ERP actuals ${money(c)} vs ${money(plannedCumAt(p,lq??S.nowQ))} planned — behind the committed pace.`:`Marked by ${esc(p.owner)} — no ERP feed for this site yet.`}</div>`
+    : p.risk==="behind"
+    ? `<div class="banner behind"><b>Behind · set manually.</b> ${esc(p.owner)} flagged execution slipping — no sufficient ERP data to auto-track.</div>`
+    : `<div class="banner ok"><b>On track${p.riskMode==="auto"&&lq!=null?" · auto":" · default"}.</b> ${p.dataOk?(lq!=null?"ERP pace is holding against the committed ramp.":"Live — first actuals will confirm pace."):"No ERP feed mapped — confirm status manually each quarter."}</div>`;
+  return `
+  ${riskBanner}
+  <div class="kv"><div class="kvh">Commitment</div>
+    <div class="row"><span class="k">Committed savings</span><span class="v tnum">${fmtRange(p.lo,p.hi)}</span></div>
+    <div class="row"><span class="k">Went live</span><span class="v">${QUARTERS[p.liveQ]}${p.liveQ===p.goLiveQ?" · automatic":" · forced (planned "+QUARTERS[p.goLiveQ]+")"}</span></div>
+    <div class="row"><span class="k">Owner</span><span class="v">${esc(p.owner)}</span></div>
+    <div class="row"><span class="k">Source</span><span class="v">Mercer sweep · confidence ${p.conf}% at commit</span></div>
+  </div>
+  <div>
+    <div style="font-weight:700;font-size:12.5px">Realized vs target</div>
+    ${p.dataOk||lq!=null?`<div class="pbar"><i class="${pct>100?"over":""}" style="width:${Math.min(pct,100)}%"></i></div>
+    <div class="pnote tnum">${money(c)} of ${money(m)} target · ${pct}%</div>`
+    :`<div class="pnote">No ERP feed mapped for this site — realized $ can't be measured yet. Status below is manual.</div>`}
+  </div>
+  <div>
+    <div style="font-weight:700;font-size:12.5px;margin-bottom:6px">Status</div>
+    <div class="seg">
+      <button class="${p.risk==="on-track"?"on g":""}" data-a="setrisk" data-id="${p.id}" data-v="on-track" ${p.dataOk?"disabled":""}>On track</button>
+      <button class="${p.risk==="behind"?"on a":""}" data-a="setrisk" data-id="${p.id}" data-v="behind" ${p.dataOk?"disabled":""}>Behind</button>
+      <button class="${p.risk==="at-risk"?"on r":""}" data-a="setrisk" data-id="${p.id}" data-v="at-risk" ${p.dataOk?"disabled":""}>At risk</button>
+    </div>
+    <div class="seghint">${p.dataOk?"Status is automatic — computed from ERP pace vs the committed ramp. It flags At risk on its own.":"No sufficient ERP data — update the status manually as you learn how execution is going."}</div>
+  </div>`;
+}
+
+function panelRealized(p){
+  const over=p.realizedTotal>mid(p); const varAmt=p.realizedTotal-mid(p);
+  return `
+  <div class="banner ok"><b>Realized${over?" · over-realized":""}.</b> Crossed the committed target in ${QUARTERS[p.realizedQ]} and moved here automatically.</div>
+  <div class="kv"><div class="kvh">Outcome</div>
+    <div class="row"><span class="k">Committed (mid)</span><span class="v tnum">${money(mid(p))}</span></div>
+    <div class="row"><span class="k">Realized</span><span class="v tnum">${money(p.realizedTotal)}</span></div>
+    <div class="row"><span class="k">Variance</span><span class="v tnum" style="color:${varAmt>=0?"var(--good)":"var(--bad)"}">${varAmt>=0?"+":""}${money(varAmt)}</span></div>
+    <div class="row"><span class="k">Went live</span><span class="v">${QUARTERS[p.liveQ]}</span></div>
+    <div class="row"><span class="k">Owner</span><span class="v">${esc(p.owner)}</span></div>
+  </div>
+  <div>
+    <div style="font-weight:700;font-size:12.5px">Realized vs target</div>
+    <div class="pbar"><i class="${over?"over":""}" style="width:100%"></i></div>
+    <div class="pnote tnum">${money(p.realizedTotal)} of ${money(mid(p))} target · ${realizedPct(p)}%</div>
+  </div>`;
+}
+
+/* ===================== Dialogs & dock ===================== */
+function dialog(){
+  const d=S.dlg; const p=byId(d.id);
+  if(d.kind==="forcelive") return `<div class="overlay" data-a="dlgcancel"><div class="dlg">
+    <div class="dh"><h3>Force ${esc(p.id)} live now?</h3><p>It's scheduled to go live automatically in <b>${QUARTERS[p.goLiveQ]}</b>. Force it only if the switch has already happened on the ground (first PO cut, supplier onboarded).</p></div>
+    <div class="db"><label>Reason (optional)</label><textarea placeholder="e.g. First PO cut early — supplier onboarded ahead of schedule" data-in="dlg-reason">${esc(d.reason||"")}</textarea></div>
+    <div class="df"><button class="btn outline" data-a="dlgcancel">Cancel</button><button class="btn primary" data-a="forcelive-confirm">Go live now</button></div>
+  </div></div>`;
+  return "";
+}
+
+const SUGGS=["Why is OPP-003 at risk?","When does OPP-002 go live?","What moved to Realized?","How is status decided?"];
+function dock(){
+  const m=S.mercer;
+  return `<div class="dock"><div class="dkhead"><span class="bstar">✦</span><div><b>Ask Mercer</b><div style="font-size:11.5px;color:var(--text-3)">Scoped to Value Realization</div></div><span style="flex:1"></span><button class="btn ghost sm" data-a="mercer-close">✕</button></div>
+  <div class="thread" id="mthread">${m.thread.length?m.thread.map(t=>`<div class="msg ${t.who}">${t.text}${t.cite?`<span class="cite">↳ ${esc(t.cite)}</span>`:""}</div>`).join(""):`<div class="msg mercer">Ask me about any play's pace, status, or when it goes live — I answer from the tracked portfolio.</div>`}</div>
+  <div class="sugg">${SUGGS.map(s=>`<button data-a="mercer-sugg" data-v="${esc(s)}">${esc(s)}</button>`).join("")}</div>
+  <div class="ask"><input type="text" placeholder="Ask about the portfolio…" value="${esc(m.q||"")}" data-in="mercer-q"><button class="btn christy sm" data-a="mercer-send">Send</button></div></div>`;
+}
+function mercerAnswer(q){
+  const ql=q.toLowerCase();
+  if(/risk|003|behind|pace/.test(ql)){ const p=byId("OPP-003");
+    return {text:`${p.id} is auto-flagged At risk: ERP actuals ${money(cumActual(p))} vs ${money(plannedCumAt(p,lastPostedQ(p)??S.nowQ))} planned by ${QUARTERS[lastPostedQ(p)??S.nowQ]} — under 80% of the committed pace. It flips back automatically if the next quarter recovers.`,cite:"ERP pace rule · 80% threshold"};}
+  if(/002|go live|when/.test(ql)){ const p=byId("OPP-002");
+    return p.status==="committed"?{text:`${p.id} goes live automatically in ${QUARTERS[p.goLiveQ]} — its committed quarter. If the switch happens earlier on the ground, use Force live in its panel.`,cite:p.id+" · goes-live schedule"}
+    :{text:`${p.id} is already live (went live ${QUARTERS[p.liveQ]}).`,cite:p.id};}
+  if(/realized|moved/.test(ql)){ const r=setOf("realized");
+    return {text: r.length?`${r.map(p=>p.id).join(", ")} — realized crossed the committed target, so ${r.length>1?"they":"it"} moved to the Realized tab automatically${r.some(p=>p.realizedTotal>mid(p))?" (over-realized)":""}. The ramp now shows live plays only.`:"Nothing realized yet — live plays move over when realized crosses committed.",cite:"Realized tab rule"};}
+  if(/status|decided|manual|auto/.test(ql)) return {text:"Live plays default to On track. When the ERP feed is mapped, status is automatic — pace under 80% of the committed ramp auto-flags At risk. When there's no sufficient data, the owner sets Behind / At risk manually in the panel.",cite:"Status model"};
+  return {text:`Tracking ${PLAYS.length} plays: ${setOf("committed").length} not started, ${setOf("live").length} live, ${setOf("realized").length} realized. The ramp aggregates live plays only.`,cite:"Portfolio"};
+}
+
+/* ===================== Actions ===================== */
+const INIT = JSON.parse(JSON.stringify(PLAYS));
+
+function advanceQuarter(){
+  if(S.nowQ>=QUARTERS.length-1){ toast("End of demo horizon."); return; }
+  S.nowQ++;
+  const lived=[];
+  PLAYS.forEach(p=>{ if(p.status==="committed" && p.goLiveQ<=S.nowQ){ goLive(p,false); lived.push(p.id); } });
+  toast("Now "+QUARTERS[S.nowQ]+(lived.length?" — "+lived.join(", ")+" went live automatically (committed quarter arrived)":" — no plays due to go live"), lived.length?"success":"");
+  render();
+}
+
+function postActuals(){
+  const posted=[], moved=[];
+  PLAYS.forEach(p=>{
+    if(p.status!=="live"||!p.dataOk) return;
+    const next = lastPostedQ(p)==null ? p.liveQ : lastPostedQ(p)+1;
+    if(next>=QUARTERS.length) return;
+    const amt = Math.round(planPerQ(p));           // posts on-pace — recovery narrative
+    p.actuals[next]=(p.actuals[next]||0)+amt;
+    pushEv(p.id,"ERP actuals posted for "+QUARTERS[next]+": "+money(amt),"System");
+    posted.push(p.id);
+    recalcAutoRisk(p);
+    if(checkRealized(p)) moved.push(p.id);
+  });
+  if(!posted.length){ toast("No live plays with an ERP feed to post against."); return; }
+  toast("Actuals posted for "+posted.join(", ")+(moved.length?" — "+moved.join(", ")+" crossed the committed target → moved to Realized":""),"success");
+  render();
+}
+
+function reset(){
+  PLAYS.length=0; JSON.parse(JSON.stringify(INIT)).forEach(p=>PLAYS.push(p));
+  S.nowQ=0; S.tab="all"; S.sel=null; S.dlg=null; S.q=""; S.subcat="";
+  Object.keys(S.events).forEach(k=>delete S.events[k]);
+  PLAYS.forEach(p=>{ S.events[p.id]=[{note:"Committed "+fmtRange(p.lo,p.hi)+" · basis: workbook", who:"Maria Vance", at:p.committedOn}];
+    if(p.status!=="committed") S.events[p.id].push({note:"Went live · "+QUARTERS[p.liveQ], who:"System", at:QUARTERS[p.liveQ]}); });
+  toast("Demo reset.");
+  render();
+}
+
+/* ===================== Events ===================== */
+document.addEventListener("click", e=>{
+  const a=e.target.closest("[data-a]"); if(!a) return;
+  const act=a.dataset.a, v=a.dataset.v, id=a.dataset.id;
+  const p = id?byId(id):(S.dlg&&S.dlg.id?byId(S.dlg.id):(S.sel?byId(S.sel):null));
+  switch(act){
+    case "nav": toast("Prototype covers Value Realization only."); break;
+    case "tab": S.tab=v; render(); break;
+    case "open": S.sel = S.sel===id?null:id; render(); break;
+    case "pclose": S.sel=null; render(); break;
+    case "dlg-forcelive": S.dlg={kind:"forcelive",id}; render(); break;
+    case "dlgcancel": if(a.tagName==="BUTTON"||e.target.classList.contains("overlay")){ S.dlg=null; render(); } break;
+    case "forcelive-confirm": {
+      goLive(p,true,(S.dlg.reason||"").trim());
+      S.dlg=null;
+      toast(p.id+" is live — status defaults to On track. It joins the savings ramp now.","success");
+      render(); break; }
+    case "setrisk": {
+      if(p.dataOk){ toast("Status is automatic for this play — the ERP feed drives it."); break; }
+      if(p.risk===v) break;
+      p.risk=v; p.riskMode="manual";
+      pushEv(p.id,"Status set manually → "+({"on-track":"On track","behind":"Behind","at-risk":"At risk"}[v]),p.owner);
+      toast(p.id+" status set to "+({"on-track":"On track","behind":"Behind","at-risk":"At risk"}[v])+" (manual — no ERP feed).");
+      render(); break; }
+    case "advq": advanceQuarter(); break;
+    case "postq": postActuals(); break;
+    case "reset": reset(); break;
+    case "mercer-open": S.mercer.open=true; render(); break;
+    case "mercer-close": S.mercer.open=false; render(); break;
+    case "mercer-sugg": S.mercer.q=v; mercerSend(); break;
+    case "mercer-send": mercerSend(); break;
+  }
+});
+function mercerSend(){
+  const q=(S.mercer.q||"").trim(); if(!q) return;
+  S.mercer.thread.push({who:"user",text:esc(q)});
+  const ans=mercerAnswer(q);
+  S.mercer.thread.push({who:"mercer",text:ans.text,cite:ans.cite});
+  S.mercer.q="";
+  render();
+  const th=el("mthread"); if(th) th.scrollTop=th.scrollHeight;
+}
+
+document.addEventListener("input", e=>{
+  const t=e.target,k=t.dataset.in; if(!k) return;
+  if(k==="q"){ S.q=t.value; softRender(); }
+  else if(k==="subcat"){ S.subcat=t.value; softRender(); }
+  else if(k==="dlg-reason"){ S.dlg.reason=t.value; }
+  else if(k==="mercer-q"){ S.mercer.q=t.value; }
+});
+function softRender(){
+  const f=document.activeElement, key=f?.dataset?.in, pos=f?.selectionStart;
+  render();
+  if(key){ const nf=document.querySelector(`[data-in="${key}"]`); if(nf){ nf.focus(); if(pos!=null&&nf.setSelectionRange) try{nf.setSelectionRange(pos,pos);}catch(_){}}}
+}
+document.addEventListener("keydown", e=>{
+  if(e.key==="Enter"&&e.target.dataset?.in==="mercer-q") mercerSend();
+  if(e.key==="Escape"){ if(S.dlg) S.dlg=null; else if(S.mercer.open) S.mercer.open=false; else S.sel=null; render(); }
+});
+
+render();
+</script></body></html>

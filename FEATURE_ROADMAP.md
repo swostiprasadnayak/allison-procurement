@@ -871,6 +871,108 @@ const validateParameter = (param: string, newValue: number) => {
 
 ---
 
+## 🔴 P0 — From Opportunity Review Sessions (July 2026 working sessions)
+
+These came directly out of live opportunity-review sessions run outside the platform (in spreadsheets), where the team hit gaps in what the product currently supports. Unlike the earlier sections, these weren't found by auditing screens — they surfaced from CMs and reviewers actually trying to do the qualification work.
+
+### 11. Vendor-Level Sub-Opportunity Grouping & Reassignment
+
+**What**
+Review sessions moved from category/region-level groupings down to individual vendors: within a category, only some vendors are relevant to a given lever (e.g. some vendors fit a consolidation play, others fit a benchmarking play, others don't belong in either). Today the platform doesn't let a CM pull specific vendors out of an opportunity into their own sub-grouping, assign that sub-group a lever and an estimated savings/effort, and move vendors between groupings as their read on the vendor changes. This regrouping happens constantly — initial vendor classification is often wrong and needs correcting by someone with category expertise.
+
+**Why**
+Without this, the qualification work happens entirely offline in spreadsheets (as it did in these sessions), and the platform's opportunity structure doesn't reflect the actual unit of work the CM reasons about — which is a specific vendor or small vendor cluster, not the whole category.
+
+**How**
+- Add a "sub-opportunity" entity under an Opportunity: a named subset of vendors with its own lever assignment (RFP / consolidate / benchmark / carve-out), estimated savings band, and effort tier.
+- UI: from the vendor list on an opportunity, allow multi-select → "Create sub-group" → assign lever + savings/effort. Allow drag-or-move of a vendor from one sub-group to another, or back to unassigned.
+- Persist sub-opportunity membership so it survives re-runs of the engine (don't silently reset CM's manual groupings on next scan).
+
+**Where**
+- Opportunity detail / vendor-comparison view (same surface flagged in the "essentiality of vendor comparison" discussion).
+- New data model: sub-opportunity linked to parent opportunity + vendor IDs + lever + savings/effort.
+
+**Effort**: 8–10h (data model + UI)
+
+---
+
+### 12. Effort/Savings Tiering ("T-Shirt Sizing") on Sub-Opportunities
+
+**What**
+Reviewers currently assign a qualitative size (small/medium/large) to each vendor grouping as a fast way to estimate savings potential and prioritize which sub-opportunities to act on first, rather than trying to compute an exact number up front. This tiering doesn't exist anywhere in the platform today.
+
+**Why**
+Exact savings estimates aren't available or trustworthy at qualification time — a fast, consistent tiering lets the team rank a large list of vendor groupings without doing per-vendor financial modeling on all of them.
+
+**How**
+- Add a tier field (S/M/L, or similar) to each sub-opportunity, each tier pre-mapped to a rough savings-% band that's configurable (not hardcoded), so the mapping can be tuned without a code change.
+- Surface tier as a sortable column so reviewers can prioritize the list by tier + spend size.
+
+**Where**
+- Sub-opportunity entity (see #11) — add tier + configurable tier→band mapping, likely a settings/config surface rather than inline UI.
+
+**Effort**: 3–4h
+
+---
+
+### 13. Cross-BU / Cross-Region Vendor Consolidation View
+
+**What**
+One of the highest-value plays identified in review is spotting a vendor that shows up across multiple business units and regions — a consolidation candidate that's invisible if the CM only ever sees opportunities scoped to their own BU/region. There's currently no view that surfaces "this vendor also appears in these other opportunities elsewhere."
+
+**Why**
+Cross-BU consolidation was called out as one of the largest savings levers, but it depends entirely on someone manually cross-referencing spreadsheets today — the platform doesn't connect the dots.
+
+**How**
+- Add a vendor-centric view (or a panel on the vendor's existing card) that lists every opportunity/BU/region that vendor appears in, with combined spend.
+- From there, allow rolling those cross-BU instances into a single sub-opportunity (reuses #11's grouping mechanism) rather than treating each region's spend as a separate, disconnected opportunity.
+
+**Where**
+- New vendor-roster or vendor-detail surface; reuses opportunity/vendor data already in the platform, just re-sliced by vendor instead of by opportunity.
+
+**Effort**: 6–8h
+
+---
+
+### 14. Vendor Research / "What Does This Vendor Sell" Lookup
+
+**What**
+Reviewers supplemented the platform's vendor data with manual internet research to figure out what each vendor actually sells — information the platform doesn't currently surface at all. This was explicitly flagged as something worth baking into the product, e.g. a button that triggers a web-search lookup for a vendor and shows the result inline.
+
+**Why**
+Vendor qualification depends on knowing what a vendor's actual offering is, and CMs are doing this research by hand today outside the tool.
+
+**How**
+- Add a "Research vendor" action on the vendor card/roster that triggers a web-search-backed lookup and displays a short summary of what the vendor sells, with a link to source(s).
+- Cache the result against the vendor record so it isn't re-run on every view; allow manual refresh.
+- Frame as vendor-roster metadata, not a real-time chat feature — it's a lookup, not a conversation.
+
+**Where**
+- Vendor roster / vendor detail component; needs a backend endpoint wrapping a web-search call.
+
+**Effort**: 4–6h (mostly backend integration; UI is a single button + result card)
+
+---
+
+### 15. "Pursue vs. Investigate" Vendor Classification with Defined Next Steps
+
+**What**
+Vendors are classified as either ready to act on ("pursue") or needing more work first ("investigate" — e.g. reviewing SKUs, contracts, or checking with a category counterpart). Today this distinction, and the concrete next step it implies, isn't modeled in the product — it's tribal knowledge from the reviewers.
+
+**Why**
+Without a defined next step attached to "investigate," it becomes a dead-end label — the CM knows a vendor isn't ready but the platform doesn't tell them (or anyone) what to actually do about it, so it stalls.
+
+**How**
+- Add a "pursue / investigate" flag on vendor-in-opportunity (or on the sub-opportunity from #11).
+- For "investigate," require a reason/next-step selection (e.g. "needs SKU review," "needs contract review," "needs counterpart input") so it shows up as an actionable task rather than an ambiguous state — this slots naturally into the recurring/ad-hoc task model already spec'd for the CM (`cm_task_board.html`).
+
+**Where**
+- Vendor-in-opportunity or sub-opportunity record; task-board integration for "investigate" items.
+
+**Effort**: 3–4h
+
+---
+
 ## Summary Table
 
 | # | Feature | P | Owner | Effort | Status |
@@ -885,6 +987,11 @@ const validateParameter = (param: string, newValue: number) => {
 | 8 | Vendor Score Editing | P1 | Backend + FE | 2–3h | Spec'd |
 | 9 | Drift Resolution UX | P2 | Frontend | 2h | Sketch |
 | 10 | Methodology Parameter Validation | P2 | Frontend | 2–3h | Sketch |
+| 11 | Vendor-Level Sub-Opportunity Grouping | P0 | Backend + FE | 8–10h | Spec'd |
+| 12 | Effort/Savings Tiering | P0 | Backend + FE | 3–4h | Spec'd |
+| 13 | Cross-BU/Region Consolidation View | P0 | Backend + FE | 6–8h | Spec'd |
+| 14 | Vendor Research Lookup | P0 | Backend + FE | 4–6h | Spec'd |
+| 15 | Pursue vs. Investigate Classification | P0 | Backend + FE | 3–4h | Spec'd |
 
 ---
 

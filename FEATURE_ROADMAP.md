@@ -886,7 +886,10 @@ Without this, the qualification work happens entirely offline in spreadsheets (a
 **How**
 - Add a "sub-opportunity" entity under an Opportunity: a named subset of vendors with its own lever assignment (RFP / consolidate / benchmark / carve-out), estimated savings band, and effort tier.
 - UI: from the vendor list on an opportunity, allow multi-select → "Create sub-group" → assign lever + savings/effort. Allow drag-or-move of a vendor from one sub-group to another, or back to unassigned.
+- Moves must work **across opportunities, not just within one** — e.g. "move Air Liquide from sub-opp 13A into sub-opp 30A because it's a tighter fit with Henkel" is a real example from review sessions, and 13A/30A can belong to different parent opportunities/categories. A vendor picker that only reassigns within the current opportunity's own vendor list won't cover this.
 - Persist sub-opportunity membership so it survives re-runs of the engine (don't silently reset CM's manual groupings on next scan).
+
+**Anti-pattern — don't build this:** an earlier attempt tagged vendors into research-derived "segments" as a categorization layer. It didn't hold up in practice ("most of them broke down pretty quickly") and was abandoned in favor of the sub-opportunity grouping above. Don't reintroduce a formal vendor-segment taxonomy as a feature.
 
 **Where**
 - Opportunity detail / vendor-comparison view (same surface flagged in the "essentiality of vendor comparison" discussion).
@@ -907,6 +910,8 @@ Exact savings estimates aren't available or trustworthy at qualification time �
 **How**
 - Add a tier field (S/M/L, or similar) to each sub-opportunity, each tier pre-mapped to a rough savings-% band that's configurable (not hardcoded), so the mapping can be tuned without a code change.
 - Surface tier as a sortable column so reviewers can prioritize the list by tier + spend size.
+
+**Open question, not yet a requirement:** in review, whether tier should feed back into or link with the opportunity's confidence score was raised but left unresolved ("maybe it ties into the confidence or something") — don't build a confidence linkage until this is confirmed with the team.
 
 **Where**
 - Sub-opportunity entity (see #11) — add tier + configurable tier→band mapping, likely a settings/config surface rather than inline UI.

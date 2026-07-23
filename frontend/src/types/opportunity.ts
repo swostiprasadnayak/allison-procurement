@@ -163,6 +163,9 @@ export interface Opportunity {
   /** Real per-vendor roster (name/share/spend, from opp.opportunity_vendor) — the
    *  detail panel's supplier table + the Act draft. `share` is share of the pocket. */
   vendorRoster?: {
+    /** cim.vendor.vendor_id — the ref into the Vendors page / VendorStoreContext,
+     *  used by "Compare vendors" to deep-link into /vendors?compare=. */
+    id: string;
     name: string;
     share: number;
     spend: number;

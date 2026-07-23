@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import {
+  Button,
+  Checkbox,
   DataTable,
   EmptyState,
   Pill,
@@ -11,7 +13,7 @@ import {
   type DataTableSortState,
   type FilterFacet,
 } from "@navanta-ai/design-system";
-import { Factory } from "@phosphor-icons/react";
+import { Factory, Scales, X } from "@phosphor-icons/react";
 import { CellText } from "@/components/ui/CellText";
 import { useVendorStore } from "@/context/VendorStoreContext";
 import { useScope } from "@/context/ScopeContext";
@@ -27,17 +29,45 @@ import {
 
 const PAGE_SIZE_OPTIONS = [12, 24, 48];
 
+/** Past this many, a side-by-side table stops being readable. */
+const MAX_COMPARE = 4;
+
 interface VendorTableProps {
   /** Row click → open the detail panel for this vendor id. */
   onSelect: (id: string) => void;
+  /** Compare selection — lifted to the page so a deep link (?compare=) and
+   *  the table's own checkboxes share the same state. */
+  compareIds: Set<string>;
+  onCompareIdsChange: (next: Set<string>) => void;
+  onOpenCompare: () => void;
 }
 
 /** Role facet order — most actionable first. */
 const ROLE_ORDER: VendorRole[] = ["winner", "oem", "consolidate", "leverage", "strategic", "tail", "none"];
 
-const COLUMNS: DataTableColumn<Vendor>[] = [
-  {
-    key: "vendor",
+function buildColumns(
+  compareIds: Set<string>,
+  onToggleCompare: (id: string) => void,
+): DataTableColumn<Vendor>[] {
+  const atCap = compareIds.size >= MAX_COMPARE;
+  return [
+    {
+      key: "compare",
+      label: "",
+      width: 40,
+      cell: (v) => (
+        <span onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            checked={compareIds.has(v.id)}
+            disabled={!compareIds.has(v.id) && atCap}
+            onChange={() => onToggleCompare(v.id)}
+            aria-label={`Select ${v.name} to compare`}
+          />
+        </span>
+      ),
+    },
+    {
+      key: "vendor",
     label: "Vendor",
     minWidth: 220,
     cellLayout: "col",
@@ -96,15 +126,17 @@ const COLUMNS: DataTableColumn<Vendor>[] = [
         {v.performance.score}
       </span>
     ),
-  },
-];
+    },
+  ];
+}
 
 /**
  * Supplier roster — real role across the plays (opp.opportunity_vendor) + the
  * illustrative-forward performance score (future module; real where operational
- * data exists). Search / facets / controlled pagination + sort.
+ * data exists). Search / facets / controlled pagination + sort. A leading
+ * checkbox column plus a floating action bar power multi-select "Compare".
  */
-export function VendorTable({ onSelect }: VendorTableProps) {
+export function VendorTable({ onSelect, compareIds, onCompareIdsChange, onOpenCompare }: VendorTableProps) {
   const { vendors, overlapCount } = useVendorStore();
   // Sub-category is the GLOBAL scope (header filter) — persists across pages.
   const { l2: subcategory, setL2: setSubcategory } = useScope();
@@ -116,6 +148,16 @@ export function VendorTable({ onSelect }: VendorTableProps) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
   const [sort, setSort] = useState<DataTableSortState>({ field: "spend", dir: "desc" });
+
+  const toggleCompare = (id: string) => {
+    const next = new Set(compareIds);
+    if (next.has(id)) next.delete(id);
+    else if (next.size < MAX_COMPARE) next.add(id);
+    onCompareIdsChange(next);
+  };
+  // Cheap to rebuild each render (small, static-shaped array) — not worth a
+  // useMemo whose only varying input (toggleCompare) is itself unstable.
+  const columns = buildColumns(compareIds, toggleCompare);
 
   const subcategoryOptions = useMemo(() => {
     const counts = new Map<string, number>();
@@ -246,7 +288,41 @@ export function VendorTable({ onSelect }: VendorTableProps) {
   };
 
   return (
-    <TableShell
+    <>
+      {compareIds.size > 0 && (
+        <div
+          className="flex items-center justify-between gap-3 rounded-[10px] border px-3 py-2"
+          style={{ borderColor: "var(--border-default)", background: "var(--surface-raised)" }}
+        >
+          <span className="flex items-center gap-1.5 text-[13px]" style={{ color: "var(--text-primary)" }}>
+            <Scales size={14} weight="bold" />
+            {compareIds.size} vendor{compareIds.size > 1 ? "s" : ""} selected
+            {compareIds.size >= MAX_COMPARE && (
+              <span style={{ color: "var(--text-secondary)" }}>· max {MAX_COMPARE}</span>
+            )}
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              iconLeft={<X size={13} weight="bold" />}
+              onClick={() => onCompareIdsChange(new Set())}
+            >
+              Clear
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              iconLeft={<Scales size={13} weight="bold" />}
+              onClick={onOpenCompare}
+              disabled={compareIds.size < 2}
+            >
+              Compare
+            </Button>
+          </div>
+        </div>
+      )}
+      <TableShell
       title="Suppliers"
       icon={Factory}
       totalItems={sorted.length}
@@ -285,7 +361,7 @@ export function VendorTable({ onSelect }: VendorTableProps) {
       }
     >
       <DataTable<Vendor>
-        columns={COLUMNS}
+        columns={columns}
         data={pageRows}
         rowKey={(v) => v.id}
         sort={sort}
@@ -295,6 +371,7 @@ export function VendorTable({ onSelect }: VendorTableProps) {
         }}
         onRowClick={(v) => onSelect(v.id)}
       />
-    </TableShell>
+      </TableShell>
+    </>
   );
 }

@@ -203,11 +203,16 @@ function ShareBar({ share }: { share: number }) {
 type RosterEntry = NonNullable<Opportunity["vendorRoster"]>[number];
 
 function RosterTable({ roster }: { roster: RosterEntry[] }) {
+  const router = useRouter();
   // Default to the top-N preview; expand to the full roster on demand.
   const [expanded, setExpanded] = useState(false);
   if (roster.length === 0) return null;
   const canExpand = roster.length > MAX_ROSTER_ROWS;
   const shown = expanded ? roster : roster.slice(0, MAX_ROSTER_ROWS);
+  // Compare tops out at 4 vendors for a readable side-by-side table — the
+  // pocket's biggest names (already sorted by share) plus the anchor if it's
+  // outside that top slice.
+  const compareTargets = roster.slice(0, 4);
 
   const columns: DataTableColumn<RosterEntry>[] = [
     {
@@ -289,6 +294,16 @@ function RosterTable({ roster }: { roster: RosterEntry[] }) {
     <EvidenceBlock
       icon={Factory}
       title="Vendor roster · addressable base"
+      headerRight={
+        <Button
+          variant="outline"
+          size="sm"
+          iconLeft={<ArrowSquareOut size={13} weight="bold" />}
+          onClick={() => router.push(`/vendors?compare=${compareTargets.map((v) => v.id).join(",")}`)}
+        >
+          Compare vendors
+        </Button>
+      }
       footnote={
         canExpand ? (
           <button

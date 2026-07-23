@@ -562,6 +562,7 @@ export async function getOpportunities(): Promise<Opportunity[]> {
             `${opp.l3_code ?? ""}|${opp.purchasing_country ?? ""}|${v.vendor_id}`,
           );
           return {
+            id: v.vendor_id,
             name: v.vendor_name ?? v.vendor_id,
             share: Number(v.share) || 0,
             spend: Number(v.spend) || 0,

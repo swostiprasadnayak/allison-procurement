@@ -1,0 +1,812 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sub-Opportunity Qualification · Navanta Lens</title>
+<style>
+/* ══ Navanta Design System tokens — verbatim from @navanta-ai/design-system
+      (same source of truth used by navanta_lens_prototype_v2.html). Nothing
+      here overrides the DS; Lens aliases are color-mix derivations only. ══ */
+:root{
+  color-scheme:light;
+  --background:#ffffff; --foreground:#09090b;
+  --primary:#232122; --primary-foreground:#ffffff;
+  --secondary:#f4f4f5; --muted:#f4f4f5; --muted-foreground:#4b5563;
+  --destructive:#dc2626; --success:#16a34a; --warning:#f59e0b; --info:#0ea5e9;
+  --border:#e4e4e7; --ring:#c4c4c8;
+  --chart-1:#232122; --chart-2:#3b82f6; --chart-4:#16a34a;
+  --radius:0.5rem; --radius-xl:0.75rem;
+  --kds-color-brand-accent:#6440b6; --brand-purple-deep:#3b0764;
+  --surface-raised:#f8fafc;
+  --text-primary:var(--foreground); --text-secondary:var(--muted-foreground);
+  --text-neutral:#94a3b8; --text-heading:#1e1e1e; --text-link:#005b89;
+  --border-light:#f1f3f5; --border-strong:#71717b; --border-control:#9f9fa9;
+  --ai-star-from:#8a49be; --ai-star-to:#396eb6;
+  --surface-inverse:#18181b; --info-strong:#004b71;
+  --pill-info-bg:#eff6ff; --pill-info-fg:#1e40af;
+  --pill-danger-bg:#fff1f2; --pill-danger-fg:#a7000f;
+  --pill-warning-bg:#fffbeb; --pill-warning-fg:#92400e;
+  --pill-neutral-bg:#f4f4f5; --pill-neutral-fg:#18181b;
+  --shadow-card:0 1px 3px 0 rgb(0 0 0 / 0.1),0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-modal:0 20px 25px -5px rgb(0 0 0 / 0.1),0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-dropdown:0px 4px 15px 0px rgba(0,0,0,0.25);
+  --shadow-focus:0 0 0 3px color-mix(in srgb, var(--ring) 35%, transparent);
+  --btn-primary-bg:var(--primary); --btn-primary-bg-hover:#000000;
+  --btn-primary-disabled-bg:#e2e8f0; --btn-primary-disabled-text:#94a3b8;
+  --gradient-christy:linear-gradient(154.42deg,#1d4a86 1.66%,#3d348b 83.4%);
+  --gradient-christy-hover:linear-gradient(154.42deg,#153664 1.66%,#2b2566 83.4%);
+  --progress-track:#e4e4e7;
+  --gradient-progress-green:linear-gradient(90deg,#86efac 0%,#86efac 54%,#166534 100%);
+  --gradient-progress-amber:linear-gradient(90deg,#fcd34d 0%,#fcd34d 54%,#b45309 100%);
+
+  /* Lens aliases */
+  --bg:var(--secondary); --card:var(--background);
+  --line:var(--border); --line2:var(--border);
+  --ink:var(--foreground); --ink2:var(--muted-foreground); --ink3:#71717a; --ink4:var(--text-neutral);
+  --merc:var(--kds-color-brand-accent);
+  --merc-bg:color-mix(in oklab, var(--kds-color-brand-accent) 9%, var(--background));
+  --merc-bg2:color-mix(in oklab, var(--kds-color-brand-accent) 6%, var(--background));
+  --merc-line:color-mix(in oklab, var(--kds-color-brand-accent) 24%, var(--background));
+  --merc-chip:color-mix(in oklab, var(--kds-color-brand-accent) 14%, var(--background));
+  --green:#166534; --green-bg:#ecfdf5;
+  --amber:var(--pill-warning-fg); --amber-bg:var(--pill-warning-bg);
+  --blue:var(--pill-info-fg); --blue-bg:var(--pill-info-bg);
+  --warn:var(--pill-warning-fg); --warn-bg:var(--pill-warning-bg); --warn-line:#fde68a;
+  --red:var(--pill-danger-fg); --red-bg:var(--pill-danger-bg);
+  --raised:var(--surface-raised);
+  --r:var(--radius-xl); --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sh:var(--shadow-card); --sh2:var(--shadow-modal);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+select{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit;color:var(--ink)}
+::placeholder{color:var(--ink4)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+svg{display:block}
+
+/* ── Stage / sheet ── */
+.stage{min-height:100vh;background:
+  radial-gradient(1200px 600px at 50% -10%, color-mix(in oklab,var(--merc) 7%, var(--bg)), var(--bg) 60%);
+  padding:26px 16px 40px;display:flex;justify-content:center;align-items:flex-start}
+.sheet{background:var(--card);border-radius:14px;box-shadow:var(--sh2);width:100%;max-width:1000px;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line)}
+
+/* header */
+.shead{display:flex;align-items:center;gap:14px;padding:15px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.shead .id{display:flex;align-items:center;gap:9px;min-width:0}
+.shead .id .bag{width:26px;height:26px;color:var(--ink2);flex-shrink:0}
+.shead .id .t1{font-weight:800;font-size:19px;letter-spacing:-.01em;color:var(--text-heading)}
+.catchip{background:var(--muted);border-radius:6px;padding:4px 10px;font-size:12.5px;font-weight:600;color:var(--ink2);white-space:nowrap}
+.conf{display:flex;align-items:center;gap:9px}
+.confbar{width:120px;height:7px;border-radius:99px;background:var(--progress-track);overflow:hidden;flex-shrink:0}
+.confbar i{display:block;height:100%;border-radius:99px;background:var(--gradient-progress-green)}
+.conf .cn{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.shead .grow{flex:1}
+.nav{display:flex;align-items:center;gap:4px;color:var(--ink3)}
+.nav button{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink3)}
+.nav button:hover{background:var(--muted);color:var(--ink)}
+.nav .pos{font-size:13px;font-weight:600;color:var(--ink2);font-variant-numeric:tabular-nums;padding:0 4px;white-space:nowrap}
+.iconbtn{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink3)}
+.iconbtn:hover{background:var(--muted);color:var(--ink)}
+.iconbtn svg{width:16px;height:16px}
+
+/* body */
+.sbody{padding:18px 20px;display:flex;flex-direction:column;gap:16px;max-height:calc(100vh - 210px);overflow-y:auto}
+
+/* ── Mercer summary ── */
+.mercsum{background:var(--merc-bg);border:1px solid var(--merc-line);border-radius:var(--r);padding:15px 17px;display:flex;flex-direction:column;gap:12px}
+.mercsum .msh{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.mercsum .msh .star{color:var(--merc);font-size:15px;line-height:1}
+.mercsum .msh .lbl{font-weight:700;font-size:14px;color:var(--text-heading)}
+.whybtn{display:inline-flex;align-items:center;gap:5px;color:var(--merc);font-weight:600;font-size:12.5px}
+.whybtn:hover{text-decoration:underline}
+.whybtn .car{transition:transform .15s}
+.whybtn.open .car{transform:rotate(90deg)}
+.mercsum p.rec{font-size:14px;line-height:1.55;color:var(--ink)}
+.signals{list-style:none;display:none;flex-direction:column;gap:6px;margin:0;padding:10px 12px;background:rgba(255,255,255,.55);border:1px solid var(--merc-line);border-radius:9px}
+.signals.show{display:flex}
+.signals li{font-size:12.5px;color:var(--ink2);display:flex;gap:8px;line-height:1.45}
+.signals li .n{color:var(--merc);font-weight:800;font-variant-numeric:tabular-nums;flex-shrink:0}
+.mstiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.mstile{background:var(--card);border:1px solid var(--merc-line);border-radius:9px;padding:10px 13px;display:flex;flex-direction:column;gap:3px}
+.mstile .l{font-size:11.5px;color:var(--ink3);font-weight:600;display:flex;align-items:center;gap:5px}
+.mstile .v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em;color:var(--text-heading)}
+.mstile .c{font-size:11px;color:var(--ink3);display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.rollchip{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;border-radius:99px;padding:1px 7px;background:var(--muted);color:var(--ink2);font-variant-numeric:tabular-nums}
+.rollchip.s{background:#eef2ff;color:#3730a3}
+.rollchip.m{background:var(--pill-info-bg);color:var(--pill-info-fg)}
+.rollchip.l{background:var(--merc-bg);color:var(--merc)}
+.mercsum .actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.ctxwrap{display:none;flex-direction:column;gap:6px}
+.ctxwrap.show{display:flex}
+.ctxwrap textarea{width:100%;min-height:66px;border:1px solid var(--merc-line);border-radius:9px;padding:9px 11px;font-size:13px;background:var(--card);outline:none;resize:vertical;font-family:inherit}
+.ctxwrap textarea:focus{border-color:var(--merc);box-shadow:var(--shadow-focus)}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:7px;border-radius:9px;padding:8px 15px;font-size:13px;font-weight:600;border:1px solid var(--border);background:var(--card);color:var(--ink)}
+.btn:hover{background:var(--muted)}
+.btn svg{width:15px;height:15px}
+.btn.pri{background:var(--btn-primary-bg);border-color:var(--btn-primary-bg);color:#fff}
+.btn.pri:hover{background:var(--btn-primary-bg-hover);border-color:var(--btn-primary-bg-hover)}
+.btn.christy{background-image:var(--gradient-christy);border:none;color:#fff}
+.btn.christy:hover{background-image:var(--gradient-christy-hover)}
+.btn.danger{color:var(--destructive);border-color:color-mix(in srgb,var(--destructive) 30%,var(--border))}
+.btn.danger:hover{background:var(--pill-danger-bg)}
+.btn.sm{padding:5px 11px;font-size:12px;border-radius:8px}
+.btn:focus-visible,.tab:focus-visible,.iconbtn:focus-visible,.nav button:focus-visible,.badgebtn:focus-visible,.whybtn:focus-visible{outline:none;box-shadow:var(--shadow-focus)}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{padding:11px 14px;font-size:13px;font-weight:600;color:var(--ink2);border-bottom:2px solid transparent;background:none}
+.tab.on{color:var(--ink);border-bottom-color:var(--primary)}
+.tab:hover{color:var(--ink)}
+
+/* ── Panels ── */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
+.panel .ph{padding:13px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.panel .ph .icn{width:17px;height:17px;color:var(--ink3)}
+.panel .ph .t{font-weight:700;font-size:14px;color:var(--text-heading)}
+.panel .ph .grow{flex:1}
+.panel .pb{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.hint{font-size:12px;color:var(--ink3);line-height:1.5}
+.hint b{color:var(--ink2);font-weight:600}
+
+.search{display:flex;align-items:center;gap:8px;border:1px solid var(--line2);border-radius:9px;padding:8px 12px;background:var(--card);max-width:340px;width:100%}
+.search svg{width:15px;height:15px;color:var(--ink4);flex-shrink:0}
+.search input{border:none;outline:none;flex:1;font-size:13px;background:none}
+
+/* ── Sub-opportunity group card ── */
+.sogroup{border:1px solid var(--line);border-radius:11px;overflow:hidden;background:var(--card)}
+.sogroup.unassigned{border-style:dashed;border-color:var(--border-control);background:var(--surface-raised)}
+.sohead{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--surface-raised);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.sogroup.unassigned .sohead{background:transparent}
+.sohead .stitle{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.sohead .stitle .nm{font-weight:700;font-size:13.5px;color:var(--text-heading);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sohead .stitle .code{font-size:11px;font-weight:700;color:var(--ink3);background:var(--muted);border-radius:5px;padding:1px 7px;font-variant-numeric:tabular-nums}
+.sohead .stitle .sub{font-size:11.5px;color:var(--ink3);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.lever{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;border-radius:99px;padding:2px 9px;background:var(--pill-neutral-bg);color:var(--pill-neutral-fg)}
+.lever.reneg{background:var(--pill-warning-bg);color:var(--pill-warning-fg)}
+.lever.rfp{background:var(--pill-info-bg);color:var(--pill-info-fg)}
+.lever.bench{background:var(--merc-bg);color:var(--merc)}
+.lever.cons{background:var(--green-bg);color:var(--green)}
+
+.sotags{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tagcol{display:flex;flex-direction:column;align-items:center;gap:3px}
+.tagcap{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink4)}
+.badgebtn{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line2);border-radius:8px;padding:4px 9px;font-size:12px;font-weight:700;background:var(--card);color:var(--ink);white-space:nowrap}
+.badgebtn:hover{border-color:var(--merc);color:var(--merc)}
+.badgebtn .pen{width:11px;height:11px;color:var(--ink4)}
+.badgebtn:hover .pen{color:var(--merc)}
+.sizeb .dot{width:16px;height:16px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;color:#fff}
+.sizeb.s .dot{background:#4f46e5}
+.sizeb.m .dot{background:var(--info-strong)}
+.sizeb.l .dot{background:var(--merc)}
+.effb.med{color:var(--amber)}
+.effb.high{color:var(--destructive)}
+.saveband{display:flex;flex-direction:column;align-items:flex-end;gap:1px;min-width:96px}
+.saveband .sv{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--green)}
+.saveband .sl{font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+
+/* ── Vendor table ── */
+.tblwrap{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:11px;color:var(--ink3);font-weight:700;padding:8px 14px;border-bottom:1px solid var(--line);white-space:nowrap;text-transform:uppercase;letter-spacing:.03em}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--border-light);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl .vname{font-weight:600;color:var(--ink)}
+.tbl .vsub{display:block;font-size:11px;color:var(--ink3);margin-top:2px;font-weight:400}
+.tbl tr.sc-reject td{background:color-mix(in srgb,var(--pill-danger-bg) 45%,var(--card))}
+.tbl tr.sc-reject .vname{color:var(--ink3);text-decoration:line-through}
+.tbl tr.sc-wait td{background:var(--surface-raised)}
+.tbl tr.hidden{display:none}
+.tbl input[type=checkbox]{width:15px;height:15px;accent-color:var(--merc);cursor:pointer}
+
+.scopesel{border:1px solid var(--line2);border-radius:8px;padding:5px 9px;font-size:12px;font-weight:600;background:var(--card);color:var(--ink)}
+.scopesel:focus{outline:none;border-color:var(--merc);box-shadow:var(--shadow-focus)}
+.scopesel[data-scope=pursue]{border-color:color-mix(in srgb,var(--success) 45%,var(--border));color:var(--green);background:var(--green-bg)}
+.scopesel[data-scope=investigate]{border-color:var(--warn-line);color:var(--amber);background:var(--amber-bg)}
+.scopesel[data-scope=wait]{color:var(--ink2)}
+.scopesel[data-scope=reject]{border-color:color-mix(in srgb,var(--destructive) 35%,var(--border));color:var(--destructive);background:var(--pill-danger-bg)}
+
+.nextstep{display:none;margin-top:6px;align-items:center;gap:7px;flex-wrap:wrap}
+.nextstep.show{display:flex}
+.nsflag{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:var(--amber);background:var(--amber-bg);border:1px solid var(--warn-line);border-radius:6px;padding:2px 7px}
+.nssel{border:1px solid var(--warn-line);border-radius:7px;padding:3px 7px;font-size:11.5px;font-weight:600;background:var(--card);color:var(--ink2)}
+.nssel:focus{outline:none;box-shadow:var(--shadow-focus)}
+.nsdue{font-size:11px;color:var(--ink3)}
+
+.rowacts{display:flex;align-items:center;gap:4px;justify-content:flex-end;position:relative}
+.rowacts .ib{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;color:var(--ink3);border:1px solid transparent}
+.rowacts .ib:hover{background:var(--muted);color:var(--ink)}
+.rowacts .ib svg{width:15px;height:15px}
+.menu{position:absolute;top:32px;right:0;z-index:40;background:var(--card);border:1px solid var(--line2);border-radius:10px;box-shadow:var(--shadow-dropdown);padding:6px;min-width:210px;display:none;flex-direction:column;gap:1px}
+.menu.show{display:flex}
+.menu .mlbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink4);padding:5px 9px 3px}
+.menu button{text-align:left;font-size:12.5px;font-weight:600;padding:7px 9px;border-radius:7px;color:var(--ink2);display:flex;align-items:center;gap:8px}
+.menu button:hover{background:var(--muted);color:var(--ink)}
+.menu button.cur{color:var(--merc)}
+.menu .msep{height:1px;background:var(--border-light);margin:4px 0}
+
+.unfoot{display:flex;align-items:center;gap:10px;padding:11px 14px;border-top:1px dashed var(--border-control);flex-wrap:wrap}
+.unfoot .grow{flex:1}
+.selnote{font-size:12px;color:var(--ink3);font-weight:600}
+
+/* ── Derivation tab ── */
+.maptbl{width:100%;border-collapse:collapse;font-size:13px}
+.maptbl th,.maptbl td{padding:9px 12px;border-bottom:1px solid var(--border-light);text-align:left}
+.maptbl th{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink3);font-weight:700}
+.maptbl td.num,.maptbl th.num{text-align:right;font-variant-numeric:tabular-nums}
+.maptbl tr.tot td{background:var(--muted);font-weight:800}
+.cfgnote{background:var(--pill-info-bg);border:1px solid #bfdbfe;border-radius:9px;padding:10px 13px;font-size:12px;color:var(--pill-info-fg);line-height:1.5}
+
+/* fit rows */
+.fitrow{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-top:1px solid var(--border-light)}
+.fitrow:first-child{border-top:none}
+.vchip{display:inline-flex;align-items:center;gap:4px;border-radius:5px;padding:1px 8px;font-size:11px;font-weight:700;flex-shrink:0}
+.vchip.pass{background:var(--green-bg);color:var(--green)}
+.vchip.watch{background:var(--pill-warning-bg);color:var(--pill-warning-fg)}
+.vchip.note{background:var(--pill-neutral-bg);color:var(--ink2)}
+.fitrow .fl2{flex:1;min-width:0}
+.fitrow .ft{font-size:13px;font-weight:600;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.fitrow .fd{font-size:12px;color:var(--ink2);margin-top:2px;line-height:1.45}
+
+/* timeline */
+.tline{display:flex;flex-direction:column}
+.tline .te{display:flex;gap:11px;padding:9px 0;border-top:1px solid var(--border-light)}
+.tline .te:first-child{border-top:none}
+.tline .dot{width:9px;height:9px;border-radius:50%;background:var(--ink4);margin-top:5px;flex-shrink:0}
+.tline .dot.merc{background:var(--merc)}
+.tline .dot.green{background:var(--success)}
+.tline .tw{font-size:12.5px;color:var(--ink2)}
+.tline .tw b{color:var(--ink);font-weight:600}
+.tline .td2{font-size:11px;color:var(--ink3);margin-top:1px}
+
+/* footer */
+.sfoot{display:flex;align-items:center;gap:9px;padding:13px 20px;border-top:1px solid var(--line);background:var(--card);flex-wrap:wrap}
+.sfoot .grow{flex:1}
+
+/* mercer dock */
+.dock{position:fixed;top:0;right:0;bottom:0;width:360px;max-width:88vw;background:var(--card);border-left:1px solid var(--line);box-shadow:-8px 0 28px rgba(9,9,11,.12);z-index:120;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .18s ease}
+.dock.on{transform:translateX(0)}
+.dock .dh{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid var(--line);font-weight:700;font-size:14px}
+.dock .dh .star{color:var(--merc)}
+.dock .dh .grow{flex:1}
+.dock .dmsgs{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.dmsg{border-radius:11px;padding:10px 12px;font-size:13px;line-height:1.5;background:var(--merc-bg);border:1px solid var(--merc-line)}
+.dmsg .c{margin-top:7px;padding-top:6px;border-top:1px dashed var(--merc-line);font-size:11px;color:var(--ink3)}
+.dsugg{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 14px}
+.dsugg button{font-size:11.5px;font-weight:600;color:var(--merc);background:var(--merc-bg);border:1px solid var(--merc-line);border-radius:99px;padding:5px 11px;text-align:left}
+.dsugg button:hover{background:var(--merc-chip)}
+.scrim{position:fixed;inset:0;background:rgba(9,9,11,.28);z-index:110;opacity:0;pointer-events:none;transition:opacity .18s}
+.scrim.on{opacity:1;pointer-events:auto}
+
+/* toast */
+#toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;z-index:300;display:flex;flex-direction:column;gap:8px;align-items:center}
+.toast{display:flex;align-items:center;gap:9px;background:var(--surface-inverse);color:#fff;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:500;box-shadow:var(--sh2);max-width:460px;animation:tin .18s ease}
+.toast.success{background:#14532d}
+.toast.info{background:var(--info-strong)}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.samplebar{max-width:1000px;margin:0 auto 12px;display:flex;align-items:center;gap:9px;font-size:11.5px;color:var(--ink3);padding:0 2px}
+.samplebar .dt{display:inline-flex;align-items:center;gap:5px;background:var(--pill-neutral-bg);color:var(--ink3);border-radius:99px;padding:3px 10px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div style="width:100%;max-width:1000px">
+    <div class="samplebar">
+      <span class="dt">◇ Illustrative data</span>
+      <span>Structure &amp; behaviour only — figures are placeholders and will change with the live dataset.</span>
+    </div>
+
+    <div class="sheet" role="dialog" aria-label="Opportunity OPP-011 — vendor qualification">
+      <!-- HEADER -->
+      <div class="shead">
+        <div class="id">
+          <svg class="bag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="19" height="13" rx="2"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/><path d="M2.5 12.5h19"/></svg>
+          <span class="t1">OPP-011</span>
+        </div>
+        <span class="catchip">Industrial Supplies · United States</span>
+        <div class="conf" title="Confidence — how provable the savings are">
+          <span class="confbar"><i style="width:82%"></i></span>
+          <span class="cn">82%</span>
+        </div>
+        <span class="grow"></span>
+        <div class="nav">
+          <button class="np" data-nav="-1" aria-label="Previous opportunity"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <span class="pos">1 / 26</span>
+          <button class="np" data-nav="1" aria-label="Next opportunity"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+        </div>
+        <button class="iconbtn" id="closeBtn" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+
+      <!-- BODY -->
+      <div class="sbody">
+        <!-- Mercer summary with roll-ups -->
+        <div class="mercsum">
+          <div class="msh">
+            <span class="star">✦</span>
+            <span class="lbl">Mercer Summary</span>
+            <button class="whybtn" id="whyBtn"><span class="car">›</span> Why? · 3 signals</button>
+          </div>
+          <p class="rec">No dominant incumbent in this category — the addressable base splits into a few distinct plays rather than one. Qualify each play on its own footing below; size and effort are set per sub-opportunity, not for the whole opportunity.</p>
+          <ul class="signals" id="signals">
+            <li><span class="n">1</span><span>Largest non-OEM vendor holds only ~18% share — fragmented enough that a single consolidation wouldn't capture the base.</span></li>
+            <li><span class="n">2</span><span>Spend separates cleanly into fasteners, abrasives, and safety consumables — each wants a different lever.</span></li>
+            <li><span class="n">3</span><span>Enough comparable vendors in the abrasives cluster to sustain a competitive RFP; the rest are renegotiate / benchmark.</span></li>
+          </ul>
+          <div class="mstiles" id="tiles">
+            <div class="mstile"><span class="l">Total bundled spend</span><span class="v" id="tSpend">—</span><span class="c">across all vendors on this opportunity</span></div>
+            <div class="mstile"><span class="l">Addressable spend</span><span class="v" id="tAddr">$690K</span><span class="c">non-OEM, contestable</span></div>
+            <div class="mstile"><span class="l">Sub-opportunities</span><span class="v" id="tCount">—</span><span class="c" id="tCountMix"></span></div>
+            <div class="mstile"><span class="l">Savings potential <span title="Rolled up from each sub-opportunity's own size band" style="color:var(--ink4);cursor:help">ⓘ</span></span><span class="v" id="tSave" style="color:var(--green)">—</span><span class="c">Σ of sized sub-opps</span></div>
+            <div class="mstile"><span class="l">Effort mix</span><span class="v" id="tEffort" style="font-size:15px">—</span><span class="c">set per sub-opp below</span></div>
+          </div>
+          <div class="actions">
+            <button class="btn sm" id="ctxBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg> Add context</button>
+          </div>
+          <div class="ctxwrap" id="ctxWrap">
+            <textarea placeholder="Add a note, a constraint, or drop context for Mercer to factor in (e.g. contract renewal dates, a relationship issue, a plant-level exception)…"></textarea>
+            <div style="display:flex;gap:8px"><button class="btn christy sm" id="ctxSave">Save context</button><button class="btn sm" id="ctxCancel">Cancel</button></div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div>
+          <div class="tabs" role="tablist">
+            <button class="tab on" data-tab="roster" role="tab">Vendor roster</button>
+            <button class="tab" data-tab="deriv" role="tab">Savings derivation</button>
+            <button class="tab" data-tab="fit" role="tab">Functional fit</button>
+            <button class="tab" data-tab="hist" role="tab">Activity history</button>
+          </div>
+        </div>
+
+        <!-- Roster tab -->
+        <div class="tabpanel" data-panel="roster">
+          <div class="panel">
+            <div class="ph">
+              <svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg>
+              <span class="t">Vendor roster</span>
+              <span class="grow"></span>
+              <span class="hint">Grouped by <b>sub-opportunity</b></span>
+            </div>
+            <div class="pb">
+              <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg><input type="text" id="vsearch" placeholder="Search vendors…" aria-label="Search vendors"></div>
+              <p class="hint">Each sub-opportunity carries its own <b>size (S/M/L)</b> and <b>effort (Med/High)</b> — click a badge to change it. <b>Scope</b> (Pursue / Investigate / Wait / Reject) is decided per vendor. Use <b>Move</b> to regroup a vendor across sub-opportunities.</p>
+              <div id="groups" style="display:flex;flex-direction:column;gap:12px"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Derivation tab -->
+        <div class="tabpanel" data-panel="deriv" hidden>
+          <div class="panel">
+            <div class="ph"><span class="t">How savings size maps to a band</span><span class="grow"></span><span class="hint">Configurable — not hardcoded</span></div>
+            <div class="pb">
+              <div class="cfgnote">Size is a fast triage tier, not a computed estimate. Each tier maps to a savings-% band applied to that sub-opportunity's <b>own</b> bundled spend — which is why the number lives per sub-opp, never once for the whole opportunity.</div>
+              <div class="tblwrap"><table class="maptbl">
+                <thead><tr><th>Sub-opportunity</th><th>Lever</th><th>Size</th><th class="num">Bundled</th><th class="num">Band %</th><th class="num">Savings</th></tr></thead>
+                <tbody id="derivBody"></tbody>
+                <tfoot><tr class="tot"><td colspan="5">Rolled-up savings potential (sized sub-opps only)</td><td class="num" id="derivTotal">—</td></tr></tfoot>
+              </table></div>
+              <p class="hint">Tier→band mapping shown here is <b>S 4% · M 6% · L 8%</b>, editable in settings without a code change.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fit tab -->
+        <div class="tabpanel" data-panel="fit" hidden>
+          <div class="panel">
+            <div class="ph"><span class="t">Functional fit</span></div>
+            <div class="pb" style="gap:0">
+              <div class="fitrow"><span class="vchip pass">Pass</span><div class="fl2"><div class="ft">Asset &amp; scope overlap</div><div class="fd">Both business units buy in this category — consolidation pools real cross-BU volume rather than double-counting.</div></div></div>
+              <div class="fitrow"><span class="vchip pass">Pass</span><div class="fl2"><div class="ft">Vendor &amp; brand independence</div><div class="fd">Only a small share is OEM / sole-source — the rest is contestable, so a competitive lever is credible.</div></div></div>
+              <div class="fitrow"><span class="vchip note">Info</span><div class="fl2"><div class="ft">Geography</div><div class="fd">Single geography — no cross-border or multi-region complexity on this opportunity.</div></div></div>
+              <div class="fitrow"><span class="vchip watch">Watch</span><div class="fl2"><div class="ft">Play type is mixed</div><div class="fd">This opportunity intentionally splits into more than one lever — that's what the sub-opportunity grouping below is for.</div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- History tab -->
+        <div class="tabpanel" data-panel="hist" hidden>
+          <div class="panel">
+            <div class="ph"><span class="t">Activity history</span></div>
+            <div class="pb">
+              <div class="tline">
+                <div class="te"><span class="dot merc"></span><div><div class="tw"><b>Mercer</b> surfaced this opportunity and grouped vendors by an initial read.</div><div class="td2">Scan engine</div></div></div>
+                <div class="te"><span class="dot"></span><div><div class="tw">Vendor list opened for qualification review.</div><div class="td2">Earlier this cycle</div></div></div>
+                <div class="te"><span class="dot green"></span><div><div class="tw">Fasteners cluster split into its own sub-opportunity and sized <b>Medium</b>.</div><div class="td2">Manual regroup</div></div></div>
+                <div class="te"><span class="dot"></span><div><div class="tw">One vendor moved to <b>Investigate</b> pending a SKU review.</div><div class="td2">Next step assigned</div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="sfoot">
+        <button class="btn christy" id="askBtn"><span style="font-size:14px">✦</span> Ask Mercer about this</button>
+        <span class="grow"></span>
+        <button class="btn danger" data-decide="reject">Reject</button>
+        <button class="btn" data-decide="park">Park</button>
+        <button class="btn pri" data-decide="act">Proceed to Act →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mercer dock -->
+<div class="scrim" id="scrim"></div>
+<aside class="dock" id="dock" aria-label="Ask Mercer">
+  <div class="dh"><span class="star">✦</span> Ask Mercer <span class="grow"></span><button class="iconbtn" id="dockClose" aria-label="Close panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="dmsgs" id="dmsgs">
+    <div class="dmsg">This opportunity is best worked as separate plays. The <b>abrasives</b> cluster is the largest and has enough comparable vendors to run a competitive RFP — that's why it's sized Large / High effort. Fasteners is a renegotiation with the incumbents; safety consumables is small enough to just benchmark.<div class="c">Grounded in the vendor roster on this opportunity.</div></div>
+  </div>
+  <div class="dsugg">
+    <button>Which sub-opp should I start with?</button>
+    <button>Why is abrasives sized Large?</button>
+    <button>What still needs investigation?</button>
+  </div>
+</aside>
+
+<div id="toasts"></div>
+
+<script>
+(function(){
+  "use strict";
+  // ── Config: tier → savings band (editable, not hardcoded into logic) ──
+  var BAND = { S:0.04, M:0.06, L:0.08 };
+  var SIZES = ["S","M","L"], EFFORTS = ["Med","High"];
+  var LEVER_CLASS = { "Re-negotiate":"reneg", "Competitive RFP":"rfp", "Benchmark / should-cost":"bench", "Consolidate":"cons" };
+  var SCOPES = [
+    {v:"pursue",label:"Pursue"},
+    {v:"investigate",label:"Investigate"},
+    {v:"wait",label:"Wait"},
+    {v:"reject",label:"Reject"}
+  ];
+  var NEXTSTEPS = ["Needs SKU review","Needs contract review","Needs counterpart input","Needs price benchmark"];
+
+  // ── Illustrative model (placeholders) ──
+  var subopps = [
+    { id:"A", code:"OPP-011A", name:"Fasteners & fittings — incumbents", lever:"Re-negotiate", size:"M", effort:"Med" },
+    { id:"B", code:"OPP-011B", name:"Abrasives — competitive base", lever:"Competitive RFP", size:"L", effort:"High" },
+    { id:"C", code:"OPP-011C", name:"Safety consumables — tail", lever:"Benchmark / should-cost", size:"S", effort:"Med" }
+  ];
+  var vendors = [
+    { id:"v1", name:"Meridian Fastening Co.", region:"USA", spend:120000, so:"A", scope:"pursue", next:null },
+    { id:"v2", name:"Cardinal Bolt & Supply", region:"USA", spend:85000, so:"A", scope:"pursue", next:null },
+    { id:"v3", name:"Harborline Industrial", region:"USA", spend:60000, so:"A", scope:"investigate", next:"Needs contract review" },
+    { id:"v4", name:"Northgate Abrasives", region:"USA", spend:140000, so:"B", scope:"pursue", next:null },
+    { id:"v5", name:"Vantage Grinding Media", region:"USA", spend:95000, so:"B", scope:"pursue", next:null },
+    { id:"v6", name:"Ironpoint Tooling", region:"USA", spend:70000, so:"B", scope:"investigate", next:"Needs SKU review" },
+    { id:"v7", name:"Sable Surface Systems", region:"USA", spend:45000, so:"B", scope:"wait", next:null },
+    { id:"v8", name:"Guardian Safety Direct", region:"USA", spend:55000, so:"C", scope:"pursue", next:null },
+    { id:"v9", name:"Sentry PPE Wholesale", region:"USA", spend:40000, so:"C", scope:"reject", next:null },
+    { id:"v10", name:"Pinnacle MRO Traders", region:"USA", spend:30000, so:null, scope:"pursue", next:null },
+    { id:"v11", name:"Delta Consumables LLC", region:"USA", spend:22000, so:null, scope:"pursue", next:null },
+    { id:"v12", name:"Broadwater Supply", region:"USA", spend:18000, so:null, scope:"investigate", next:"Needs counterpart input" }
+  ];
+  var selected = {}; // unassigned selection
+  var openMenu = null;
+
+  // ── Helpers ──
+  function money(n){
+    if(n>=1000000) return "$"+(n/1000000).toFixed(n%1000000?1:0)+"M";
+    if(n>=1000) return "$"+Math.round(n/1000)+"K";
+    return "$"+n;
+  }
+  function bundled(soId){ return vendors.filter(function(v){return v.so===soId;}).reduce(function(a,v){return a+v.spend;},0); }
+  function savingsMid(so){ return bundled(so.id)*BAND[so.size]; }
+  function bandStr(so){ var m=savingsMid(so); return money(m*0.8)+"–"+money(m*1.2); }
+  function el(id){ return document.getElementById(id); }
+  function toast(msg,kind){
+    var t=document.createElement("div"); t.className="toast"+(kind?" "+kind:"");
+    t.textContent=msg; el("toasts").appendChild(t);
+    setTimeout(function(){ t.style.transition="opacity .3s"; t.style.opacity="0"; setTimeout(function(){t.remove();},300); }, 2600);
+  }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
+
+  // ── Render summary roll-ups ──
+  function renderSummary(){
+    var totSpend = vendors.reduce(function(a,v){return a+v.spend;},0);
+    el("tSpend").textContent = money(totSpend);
+    el("tCount").textContent = subopps.length;
+    // size mix
+    var mix={S:0,M:0,L:0};
+    subopps.forEach(function(s){mix[s.size]++;});
+    var mixHtml="";
+    ["L","M","S"].forEach(function(k){ if(mix[k]) mixHtml+='<span class="rollchip '+k.toLowerCase()+'">'+mix[k]+' '+k+'</span>'; });
+    el("tCountMix").innerHTML = mixHtml || '<span class="c">none yet</span>';
+    // savings roll-up
+    var lo=0,hi=0;
+    subopps.forEach(function(s){ var m=savingsMid(s); lo+=m*0.8; hi+=m*1.2; });
+    el("tSave").textContent = subopps.length? money(lo)+"–"+money(hi) : "—";
+    // effort mix
+    var em={Med:0,High:0};
+    subopps.forEach(function(s){em[s.effort]++;});
+    var parts=[]; if(em.Med)parts.push(em.Med+" Med"); if(em.High)parts.push(em.High+" High");
+    el("tEffort").textContent = parts.join(" · ")||"—";
+    var un = vendors.filter(function(v){return v.so===null;}).length;
+  }
+
+  // ── Render one vendor row ──
+  function vendorRow(v){
+    var scopeOpts = SCOPES.map(function(s){return '<option value="'+s.v+'"'+(s.v===v.scope?" selected":"")+'>'+s.label+'</option>';}).join("");
+    var nsOpts = NEXTSTEPS.map(function(n){return '<option'+(n===v.next?" selected":"")+'>'+esc(n)+'</option>';}).join("");
+    var moveTargets = subopps.filter(function(s){return s.id!==v.so;}).map(function(s){
+      return '<button data-move="'+v.id+'" data-to="'+s.id+'">→ '+esc(s.name)+' <span style="color:var(--ink4)">('+s.code+')</span></button>';
+    }).join("");
+    var toUnassigned = v.so!==null ? '<button data-move="'+v.id+'" data-to="__none">↩ Move to unassigned</button>' : "";
+    return ''+
+    '<tr class="vrow sc-'+v.scope+'" data-vid="'+v.id+'" data-name="'+esc(v.name.toLowerCase())+'">'+
+      '<td><span class="vname">'+esc(v.name)+'</span><span class="vsub">'+esc(v.region)+'</span></td>'+
+      '<td class="num">'+money(v.spend)+'</td>'+
+      '<td>'+
+        '<select class="scopesel" data-scope="'+v.scope+'" data-vid="'+v.id+'" aria-label="Scope for '+esc(v.name)+'">'+scopeOpts+'</select>'+
+        '<div class="nextstep'+(v.scope==="investigate"?" show":"")+'" data-ns="'+v.id+'">'+
+          '<span class="nsflag">◷ Next step</span>'+
+          '<select class="nssel" data-vid="'+v.id+'" aria-label="Investigation next step">'+nsOpts+'</select>'+
+          '<span class="nsdue">→ routes to task board</span>'+
+        '</div>'+
+      '</td>'+
+      '<td>'+
+        '<div class="rowacts">'+
+          (v.so!==null||subopps.length?'<button class="ib" data-menu="'+v.id+'" aria-label="Move '+esc(v.name)+'" title="Move to another sub-opportunity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l-3 3 3 3"/><path d="M9 5l3-3 3 3"/><path d="M15 19l-3 3-3-3"/><path d="M19 9l3 3-3 3"/><path d="M2 12h20"/><path d="M12 2v20"/></svg></button>':'')+
+          '<button class="ib" data-remove="'+v.id+'" aria-label="Remove '+esc(v.name)+'" title="Remove from roster"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg></button>'+
+          '<div class="menu" data-menufor="'+v.id+'"><div class="mlbl">Move to sub-opportunity</div>'+(moveTargets||'<button disabled style="color:var(--ink4);cursor:default">No other sub-opps</button>')+(toUnassigned?'<div class="msep"></div>'+toUnassigned:'')+'</div>'+
+        '</div>'+
+      '</td>'+
+    '</tr>';
+  }
+
+  // ── Render a sub-opp group ──
+  function suboppGroup(so){
+    var vs = vendors.filter(function(v){return v.so===so.id;});
+    var lc = LEVER_CLASS[so.lever]||"";
+    var rows = vs.map(vendorRow).join("") || '<tr><td colspan="4" style="color:var(--ink3);padding:14px">No vendors in this sub-opportunity. Move one in, or it can be dissolved.</td></tr>';
+    return ''+
+    '<div class="sogroup" data-so="'+so.id+'">'+
+      '<div class="sohead">'+
+        '<div class="stitle">'+
+          '<div class="nm">'+esc(so.name)+' <span class="code">'+so.code+'</span> <span class="lever '+lc+'">'+esc(so.lever)+'</span></div>'+
+          '<div class="sub">'+vs.length+' vendor'+(vs.length===1?"":"s")+' · bundled '+money(bundled(so.id))+'</div>'+
+        '</div>'+
+        '<div class="sotags">'+
+          '<div class="tagcol"><span class="tagcap">Size</span>'+
+            '<button class="badgebtn sizeb '+so.size.toLowerCase()+'" data-size="'+so.id+'" title="Click to change size (S → M → L)"><span class="dot">'+so.size+'</span> '+({S:"Small",M:"Medium",L:"Large"}[so.size])+' <svg class="pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>'+
+          '</div>'+
+          '<div class="tagcol"><span class="tagcap">Effort</span>'+
+            '<button class="badgebtn effb '+so.effort.toLowerCase()+'" data-effort="'+so.id+'" title="Click to change effort (Med ⇄ High)">'+so.effort+' <svg class="pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>'+
+          '</div>'+
+          '<div class="saveband"><span class="sv" data-saveband="'+so.id+'">'+bandStr(so)+'</span><span class="sl">Savings</span></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="tblwrap"><table class="tbl">'+
+        '<thead><tr><th>Vendor</th><th class="num">Addr. spend</th><th>Scope</th><th style="text-align:right">Action</th></tr></thead>'+
+        '<tbody>'+rows+'</tbody>'+
+      '</table></div>'+
+    '</div>';
+  }
+
+  // ── Render unassigned group ──
+  function unassignedGroup(){
+    var vs = vendors.filter(function(v){return v.so===null;});
+    if(!vs.length) return "";
+    var rows = vs.map(function(v){
+      return '<tr class="vrow" data-vid="'+v.id+'" data-name="'+esc(v.name.toLowerCase())+'">'+
+        '<td style="width:34px"><input type="checkbox" data-sel="'+v.id+'"'+(selected[v.id]?" checked":"")+' aria-label="Select '+esc(v.name)+'"></td>'+
+        '<td><span class="vname">'+esc(v.name)+'</span><span class="vsub">'+esc(v.region)+'</span></td>'+
+        '<td class="num">'+money(v.spend)+'</td>'+
+        '<td style="color:var(--ink4);font-size:12px">— not sized —</td>'+
+        '<td>'+
+          '<div class="rowacts">'+
+            (subopps.length?'<button class="ib" data-menu="'+v.id+'" title="Move to a sub-opportunity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l-3 3 3 3"/><path d="M9 5l3-3 3 3"/><path d="M15 19l-3 3-3-3"/><path d="M19 9l3 3-3 3"/><path d="M2 12h20"/><path d="M12 2v20"/></svg></button>':'')+
+            '<div class="menu" data-menufor="'+v.id+'"><div class="mlbl">Move to sub-opportunity</div>'+
+              subopps.map(function(s){return '<button data-move="'+v.id+'" data-to="'+s.id+'">→ '+esc(s.name)+' <span style="color:var(--ink4)">('+s.code+')</span></button>';}).join("")+
+            '</div>'+
+          '</div>'+
+        '</td>'+
+      '</tr>';
+    }).join("");
+    var selCount = Object.keys(selected).filter(function(k){return selected[k];}).length;
+    return ''+
+    '<div class="sogroup unassigned" data-so="__none">'+
+      '<div class="sohead">'+
+        '<div class="stitle">'+
+          '<div class="nm">Unassigned vendors <span class="code">'+vs.length+'</span></div>'+
+          '<div class="sub" style="color:var(--amber)">Not yet grouped — no size or effort until pulled into a sub-opportunity.</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="tblwrap"><table class="tbl">'+
+        '<thead><tr><th style="width:34px"></th><th>Vendor</th><th class="num">Addr. spend</th><th>Size / effort</th><th style="text-align:right">Action</th></tr></thead>'+
+        '<tbody>'+rows+'</tbody>'+
+      '</table></div>'+
+      '<div class="unfoot">'+
+        '<span class="selnote">'+(selCount?selCount+" selected":"Select vendors to group them")+'</span>'+
+        '<span class="grow"></span>'+
+        '<button class="btn sm" id="newSoBtn"'+(selCount?"":" disabled")+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> New sub-opportunity from selected</button>'+
+      '</div>'+
+    '</div>';
+  }
+
+  // ── Render derivation table ──
+  function renderDeriv(){
+    var body = subopps.map(function(s){
+      var lc=LEVER_CLASS[s.lever]||"";
+      return '<tr><td><b>'+esc(s.name)+'</b><br><span style="font-size:11px;color:var(--ink3)">'+s.code+'</span></td>'+
+        '<td><span class="lever '+lc+'">'+esc(s.lever)+'</span></td>'+
+        '<td><span class="badgebtn sizeb '+s.size.toLowerCase()+'" style="cursor:default"><span class="dot">'+s.size+'</span></span></td>'+
+        '<td class="num">'+money(bundled(s.id))+'</td>'+
+        '<td class="num">'+(BAND[s.size]*100)+'%</td>'+
+        '<td class="num" style="color:var(--green);font-weight:700">'+bandStr(s)+'</td></tr>';
+    }).join("");
+    el("derivBody").innerHTML = body;
+    var lo=0,hi=0; subopps.forEach(function(s){var m=savingsMid(s);lo+=m*0.8;hi+=m*1.2;});
+    el("derivTotal").textContent = money(lo)+"–"+money(hi);
+  }
+
+  // ── Full render ──
+  function render(){
+    var q = (el("vsearch")&&el("vsearch").value||"").trim().toLowerCase();
+    var html = subopps.map(suboppGroup).join("") + unassignedGroup();
+    el("groups").innerHTML = html || '<p class="hint">No vendors.</p>';
+    renderSummary();
+    renderDeriv();
+    if(q) applySearch(q);
+    openMenu=null;
+  }
+
+  function applySearch(q){
+    document.querySelectorAll(".vrow").forEach(function(r){
+      var match = r.getAttribute("data-name").indexOf(q)>=0;
+      r.classList.toggle("hidden", !match);
+    });
+  }
+
+  // ── Events (delegated) ──
+  document.addEventListener("click", function(e){
+    var t = e.target.closest("button, [data-sel]");
+    // close any open menu when clicking elsewhere
+    if(!e.target.closest(".menu") && !e.target.closest("[data-menu]")){
+      document.querySelectorAll(".menu.show").forEach(function(m){m.classList.remove("show");});
+      openMenu=null;
+    }
+    if(!t) return;
+
+    // size cycle
+    if(t.hasAttribute("data-size")){
+      var s=subopps.find(function(x){return x.id===t.getAttribute("data-size");});
+      s.size = SIZES[(SIZES.indexOf(s.size)+1)%SIZES.length];
+      render(); toast("Sub-opp "+s.code+" sized "+({S:"Small",M:"Medium",L:"Large"}[s.size])+" — savings band recalculated.","info"); return;
+    }
+    // effort cycle
+    if(t.hasAttribute("data-effort")){
+      var se=subopps.find(function(x){return x.id===t.getAttribute("data-effort");});
+      se.effort = EFFORTS[(EFFORTS.indexOf(se.effort)+1)%EFFORTS.length];
+      render(); toast("Sub-opp "+se.code+" effort set to "+se.effort+".","info"); return;
+    }
+    // open move menu
+    if(t.hasAttribute("data-menu")){
+      var id=t.getAttribute("data-menu");
+      var menu=document.querySelector('.menu[data-menufor="'+id+'"]');
+      var willOpen = !(menu && menu.classList.contains("show"));
+      document.querySelectorAll(".menu.show").forEach(function(m){m.classList.remove("show");});
+      if(menu && willOpen){ menu.classList.add("show"); openMenu=id; }
+      e.stopPropagation(); return;
+    }
+    // move vendor
+    if(t.hasAttribute("data-move")){
+      var vid=t.getAttribute("data-move"), to=t.getAttribute("data-to");
+      var v=vendors.find(function(x){return x.id===vid;});
+      var toName = to==="__none" ? "Unassigned" : (subopps.find(function(x){return x.id===to;})||{}).name;
+      v.so = to==="__none" ? null : to;
+      if(v.so===null) delete selected[vid];
+      render(); toast(v.name+" moved to "+toName+".","success"); return;
+    }
+    // remove vendor
+    if(t.hasAttribute("data-remove")){
+      var rid=t.getAttribute("data-remove");
+      var rv=vendors.find(function(x){return x.id===rid;});
+      vendors = vendors.filter(function(x){return x.id!==rid;});
+      render(); toast(rv.name+" removed from roster.","info"); return;
+    }
+    // select unassigned
+    if(t.hasAttribute("data-sel")){
+      var sid=t.getAttribute("data-sel");
+      selected[sid]=t.checked;
+      // re-render only footer count area cheaply: full render keeps it simple
+      render(); return;
+    }
+    // new sub-opp from selected
+    if(t.id==="newSoBtn"){
+      var ids=Object.keys(selected).filter(function(k){return selected[k];});
+      if(!ids.length) return;
+      var letter=String.fromCharCode(65+subopps.length);
+      var ns={ id:letter, code:"OPP-011"+letter, name:"New sub-opportunity", lever:"Benchmark / should-cost", size:"S", effort:"Med" };
+      subopps.push(ns);
+      ids.forEach(function(i){ var vv=vendors.find(function(x){return x.id===i;}); if(vv) vv.so=letter; });
+      selected={};
+      render();
+      toast(ids.length+" vendor"+(ids.length===1?"":"s")+" grouped into "+ns.code+" — now sized Small / Med. Adjust size, effort and lever.","success");
+      return;
+    }
+
+    // tabs
+    if(t.classList.contains("tab")){
+      document.querySelectorAll(".tab").forEach(function(x){x.classList.remove("on");});
+      t.classList.add("on");
+      var name=t.getAttribute("data-tab");
+      document.querySelectorAll(".tabpanel").forEach(function(p){ p.hidden = p.getAttribute("data-panel")!==name; });
+      return;
+    }
+    // why signals
+    if(t.id==="whyBtn"){ t.classList.toggle("open"); el("signals").classList.toggle("show"); return; }
+    // add context
+    if(t.id==="ctxBtn"){ el("ctxWrap").classList.toggle("show"); if(el("ctxWrap").classList.contains("show")) el("ctxWrap").querySelector("textarea").focus(); return; }
+    if(t.id==="ctxCancel"){ el("ctxWrap").classList.remove("show"); return; }
+    if(t.id==="ctxSave"){ el("ctxWrap").classList.remove("show"); toast("Context saved — Mercer will factor it into the next read.","success"); return; }
+    // nav
+    if(t.classList.contains("np")){ toast("Demo — navigation between opportunities is stubbed.","info"); return; }
+    if(t.id==="closeBtn"){ toast("Demo — close is stubbed in this standalone prototype.","info"); return; }
+    // ask mercer
+    if(t.id==="askBtn"){ el("dock").classList.add("on"); el("scrim").classList.add("on"); return; }
+    if(t.id==="dockClose"){ el("dock").classList.remove("on"); el("scrim").classList.remove("on"); return; }
+    // dock suggestions
+    if(t.parentNode && t.parentNode.classList && t.parentNode.classList.contains("dsugg")){
+      var wrap=el("dmsgs");
+      var u=document.createElement("div"); u.className="dmsg"; u.style.background="var(--primary)"; u.style.color="#fff"; u.style.borderColor="transparent"; u.textContent=t.textContent;
+      wrap.appendChild(u);
+      var a=document.createElement("div"); a.className="dmsg"; a.innerHTML="Start with <b>Abrasives</b> — it's the largest bundled spend and the only cluster with enough comparable vendors for a competitive RFP, so it carries the most defensible savings. Fasteners and safety consumables can follow.<div class=\"c\">Illustrative response.</div>";
+      wrap.appendChild(a); wrap.scrollTop=wrap.scrollHeight; return;
+    }
+    // decisions
+    if(t.hasAttribute("data-decide")){
+      var d=t.getAttribute("data-decide");
+      if(d==="act"){
+        var pursue=vendors.filter(function(v){return v.scope==="pursue"&&v.so!==null;}).length;
+        var inv=vendors.filter(function(v){return v.scope==="investigate";}).length;
+        toast("Proceeding to Act with "+pursue+" pursue vendor"+(pursue===1?"":"s")+" across "+subopps.length+" plays"+(inv?" · "+inv+" investigate item"+(inv===1?"":"s")+" routed to the task board":"")+".","success");
+      } else if(d==="park"){ toast("Opportunity parked — it stays re-openable from the feed.","info"); }
+      else { toast("Opportunity rejected for this cycle.","info"); }
+      return;
+    }
+  });
+
+  // scope change
+  document.addEventListener("change", function(e){
+    var s=e.target;
+    if(s.classList.contains("scopesel")){
+      var v=vendors.find(function(x){return x.id===s.getAttribute("data-vid");});
+      v.scope=s.value;
+      if(v.scope==="investigate" && !v.next) v.next=NEXTSTEPS[0];
+      render();
+      var lbl=(SCOPES.find(function(x){return x.v===v.scope;})||{}).label;
+      if(v.scope==="investigate") toast(v.name+" → Investigate. Attach a next step so it becomes an actionable task, not a dead label.","info");
+      else toast(v.name+" → "+lbl+".","info");
+      return;
+    }
+    if(s.classList.contains("nssel")){
+      var vv=vendors.find(function(x){return x.id===s.getAttribute("data-vid");});
+      vv.next=s.value; toast("Next step for "+vv.name+": "+s.value+".","info"); return;
+    }
+  });
+
+  // search
+  document.addEventListener("input", function(e){
+    if(e.target.id==="vsearch"){ applySearch(e.target.value.trim().toLowerCase()); }
+  });
+
+  // esc closes dock/menus
+  document.addEventListener("keydown", function(e){
+    if(e.key==="Escape"){ el("dock").classList.remove("on"); el("scrim").classList.remove("on"); document.querySelectorAll(".menu.show").forEach(function(m){m.classList.remove("show");}); }
+  });
+  el("scrim").addEventListener("click", function(){ el("dock").classList.remove("on"); el("scrim").classList.remove("on"); });
+
+  render();
+})();
+</script>
+</body>
+</html>

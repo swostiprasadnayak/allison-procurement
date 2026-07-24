@@ -57,3 +57,29 @@ $120,916.17, vendor spend Σ = $10,519,000.55. If you edit the data, keep them g
 Validated by a 96-assertion jsdom behavior suite (triage, bulk, override, approve →
 act → commit, drift resolution, SAP simulation, vendor score recompute, methodology
 edit → explainer re-derive, scope switching, error/empty states).
+
+---
+
+## `vendor_qualification_prototype.html` — sub-opportunity qualification
+
+Opportunity-detail vendor roster reworked so **size (S/M/L)** and **effort
+(Low/Med/High)** live at the *sub-opportunity* level, not the whole opportunity
+or a single vendor. Effort drives a **risk adjustment** on top of the size band,
+so savings show **risk-adjusted with the base kept alongside** (both roll up to
+the parent). Scope is per vendor (**Pursue / Investigate / Reject** — "Wait"
+removed); Investigate stays in scope through Act. Includes spend-threshold policy
+flags (>$250K RFP/sole-source, >$50K benchmark), manual vendor add, and a
+savings-derivation tab. Reflects the opportunity-review sessions (Jul 2026).
+
+### Live-reload dev server — edit on the go
+
+```bash
+node design/dev-server.js
+# → http://localhost:4173/vendor_qualification_prototype.html
+# PORT=8080 node design/dev-server.js   # custom port
+```
+
+Zero dependencies (built-in Node only). Serves the `design/` folder and reloads
+the open browser tab whenever you save any `.html`/`.css`/`.js` in it. The
+live-reload snippet is injected only into the HTTP response, so the files on disk
+stay clean and still open standalone via `file://`. Ctrl+C to stop.

@@ -293,14 +293,34 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
 .scrim.on{opacity:1;pointer-events:auto}
 
 /* toast */
-#toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;z-index:300;display:flex;flex-direction:column;gap:8px;align-items:center}
-.toast{display:flex;align-items:center;gap:9px;background:var(--surface-inverse);color:#fff;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:500;box-shadow:var(--sh2);max-width:460px;animation:tin .18s ease}
+#toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;z-index:300;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{display:flex;align-items:center;gap:9px;background:var(--surface-inverse);color:#fff;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:500;box-shadow:var(--sh2);max-width:460px;animation:tin .18s ease;pointer-events:auto}
 .toast.success{background:#14532d}
 .toast.info{background:var(--info-strong)}
 @keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
 .samplebar{max-width:1000px;margin:0 auto 12px;display:flex;align-items:center;gap:9px;font-size:11.5px;color:var(--ink3);padding:0 2px}
 .samplebar .dt{display:inline-flex;align-items:center;gap:5px;background:var(--pill-neutral-bg);color:var(--ink3);border-radius:99px;padding:3px 10px;font-weight:700}
+
+/* ── Inspect mode: hover to preview, click to capture a reference ── */
+.inspecttoggle{position:fixed;right:16px;bottom:16px;z-index:510;display:inline-flex;align-items:center;gap:7px;background:var(--surface-inverse);color:#fff;border-radius:99px;padding:9px 16px;font-size:12.5px;font-weight:700;box-shadow:var(--sh2);border:none}
+.inspecttoggle:hover{opacity:.9}
+.inspecttoggle.on{background:var(--merc)}
+.inspecttoggle .dot{width:7px;height:7px;border-radius:50%;background:#6b7280}
+.inspecttoggle.on .dot{background:#4ade80}
+.inspectoverlay{position:fixed;inset:0;z-index:500;cursor:crosshair;display:none}
+.inspectoverlay.on{display:block}
+.inspecthi{position:fixed;pointer-events:none;z-index:501;border:2px solid var(--merc);background:color-mix(in oklab, var(--merc) 14%, transparent);border-radius:4px;display:none}
+.inspecthi.show{display:block}
+.inspecttip{position:fixed;pointer-events:none;z-index:502;background:var(--surface-inverse);color:#fff;font-size:11px;font-weight:700;padding:4px 9px;border-radius:6px;white-space:nowrap;display:none;max-width:300px;overflow:hidden;text-overflow:ellipsis}
+.inspecttip.show{display:block}
+.inspectpanel{position:fixed;left:50%;bottom:66px;transform:translateX(-50%);z-index:511;background:var(--card);border:1px solid var(--merc-line);border-radius:12px;box-shadow:var(--sh2);padding:13px 15px;display:none;flex-direction:column;gap:8px;max-width:min(540px,92vw);width:100%}
+.inspectpanel.show{display:flex}
+.inspectpanel .il{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--merc)}
+.inspectpanel .it{font-size:14px;font-weight:700;color:var(--text-heading);line-height:1.35}
+.inspectpanel .irow{display:flex;gap:7px;align-items:center}
+.inspectpanel input{flex:1;border:1px solid var(--line2);border-radius:8px;padding:7px 10px;font-size:11.5px;font-family:var(--mono);background:var(--muted);color:var(--ink2)}
+.inspectpanel .iacts{display:flex;gap:7px;justify-content:flex-end}
 </style>
 </head>
 <body>
@@ -463,6 +483,21 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
 </aside>
 
 <div id="toasts"></div>
+
+<!-- Inspect mode: hover any element to preview it, click to capture a reference to paste back in chat -->
+<button class="inspecttoggle" id="inspectToggle" aria-pressed="false" title="Hover to preview any element; click to capture a reference for chat"><span class="dot"></span> Inspect: Off</button>
+<div class="inspectoverlay" id="inspectOverlay"></div>
+<div class="inspecthi" id="inspectHi"></div>
+<div class="inspecttip" id="inspectTip"></div>
+<div class="inspectpanel" id="inspectPanel">
+  <span class="il">Selected element — paste this reference in chat</span>
+  <span class="it" id="inspectTitle">—</span>
+  <div class="irow">
+    <input type="text" id="inspectRef" readonly aria-label="Element reference">
+    <button class="btn sm" id="inspectCopy">Copy</button>
+  </div>
+  <div class="iacts"><button class="btn sm" id="inspectPanelClose">Close</button></div>
+</div>
 
 <script>
 (function(){
@@ -836,11 +871,157 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
     if(e.target.id==="vsearch"){ applySearch(e.target.value.trim().toLowerCase()); }
   });
 
-  // esc closes dock/menus
+  // esc closes dock/menus/inspect
   document.addEventListener("keydown", function(e){
-    if(e.key==="Escape"){ el("dock").classList.remove("on"); el("scrim").classList.remove("on"); document.querySelectorAll(".menu.show").forEach(function(m){m.classList.remove("show");}); }
+    if(e.key==="Escape"){
+      el("dock").classList.remove("on"); el("scrim").classList.remove("on");
+      document.querySelectorAll(".menu.show").forEach(function(m){m.classList.remove("show");});
+      if(inspecting) setInspecting(false);
+    }
+    if(e.key==="i" && !inspecting && document.activeElement && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){
+      setInspecting(true);
+    }
   });
   el("scrim").addEventListener("click", function(){ el("dock").classList.remove("on"); el("scrim").classList.remove("on"); });
+
+  // ── Inspect mode ──────────────────────────────────────────────────
+  // Hover any element on the page to preview it; click to capture a short,
+  // human-readable reference (plus a CSS-ish locator) you can paste back in
+  // chat so I know exactly which piece of UI you mean.
+  var inspecting = false;
+  var overlay = el("inspectOverlay"), hiBox = el("inspectHi"), tip = el("inspectTip"), panel = el("inspectPanel");
+
+  function vendorName(vid){ var v=vendors.find(function(x){return x.id===vid;}); return v?v.name:vid; }
+  function soLabel(soId){ var s=subopps.find(function(x){return x.id===soId;}); return s?(s.name+" ("+s.code+")"):soId; }
+
+  // Ordered, most-specific-first. Each returns {title, ref} or null.
+  var MATCHERS = [
+    [".inspecttoggle, .inspectpanel, .inspectoverlay", function(){ return null; }],
+    ["#addVendorBtn", function(){ return {title:"“Add vendor” button (roster header)", ref:"#addVendorBtn"}; }],
+    [".badgebtn.sizeb[data-size]", function(m){ var id=m.getAttribute("data-size"); return {title:"Size badge — "+soLabel(id), ref:'.badgebtn.sizeb[data-size="'+id+'"]'}; }],
+    [".badgebtn.effb[data-effort]", function(m){ var id=m.getAttribute("data-effort"); return {title:"Effort badge — "+soLabel(id), ref:'.badgebtn.effb[data-effort="'+id+'"]'}; }],
+    [".saveband .sv[data-saveband]", function(m){ var id=m.getAttribute("data-saveband"); return {title:"Risk-adjusted savings figure — "+soLabel(id), ref:'.sv[data-saveband="'+id+'"]'}; }],
+    [".saveband .base", function(m){ var g=m.closest(".sogroup"); var id=g?g.getAttribute("data-so"):null; return {title:"Base savings figure — "+(id?soLabel(id):"sub-opp"), ref:".saveband .base (in sub-opp "+id+")"}; }],
+    [".saveband", function(m){ var g=m.closest(".sogroup"); var id=g?g.getAttribute("data-so"):null; return {title:"Savings column — "+(id?soLabel(id):"sub-opp"), ref:'.saveband (sub-opp "'+id+'")'}; }],
+    [".polchip", function(m){ var g=m.closest(".sogroup"); var id=g?g.getAttribute("data-so"):null; return {title:"Spend-threshold policy flag — "+(id?soLabel(id):""), ref:'.polchip (sub-opp "'+id+'")'}; }],
+    [".lever", function(m){ var g=m.closest(".sogroup"); var id=g?g.getAttribute("data-so"):null; return {title:"Lever chip — "+(id?soLabel(id):m.textContent.trim()), ref:'.lever (sub-opp "'+id+'")'}; }],
+    [".nssel", function(m){ var vid=m.getAttribute("data-vid"); return {title:"Investigate next-step dropdown — "+vendorName(vid), ref:'.nssel[data-vid="'+vid+'"]'}; }],
+    [".nextstep", function(m){ var vid=m.getAttribute("data-ns"); return {title:"Investigate next-step row — "+vendorName(vid), ref:'.nextstep[data-ns="'+vid+'"]'}; }],
+    [".scopesel", function(m){ var vid=m.getAttribute("data-vid"); return {title:"Scope dropdown — "+vendorName(vid), ref:'.scopesel[data-vid="'+vid+'"]'}; }],
+    [".vtag", function(m){ var row=m.closest(".vrow"); var vid=row?row.getAttribute("data-vid"):null; return {title:"“Manual” vendor tag — "+(vid?vendorName(vid):""), ref:'.vtag (vendor "'+vid+'")'}; }],
+    [".vname", function(m){ var row=m.closest(".vrow"); var vid=row?row.getAttribute("data-vid"):null; return {title:"Vendor name — "+(vid?vendorName(vid):m.textContent.trim()), ref:'.vname (vendor "'+vid+'")'}; }],
+    [".ib[data-menu]", function(m){ var vid=m.getAttribute("data-menu"); return {title:"Move / regroup button — "+vendorName(vid), ref:'.ib[data-menu="'+vid+'"]'}; }],
+    [".ib[data-remove]", function(m){ var vid=m.getAttribute("data-remove"); return {title:"Remove-from-roster button — "+vendorName(vid), ref:'.ib[data-remove="'+vid+'"]'}; }],
+    [".menu button[data-move]", function(m){ return {title:"Move-to option — “"+m.textContent.trim()+"”", ref:'.menu button[data-to="'+m.getAttribute("data-to")+'"]'}; }],
+    [".vrow", function(m){ var vid=m.getAttribute("data-vid"); return {title:"Vendor row — "+(vid?vendorName(vid):""), ref:'.vrow[data-vid="'+vid+'"]'}; }],
+    ["#newSoBtn", function(){ return {title:"“New sub-opportunity from selected” button", ref:"#newSoBtn"}; }],
+    [".sogroup.unassigned .sohead", function(){ return {title:"Unassigned-vendors group header", ref:".sogroup.unassigned .sohead"}; }],
+    [".sohead .stitle", function(m){ var g=m.closest(".sogroup"); var id=g?g.getAttribute("data-so"):null; return {title:"Sub-opportunity title block — "+(id?soLabel(id):""), ref:'.sohead .stitle (sub-opp "'+id+'")'}; }],
+    [".sogroup", function(m){ var id=m.getAttribute("data-so"); return {title:"Sub-opportunity group — "+(id==="__none"?"Unassigned":soLabel(id)), ref:'.sogroup[data-so="'+id+'"]'}; }],
+    [".mstile", function(m){ var lbl=m.querySelector(".l"); return {title:"Mercer summary tile — "+(lbl?lbl.textContent.trim():""), ref:".mstile (“"+(lbl?lbl.textContent.trim():"")+"”)"}; }],
+    ["#whyBtn", function(){ return {title:"“Why? · 3 signals” toggle", ref:"#whyBtn"}; }],
+    [".signals li", function(m){ return {title:"Signal item — “"+m.textContent.trim().slice(0,60)+"…”", ref:".signals li"}; }],
+    ["#ctxBtn", function(){ return {title:"“Add context” button", ref:"#ctxBtn"}; }],
+    [".ctxwrap textarea", function(){ return {title:"Add-context textarea", ref:".ctxwrap textarea"}; }],
+    [".mercsum .rec", function(){ return {title:"Mercer recommendation paragraph", ref:".mercsum p.rec"}; }],
+    [".tab", function(m){ return {title:"Tab — “"+m.textContent.trim()+"”", ref:'.tab[data-tab="'+m.getAttribute("data-tab")+'"]'}; }],
+    ["#derivBody tr", function(m){ var name=m.querySelector("b"); return {title:"Derivation row — "+(name?name.textContent.trim():""), ref:"#derivBody tr"}; }],
+    [".fitrow", function(m){ var t=m.querySelector(".ft"); return {title:"Functional-fit row — "+(t?t.textContent.trim():""), ref:".fitrow"}; }],
+    [".tline .te", function(m){ return {title:"Activity-history entry", ref:".tline .te"}; }],
+    ["[data-decide]", function(m){ return {title:"Footer decision button — “"+m.textContent.trim()+"”", ref:'[data-decide="'+m.getAttribute("data-decide")+'"]'}; }],
+    ["#askBtn", function(){ return {title:"“Ask Mercer about this” button", ref:"#askBtn"}; }],
+    [".dsugg button", function(m){ return {title:"Ask-Mercer suggestion chip — “"+m.textContent.trim()+"”", ref:".dsugg button"}; }],
+    [".dmsg", function(){ return {title:"Ask-Mercer message bubble", ref:".dmsg"}; }],
+    [".confmini", function(){ return {title:"Confidence chip (header, de-emphasized)", ref:".confmini"}; }],
+    [".catchip", function(){ return {title:"Category chip (header)", ref:".catchip"}; }],
+    ["#vsearch", function(){ return {title:"Vendor search box", ref:"#vsearch"}; }],
+    [".nav .np", function(m){ return {title:"Opportunity nav arrow — "+(m.getAttribute("data-nav")==="1"?"next":"previous"), ref:'.np[data-nav="'+m.getAttribute("data-nav")+'"]'}; }],
+    ["#closeBtn", function(){ return {title:"Close button (header)", ref:"#closeBtn"}; }],
+    [".shead .id", function(){ return {title:"Opportunity ID (header)", ref:".shead .id"}; }],
+  ];
+
+  function labelFor(node){
+    for(var i=0;i<MATCHERS.length;i++){
+      var m = node.closest(MATCHERS[i][0]);
+      if(m){ var r = MATCHERS[i][1](m); if(r) return r; if(r===null) return null; }
+    }
+    // generic fallback
+    var el2 = node;
+    while(el2 && el2 !== document.body && !el2.id && (!el2.className || typeof el2.className!=="string" || !el2.className.trim())) el2 = el2.parentElement;
+    if(el2 && el2.id) return {title:"Element — #"+el2.id, ref:"#"+el2.id};
+    var cls = (el2&&typeof el2.className==="string") ? el2.className.trim().split(/\s+/).slice(0,2).join(".") : "";
+    var txt = (node.textContent||"").trim().replace(/\s+/g," ").slice(0,40);
+    return {title:(node.tagName||"element").toLowerCase()+(cls?"."+cls:"")+(txt?" — “"+txt+"…”":""), ref:(node.tagName||"").toLowerCase()+(cls?"."+cls:"")};
+  }
+
+  function pointTarget(x,y){
+    overlay.style.pointerEvents = "none";
+    var node = document.elementFromPoint(x,y);
+    overlay.style.pointerEvents = "";
+    return node;
+  }
+  function positionBox(box, rect, pad){
+    pad = pad||0;
+    box.style.left = (rect.left-pad)+"px"; box.style.top = (rect.top-pad)+"px";
+    box.style.width = (rect.width+pad*2)+"px"; box.style.height = (rect.height+pad*2)+"px";
+  }
+
+  var rafPending = false, lastX=0, lastY=0;
+  function onMove(e){
+    lastX=e.clientX; lastY=e.clientY;
+    if(rafPending) return; rafPending=true;
+    requestAnimationFrame(function(){
+      rafPending=false;
+      var node = pointTarget(lastX,lastY);
+      if(!node || node===overlay || node===document.documentElement || node===document.body){ hiBox.classList.remove("show"); tip.classList.remove("show"); return; }
+      var info = labelFor(node);
+      if(!info){ hiBox.classList.remove("show"); tip.classList.remove("show"); return; }
+      positionBox(hiBox, node.getBoundingClientRect(), 2);
+      hiBox.classList.add("show");
+      tip.textContent = info.title;
+      var tx = lastX+14, ty = lastY+16;
+      if(tx+300>window.innerWidth) tx = lastX-300-14;
+      if(ty+30>window.innerHeight) ty = lastY-30-10;
+      tip.style.left = tx+"px"; tip.style.top = ty+"px";
+      tip.classList.add("show");
+      overlay.__lastInfo = info;
+    });
+  }
+  function onClick(e){
+    var node = pointTarget(e.clientX,e.clientY);
+    if(!node) return;
+    var info = labelFor(node) || overlay.__lastInfo;
+    if(!info) return;
+    el("inspectTitle").textContent = info.title;
+    el("inspectRef").value = info.ref;
+    panel.classList.add("show");
+  }
+  function setInspecting(on){
+    inspecting = on;
+    var btn = el("inspectToggle");
+    overlay.classList.toggle("on", on);
+    btn.classList.toggle("on", on);
+    btn.setAttribute("aria-pressed", on?"true":"false");
+    btn.innerHTML = '<span class="dot"></span> Inspect: '+(on?"On":"Off");
+    if(!on){ hiBox.classList.remove("show"); tip.classList.remove("show"); panel.classList.remove("show"); }
+    else toast("Inspect mode on — hover to preview, click to capture a reference. Press Esc or click Inspect again to exit.","info");
+  }
+  overlay.addEventListener("mousemove", onMove);
+  overlay.addEventListener("click", onClick);
+  el("inspectToggle").addEventListener("click", function(){ setInspecting(!inspecting); });
+  el("inspectPanelClose").addEventListener("click", function(){ panel.classList.remove("show"); });
+  el("inspectCopy").addEventListener("click", function(){
+    var input = el("inspectRef");
+    var text = input.value;
+    function ok(){ toast("Copied — paste it in chat.","success"); }
+    function manual(){ input.focus(); input.select(); toast("Selected — press Ctrl/Cmd+C to copy.","info"); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(ok).catch(manual);
+    } else {
+      try{ input.focus(); input.select(); var okExec=document.execCommand("copy"); okExec?ok():manual(); }
+      catch(err){ manual(); }
+    }
+  });
 
   render();
 })();

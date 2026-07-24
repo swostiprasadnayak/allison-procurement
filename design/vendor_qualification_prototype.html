@@ -157,28 +157,12 @@ svg{display:block}
 .search svg{width:15px;height:15px;color:var(--ink4);flex-shrink:0}
 .search input{border:none;outline:none;flex:1;font-size:13px;background:none}
 
-/* ── Sub-opportunity group card ── */
-.sogroup{border:1px solid var(--line);border-radius:11px;overflow:hidden;background:var(--card)}
-.sogroup.unassigned{border-style:dashed;border-color:var(--border-control);background:var(--surface-raised)}
-.sohead{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--surface-raised);border-bottom:1px solid var(--line);flex-wrap:wrap}
-.sogroup.unassigned .sohead{background:transparent}
-.sohead .stitle{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
-.sohead .stitle .nm{font-weight:700;font-size:13.5px;color:var(--text-heading);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.sohead .stitle .code{font-size:11px;font-weight:700;color:var(--ink3);background:var(--muted);border-radius:5px;padding:1px 7px;font-variant-numeric:tabular-nums}
-.sohead .stitle .sub{font-size:11.5px;color:var(--ink3);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.lever{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;border-radius:99px;padding:2px 9px;background:var(--pill-neutral-bg);color:var(--pill-neutral-fg)}
-.lever.reneg{background:var(--pill-warning-bg);color:var(--pill-warning-fg)}
-.lever.rfp{background:var(--pill-info-bg);color:var(--pill-info-fg)}
-.lever.bench{background:var(--merc-bg);color:var(--merc)}
-.lever.cons{background:var(--green-bg);color:var(--green)}
+.vtag{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;border-radius:5px;padding:1px 6px;background:var(--merc-bg);color:var(--merc);margin-left:6px;vertical-align:1px}
+.confmini{font-size:11.5px;color:var(--ink4);font-weight:600;white-space:nowrap}
+.confmini b{color:var(--ink3);font-weight:700}
 
-.sotags{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.tagcol{display:flex;flex-direction:column;align-items:center;gap:3px}
-.tagcap{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink4)}
+/* size/effort badges — used only in the Savings Derivation tab now */
 .badgebtn{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line2);border-radius:8px;padding:4px 9px;font-size:12px;font-weight:700;background:var(--card);color:var(--ink);white-space:nowrap}
-.badgebtn:hover{border-color:var(--merc);color:var(--merc)}
-.badgebtn .pen{width:11px;height:11px;color:var(--ink4)}
-.badgebtn:hover .pen{color:var(--merc)}
 .sizeb .dot{width:16px;height:16px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;color:#fff}
 .sizeb.s .dot{background:#4f46e5}
 .sizeb.m .dot{background:var(--info-strong)}
@@ -186,19 +170,8 @@ svg{display:block}
 .effb.low{color:var(--green)}
 .effb.med{color:var(--amber)}
 .effb.high{color:var(--destructive)}
-.saveband{display:flex;flex-direction:column;align-items:flex-end;gap:1px;min-width:118px}
-.saveband .sv{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--green)}
-.saveband .base{font-size:10.5px;color:var(--ink3);font-weight:600;font-variant-numeric:tabular-nums}
-.saveband .base s{text-decoration:none}
-.saveband .sl{font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-.polchip{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;border-radius:99px;padding:1px 8px;white-space:nowrap}
-.polchip.rfp{background:var(--pill-warning-bg);color:var(--pill-warning-fg)}
-.polchip.bench{background:var(--pill-info-bg);color:var(--pill-info-fg)}
-.vtag{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;border-radius:5px;padding:1px 6px;background:var(--merc-bg);color:var(--merc);margin-left:6px;vertical-align:1px}
-.confmini{font-size:11.5px;color:var(--ink4);font-weight:600;white-space:nowrap}
-.confmini b{color:var(--ink3);font-weight:700}
 
-/* ── Vendor table ── */
+/* ── Vendor table — one continuous table, grouped by plain header rows ── */
 .tblwrap{overflow-x:auto}
 table.tbl{width:100%;border-collapse:collapse;font-size:13px}
 .tbl th{text-align:left;font-size:11px;color:var(--ink3);font-weight:700;padding:8px 14px;border-bottom:1px solid var(--line);white-space:nowrap;text-transform:uppercase;letter-spacing:.03em}
@@ -209,15 +182,19 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
 .tbl .vsub{display:block;font-size:11px;color:var(--ink3);margin-top:2px;font-weight:400}
 .tbl tr.sc-reject td{background:color-mix(in srgb,var(--pill-danger-bg) 45%,var(--card))}
 .tbl tr.sc-reject .vname{color:var(--ink3);text-decoration:line-through}
-.tbl tr.sc-wait td{background:var(--surface-raised)}
 .tbl tr.hidden{display:none}
-.tbl input[type=checkbox]{width:15px;height:15px;accent-color:var(--merc);cursor:pointer}
+.tbl tr.grp td{background:var(--surface-raised);border-top:1px solid var(--line);padding:9px 14px}
+.tbl tr.grp:first-child td{border-top:none}
+.tbl tr.grp b{font-size:13px;font-weight:700;color:var(--text-heading)}
+.grpcount{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--ink3);color:#fff;font-size:11px;font-weight:700;margin-left:7px;font-variant-numeric:tabular-nums}
+.subopp{color:var(--ink3);font-variant-numeric:tabular-nums}
 
+.approachsel{border:1px solid var(--line2);border-radius:8px;padding:5px 9px;font-size:12px;font-weight:600;background:var(--muted);color:var(--ink2)}
+.approachsel:focus{outline:none;border-color:var(--merc);box-shadow:var(--shadow-focus)}
 .scopesel{border:1px solid var(--line2);border-radius:8px;padding:5px 9px;font-size:12px;font-weight:600;background:var(--card);color:var(--ink)}
 .scopesel:focus{outline:none;border-color:var(--merc);box-shadow:var(--shadow-focus)}
 .scopesel[data-scope=pursue]{border-color:color-mix(in srgb,var(--success) 45%,var(--border));color:var(--green);background:var(--green-bg)}
 .scopesel[data-scope=investigate]{border-color:var(--warn-line);color:var(--amber);background:var(--amber-bg)}
-.scopesel[data-scope=wait]{color:var(--ink2)}
 .scopesel[data-scope=reject]{border-color:color-mix(in srgb,var(--destructive) 35%,var(--border));color:var(--destructive);background:var(--pill-danger-bg)}
 
 .nextstep{display:none;margin-top:6px;align-items:center;gap:7px;flex-wrap:wrap}
@@ -227,21 +204,10 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
 .nssel:focus{outline:none;box-shadow:var(--shadow-focus)}
 .nsdue{font-size:11px;color:var(--ink3)}
 
-.rowacts{display:flex;align-items:center;gap:4px;justify-content:flex-end;position:relative}
+.rowacts{display:flex;align-items:center;gap:4px;justify-content:flex-end}
 .rowacts .ib{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;color:var(--ink3);border:1px solid transparent}
 .rowacts .ib:hover{background:var(--muted);color:var(--ink)}
 .rowacts .ib svg{width:15px;height:15px}
-.menu{position:absolute;top:32px;right:0;z-index:40;background:var(--card);border:1px solid var(--line2);border-radius:10px;box-shadow:var(--shadow-dropdown);padding:6px;min-width:210px;display:none;flex-direction:column;gap:1px}
-.menu.show{display:flex}
-.menu .mlbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink4);padding:5px 9px 3px}
-.menu button{text-align:left;font-size:12.5px;font-weight:600;padding:7px 9px;border-radius:7px;color:var(--ink2);display:flex;align-items:center;gap:8px}
-.menu button:hover{background:var(--muted);color:var(--ink)}
-.menu button.cur{color:var(--merc)}
-.menu .msep{height:1px;background:var(--border-light);margin:4px 0}
-
-.unfoot{display:flex;align-items:center;gap:10px;padding:11px 14px;border-top:1px dashed var(--border-control);flex-wrap:wrap}
-.unfoot .grow{flex:1}
-.selnote{font-size:12px;color:var(--ink3);font-weight:600}
 
 /* ── Derivation tab ── */
 .maptbl{width:100%;border-collapse:collapse;font-size:13px}
@@ -397,13 +363,15 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
               <svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg>
               <span class="t">Vendor roster</span>
               <span class="grow"></span>
-              <span class="hint">Grouped by <b>sub-opportunity</b></span>
               <button class="btn sm" id="addVendorBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Add vendor</button>
             </div>
             <div class="pb">
               <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg><input type="text" id="vsearch" placeholder="Search vendors…" aria-label="Search vendors"></div>
-              <p class="hint">Size and effort are <b>pre-assigned</b> from available data — click any badge to override. <b>Effort</b> (Low/Med/High) sets the risk adjustment on that sub-opp's savings. <b>Scope</b> (Pursue / Investigate / Reject) is per vendor; Investigate stays <b>in scope through Act</b>. Use <b>Move</b> to regroup a vendor. Vendors can be <b>added manually</b> for a net-new supplier ahead of onboarding.</p>
-              <div id="groups" style="display:flex;flex-direction:column;gap:12px"></div>
+              <p class="hint">Grouped by <b>Approach</b> — change a vendor's Approach to move it into a different group. <b>Scope</b> (Pursue / Investigate / Reject) is per vendor; Investigate stays <b>in scope through Act</b>. Size, effort and risk-adjusted savings for each sub-opportunity are on the <b>Savings derivation</b> tab. Vendors can be <b>added manually</b> for a net-new supplier ahead of onboarding.</p>
+              <div class="tblwrap"><table class="tbl">
+                <thead><tr><th>Vendor</th><th class="num">Addr. spend</th><th>Sub-Opp.</th><th>Approach</th><th>Scope</th><th style="text-align:right">Action</th></tr></thead>
+                <tbody id="rosterBody"></tbody>
+              </table></div>
             </div>
           </div>
         </div>
@@ -505,8 +473,6 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
   // ── Config (editable, not hardcoded into logic; exact factors still being finalized) ──
   var BAND = { S:0.04, M:0.06, L:0.08 };           // size → base savings %
   var RISK = { Low:0.90, Med:0.75, High:0.60 };    // effort → retained fraction after risk adjustment
-  var SIZES = ["S","M","L"], EFFORTS = ["Low","Med","High"];
-  var LEVER_CLASS = { "Re-negotiate":"reneg", "Competitive RFP":"rfp", "Benchmark / should-cost":"bench", "Consolidate":"cons" };
   // "Wait" removed per review — Investigate carries through to Act
   var SCOPES = [
     {v:"pursue",label:"Pursue"},
@@ -514,6 +480,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
     {v:"reject",label:"Reject"}
   ];
   var NEXTSTEPS = ["Needs SKU review","Needs contract review","Needs counterpart input","Needs price benchmark"];
+  // Approach groups the roster (matches the reference design); order here is display order.
+  var APPROACH_ORDER = ["Re-negotiate","Competitive RFP","Consolidate RFP","Benchmark / should-cost"];
 
   // ── Illustrative model (placeholders) ──
   var subopps = [
@@ -522,21 +490,19 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
     { id:"C", code:"OPP-011C", name:"Safety consumables — tail", lever:"Benchmark / should-cost", size:"S", effort:"Low" }
   ];
   var vendors = [
-    { id:"v1", name:"Meridian Fastening Co.", region:"USA", spend:120000, so:"A", scope:"pursue", next:null },
-    { id:"v2", name:"Cardinal Bolt & Supply", region:"USA", spend:85000, so:"A", scope:"pursue", next:null },
-    { id:"v3", name:"Harborline Industrial", region:"USA", spend:60000, so:"A", scope:"investigate", next:"Needs contract review" },
-    { id:"v4", name:"Northgate Abrasives", region:"USA", spend:140000, so:"B", scope:"pursue", next:null },
-    { id:"v5", name:"Vantage Grinding Media", region:"USA", spend:95000, so:"B", scope:"pursue", next:null },
-    { id:"v6", name:"Ironpoint Tooling", region:"USA", spend:70000, so:"B", scope:"investigate", next:"Needs SKU review" },
-    { id:"v7", name:"Sable Surface Systems", region:"USA", spend:45000, so:"B", scope:"pursue", next:null },
-    { id:"v8", name:"Guardian Safety Direct", region:"USA", spend:55000, so:"C", scope:"pursue", next:null },
-    { id:"v9", name:"Sentry PPE Wholesale", region:"USA", spend:40000, so:"C", scope:"reject", next:null },
-    { id:"v10", name:"Pinnacle MRO Traders", region:"USA", spend:30000, so:null, scope:"pursue", next:null },
-    { id:"v11", name:"Delta Consumables LLC", region:"USA", spend:22000, so:null, scope:"pursue", next:null },
-    { id:"v12", name:"Broadwater Supply", region:"USA", spend:18000, so:null, scope:"investigate", next:"Needs counterpart input" }
+    { id:"v1", name:"Meridian Fastening Co.", region:"USA", spend:120000, so:"A", approach:"Re-negotiate", scope:"pursue", next:null },
+    { id:"v2", name:"Cardinal Bolt & Supply", region:"USA", spend:85000, so:"A", approach:"Re-negotiate", scope:"pursue", next:null },
+    { id:"v3", name:"Harborline Industrial", region:"USA", spend:60000, so:"A", approach:"Re-negotiate", scope:"investigate", next:"Needs contract review" },
+    { id:"v4", name:"Northgate Abrasives", region:"USA", spend:140000, so:"B", approach:"Competitive RFP", scope:"pursue", next:null },
+    { id:"v5", name:"Vantage Grinding Media", region:"USA", spend:95000, so:"B", approach:"Competitive RFP", scope:"pursue", next:null },
+    { id:"v6", name:"Ironpoint Tooling", region:"USA", spend:70000, so:"B", approach:"Competitive RFP", scope:"investigate", next:"Needs SKU review" },
+    { id:"v7", name:"Sable Surface Systems", region:"USA", spend:45000, so:"B", approach:"Competitive RFP", scope:"pursue", next:null },
+    { id:"v8", name:"Guardian Safety Direct", region:"USA", spend:55000, so:"C", approach:"Benchmark / should-cost", scope:"pursue", next:null },
+    { id:"v9", name:"Sentry PPE Wholesale", region:"USA", spend:40000, so:"C", approach:"Benchmark / should-cost", scope:"reject", next:null },
+    { id:"v10", name:"Pinnacle MRO Traders", region:"USA", spend:30000, so:null, approach:null, scope:"pursue", next:null },
+    { id:"v11", name:"Delta Consumables LLC", region:"USA", spend:22000, so:null, approach:null, scope:"pursue", next:null },
+    { id:"v12", name:"Broadwater Supply", region:"USA", spend:18000, so:null, approach:null, scope:"investigate", next:"Needs counterpart input" }
   ];
-  var selected = {}; // unassigned selection
-  var openMenu = null;
   var manualSeq = 0;
 
   // ── Helpers ──
@@ -551,12 +517,6 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
   function rangeStr(mid){ return money(mid*0.8)+"–"+money(mid*1.2); }
   function baseBandStr(so){ return rangeStr(baseMid(so)); }
   function adjBandStr(so){ return rangeStr(adjMid(so)); }
-  // Spend-threshold policy: >$250K needs RFP/sole-source justification; >$50K needs benchmarking
-  function policy(amount){
-    if(amount>=250000) return {cls:"rfp", text:"RFP / sole-source justification · >$250K"};
-    if(amount>=50000)  return {cls:"bench", text:"Benchmark required · >$50K"};
-    return null;
-  }
   function el(id){ return document.getElementById(id); }
   function toast(msg,kind){
     var t=document.createElement("div"); t.className="toast"+(kind?" "+kind:"");
@@ -588,19 +548,20 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
     el("tEffort").textContent = parts.join(" · ")||"—";
   }
 
-  // ── Render one vendor row ──
+  // ── Render one vendor row (flat table — grouping is by Approach, handled in renderRoster) ──
   function vendorRow(v){
     var scopeOpts = SCOPES.map(function(s){return '<option value="'+s.v+'"'+(s.v===v.scope?" selected":"")+'>'+s.label+'</option>';}).join("");
     var nsOpts = NEXTSTEPS.map(function(n){return '<option'+(n===v.next?" selected":"")+'>'+esc(n)+'</option>';}).join("");
-    var moveTargets = subopps.filter(function(s){return s.id!==v.so;}).map(function(s){
-      return '<button data-move="'+v.id+'" data-to="'+s.id+'">→ '+esc(s.name)+' <span style="color:var(--ink4)">('+s.code+')</span></button>';
-    }).join("");
-    var toUnassigned = v.so!==null ? '<button data-move="'+v.id+'" data-to="__none">↩ Move to unassigned</button>' : "";
+    var appOpts = '<option value="" '+(v.approach?"":"selected")+' disabled>— Select —</option>' +
+      APPROACH_ORDER.map(function(a){return '<option value="'+esc(a)+'"'+(a===v.approach?" selected":"")+'>'+esc(a)+'</option>';}).join("");
     var manualTag = v.manual ? '<span class="vtag" title="Added manually as a placeholder for RFP — full onboarding on award">Manual</span>' : "";
+    var so = subopps.find(function(s){return s.id===v.so;});
     return ''+
     '<tr class="vrow sc-'+v.scope+'" data-vid="'+v.id+'" data-name="'+esc(v.name.toLowerCase())+'">'+
       '<td><span class="vname">'+esc(v.name)+'</span>'+manualTag+'<span class="vsub">'+esc(v.region)+'</span></td>'+
       '<td class="num">'+money(v.spend)+'</td>'+
+      '<td class="subopp">'+(so?so.code:"—")+'</td>'+
+      '<td><select class="approachsel" data-vid="'+v.id+'" aria-label="Approach for '+esc(v.name)+'">'+appOpts+'</select></td>'+
       '<td>'+
         '<select class="scopesel" data-scope="'+v.scope+'" data-vid="'+v.id+'" aria-label="Scope for '+esc(v.name)+'">'+scopeOpts+'</select>'+
         '<div class="nextstep'+(v.scope==="investigate"?" show":"")+'" data-ns="'+v.id+'">'+
@@ -611,85 +572,24 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
       '</td>'+
       '<td>'+
         '<div class="rowacts">'+
-          (v.so!==null||subopps.length?'<button class="ib" data-menu="'+v.id+'" aria-label="Move '+esc(v.name)+'" title="Move to another sub-opportunity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l-3 3 3 3"/><path d="M9 5l3-3 3 3"/><path d="M15 19l-3 3-3-3"/><path d="M19 9l3 3-3 3"/><path d="M2 12h20"/><path d="M12 2v20"/></svg></button>':'')+
+          '<button class="ib" data-editvendor="'+v.id+'" aria-label="Edit '+esc(v.name)+'" title="Edit vendor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>'+
           '<button class="ib" data-remove="'+v.id+'" aria-label="Remove '+esc(v.name)+'" title="Remove from roster"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg></button>'+
-          '<div class="menu" data-menufor="'+v.id+'"><div class="mlbl">Move to sub-opportunity</div>'+(moveTargets||'<button disabled style="color:var(--ink4);cursor:default">No other sub-opps</button>')+(toUnassigned?'<div class="msep"></div>'+toUnassigned:'')+'</div>'+
         '</div>'+
       '</td>'+
     '</tr>';
   }
 
-  // ── Render a sub-opp group ──
-  function suboppGroup(so){
-    var vs = vendors.filter(function(v){return v.so===so.id;});
-    var lc = LEVER_CLASS[so.lever]||"";
-    var rows = vs.map(vendorRow).join("") || '<tr><td colspan="4" style="color:var(--ink3);padding:14px">No vendors in this sub-opportunity. Move one in, or it can be dissolved.</td></tr>';
-    var pol = policy(bundled(so.id));
-    var polChip = pol ? ' <span class="polchip '+pol.cls+'">'+pol.text+'</span>' : "";
-    return ''+
-    '<div class="sogroup" data-so="'+so.id+'">'+
-      '<div class="sohead">'+
-        '<div class="stitle">'+
-          '<div class="nm">'+esc(so.name)+' <span class="code">'+so.code+'</span> <span class="lever '+lc+'">'+esc(so.lever)+'</span></div>'+
-          '<div class="sub">'+vs.length+' vendor'+(vs.length===1?"":"s")+' · bundled '+money(bundled(so.id))+polChip+'</div>'+
-        '</div>'+
-        '<div class="sotags">'+
-          '<div class="tagcol"><span class="tagcap">Size</span>'+
-            '<button class="badgebtn sizeb '+so.size.toLowerCase()+'" data-size="'+so.id+'" title="Suggested — click to change size (S → M → L)"><span class="dot">'+so.size+'</span> '+({S:"Small",M:"Medium",L:"Large"}[so.size])+' <svg class="pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>'+
-          '</div>'+
-          '<div class="tagcol"><span class="tagcap">Effort → risk</span>'+
-            '<button class="badgebtn effb '+so.effort.toLowerCase()+'" data-effort="'+so.id+'" title="Suggested — click to change effort (Low → Med → High). Higher effort = more risk, lower savings.">'+so.effort+' <svg class="pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>'+
-          '</div>'+
-          '<div class="saveband"><span class="sv" data-saveband="'+so.id+'">'+adjBandStr(so)+'</span><span class="base">base '+baseBandStr(so)+'</span><span class="sl">Risk-adj. savings</span></div>'+
-        '</div>'+
-      '</div>'+
-      '<div class="tblwrap"><table class="tbl">'+
-        '<thead><tr><th>Vendor</th><th class="num">Addr. spend</th><th>Scope</th><th style="text-align:right">Action</th></tr></thead>'+
-        '<tbody>'+rows+'</tbody>'+
-      '</table></div>'+
-    '</div>';
-  }
-
-  // ── Render unassigned group ──
-  function unassignedGroup(){
-    var vs = vendors.filter(function(v){return v.so===null;});
-    if(!vs.length) return "";
-    var rows = vs.map(function(v){
-      var manualTag = v.manual ? '<span class="vtag" title="Added manually as a placeholder for RFP — full onboarding on award">Manual</span>' : "";
-      return '<tr class="vrow" data-vid="'+v.id+'" data-name="'+esc(v.name.toLowerCase())+'">'+
-        '<td style="width:34px"><input type="checkbox" data-sel="'+v.id+'"'+(selected[v.id]?" checked":"")+' aria-label="Select '+esc(v.name)+'"></td>'+
-        '<td><span class="vname">'+esc(v.name)+'</span>'+manualTag+'<span class="vsub">'+esc(v.region)+'</span></td>'+
-        '<td class="num">'+money(v.spend)+'</td>'+
-        '<td style="color:var(--ink4);font-size:12px">— not sized —</td>'+
-        '<td>'+
-          '<div class="rowacts">'+
-            (subopps.length?'<button class="ib" data-menu="'+v.id+'" title="Move to a sub-opportunity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l-3 3 3 3"/><path d="M9 5l3-3 3 3"/><path d="M15 19l-3 3-3-3"/><path d="M19 9l3 3-3 3"/><path d="M2 12h20"/><path d="M12 2v20"/></svg></button>':'')+
-            '<div class="menu" data-menufor="'+v.id+'"><div class="mlbl">Move to sub-opportunity</div>'+
-              subopps.map(function(s){return '<button data-move="'+v.id+'" data-to="'+s.id+'">→ '+esc(s.name)+' <span style="color:var(--ink4)">('+s.code+')</span></button>';}).join("")+
-            '</div>'+
-          '</div>'+
-        '</td>'+
-      '</tr>';
+  // ── Render the roster as one table with plain group-header rows ──
+  function renderRoster(){
+    var groupKeys = APPROACH_ORDER.filter(function(a){ return vendors.some(function(v){return v.approach===a;}); });
+    if(vendors.some(function(v){return !v.approach;})) groupKeys.push(null); // "Unclassified" last
+    var html = groupKeys.map(function(a){
+      var vs = vendors.filter(function(v){return v.approach===a;});
+      var label = a || "Unclassified";
+      var grp = '<tr class="grp"><td colspan="6"><b>'+esc(label)+'</b><span class="grpcount">'+vs.length+'</span></td></tr>';
+      return grp + vs.map(vendorRow).join("");
     }).join("");
-    var selCount = Object.keys(selected).filter(function(k){return selected[k];}).length;
-    return ''+
-    '<div class="sogroup unassigned" data-so="__none">'+
-      '<div class="sohead">'+
-        '<div class="stitle">'+
-          '<div class="nm">Unassigned vendors <span class="code">'+vs.length+'</span></div>'+
-          '<div class="sub" style="color:var(--amber)">Not yet grouped — no size or effort until pulled into a sub-opportunity.</div>'+
-        '</div>'+
-      '</div>'+
-      '<div class="tblwrap"><table class="tbl">'+
-        '<thead><tr><th style="width:34px"></th><th>Vendor</th><th class="num">Addr. spend</th><th>Size / effort</th><th style="text-align:right">Action</th></tr></thead>'+
-        '<tbody>'+rows+'</tbody>'+
-      '</table></div>'+
-      '<div class="unfoot">'+
-        '<span class="selnote">'+(selCount?selCount+" selected":"Select vendors to group them")+'</span>'+
-        '<span class="grow"></span>'+
-        '<button class="btn sm" id="newSoBtn"'+(selCount?"":" disabled")+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> New sub-opportunity from selected</button>'+
-      '</div>'+
-    '</div>';
+    el("rosterBody").innerHTML = html || '<tr><td colspan="6" style="color:var(--ink3);padding:14px">No vendors.</td></tr>';
   }
 
   // ── Render derivation table ──
@@ -713,12 +613,10 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
   // ── Full render ──
   function render(){
     var q = (el("vsearch")&&el("vsearch").value||"").trim().toLowerCase();
-    var html = subopps.map(suboppGroup).join("") + unassignedGroup();
-    el("groups").innerHTML = html || '<p class="hint">No vendors.</p>';
+    renderRoster();
     renderSummary();
     renderDeriv();
     if(q) applySearch(q);
-    openMenu=null;
   }
 
   function applySearch(q){
@@ -730,44 +628,9 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
 
   // ── Events (delegated) ──
   document.addEventListener("click", function(e){
-    var t = e.target.closest("button, [data-sel]");
-    // close any open menu when clicking elsewhere
-    if(!e.target.closest(".menu") && !e.target.closest("[data-menu]")){
-      document.querySelectorAll(".menu.show").forEach(function(m){m.classList.remove("show");});
-      openMenu=null;
-    }
+    var t = e.target.closest("button");
     if(!t) return;
 
-    // size cycle
-    if(t.hasAttribute("data-size")){
-      var s=subopps.find(function(x){return x.id===t.getAttribute("data-size");});
-      s.size = SIZES[(SIZES.indexOf(s.size)+1)%SIZES.length];
-      render(); toast("Sub-opp "+s.code+" sized "+({S:"Small",M:"Medium",L:"Large"}[s.size])+" — savings band recalculated.","info"); return;
-    }
-    // effort cycle (drives risk adjustment)
-    if(t.hasAttribute("data-effort")){
-      var se=subopps.find(function(x){return x.id===t.getAttribute("data-effort");});
-      se.effort = EFFORTS[(EFFORTS.indexOf(se.effort)+1)%EFFORTS.length];
-      render(); toast("Sub-opp "+se.code+" effort → "+se.effort+" — risk-adjusted savings recalculated (×"+RISK[se.effort].toFixed(2)+").","info"); return;
-    }
-    // open move menu
-    if(t.hasAttribute("data-menu")){
-      var id=t.getAttribute("data-menu");
-      var menu=document.querySelector('.menu[data-menufor="'+id+'"]');
-      var willOpen = !(menu && menu.classList.contains("show"));
-      document.querySelectorAll(".menu.show").forEach(function(m){m.classList.remove("show");});
-      if(menu && willOpen){ menu.classList.add("show"); openMenu=id; }
-      e.stopPropagation(); return;
-    }
-    // move vendor
-    if(t.hasAttribute("data-move")){
-      var vid=t.getAttribute("data-move"), to=t.getAttribute("data-to");
-      var v=vendors.find(function(x){return x.id===vid;});
-      var toName = to==="__none" ? "Unassigned" : (subopps.find(function(x){return x.id===to;})||{}).name;
-      v.so = to==="__none" ? null : to;
-      if(v.so===null) delete selected[vid];
-      render(); toast(v.name+" moved to "+toName+".","success"); return;
-    }
     // remove vendor
     if(t.hasAttribute("data-remove")){
       var rid=t.getAttribute("data-remove");
@@ -775,33 +638,19 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
       vendors = vendors.filter(function(x){return x.id!==rid;});
       render(); toast(rv.name+" removed from roster.","info"); return;
     }
-    // select unassigned
-    if(t.hasAttribute("data-sel")){
-      var sid=t.getAttribute("data-sel");
-      selected[sid]=t.checked;
-      // re-render only footer count area cheaply: full render keeps it simple
-      render(); return;
-    }
-    // new sub-opp from selected
-    if(t.id==="newSoBtn"){
-      var ids=Object.keys(selected).filter(function(k){return selected[k];});
-      if(!ids.length) return;
-      var letter=String.fromCharCode(65+subopps.length);
-      var ns={ id:letter, code:"OPP-011"+letter, name:"New sub-opportunity", lever:"Benchmark / should-cost", size:"S", effort:"Med" };
-      subopps.push(ns);
-      ids.forEach(function(i){ var vv=vendors.find(function(x){return x.id===i;}); if(vv) vv.so=letter; });
-      selected={};
-      render();
-      toast(ids.length+" vendor"+(ids.length===1?"":"s")+" grouped into "+ns.code+" — sized Small / Med by default. Adjust size, effort and lever.","success");
-      return;
+    // edit vendor (stub — not modeled in this prototype)
+    if(t.hasAttribute("data-editvendor")){
+      var evid=t.getAttribute("data-editvendor");
+      var ev=vendors.find(function(x){return x.id===evid;});
+      toast("Edit "+(ev?ev.name:"vendor")+" — detail editor not modeled in this prototype yet.","info"); return;
     }
     // add vendor manually (placeholder for RFP before full onboarding)
     if(t.id==="addVendorBtn"){
       manualSeq++;
       var mid="m"+manualSeq;
-      vendors.push({ id:mid, name:"New vendor "+manualSeq, region:"Manual entry", spend:0, so:null, scope:"pursue", next:null, manual:true });
+      vendors.push({ id:mid, name:"New vendor "+manualSeq, region:"Manual entry", spend:0, so:null, approach:null, scope:"pursue", next:null, manual:true });
       render();
-      toast("Manual vendor added to Unassigned — a placeholder for running an RFP on a net-new supplier; full onboarding happens only on award.","success");
+      toast("Manual vendor added under Unclassified — a placeholder for running an RFP on a net-new supplier; full onboarding happens only on award. Assign an Approach to group it.","success");
       return;
     }
 
@@ -837,10 +686,10 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
     if(t.hasAttribute("data-decide")){
       var d=t.getAttribute("data-decide");
       if(d==="act"){
-        var pursue=vendors.filter(function(v){return v.scope==="pursue"&&v.so!==null;}).length;
-        var inv=vendors.filter(function(v){return v.scope==="investigate"&&v.so!==null;}).length;
+        var pursue=vendors.filter(function(v){return v.scope==="pursue";}).length;
+        var inv=vendors.filter(function(v){return v.scope==="investigate";}).length;
         var inScope=pursue+inv;
-        toast("Proceeding to Act with "+inScope+" vendor"+(inScope===1?"":"s")+" in scope across "+subopps.length+" plays ("+pursue+" pursue · "+inv+" investigate — investigate stays in scope and gets resolved in Act).","success");
+        toast("Proceeding to Act with "+inScope+" vendor"+(inScope===1?"":"s")+" in scope ("+pursue+" pursue · "+inv+" investigate — investigate stays in scope and gets resolved in Act).","success");
       } else if(d==="park"){ toast("Opportunity parked — it stays re-openable from the feed.","info"); }
       else { toast("Opportunity rejected for this cycle.","info"); }
       return;
@@ -864,6 +713,12 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
       var vv=vendors.find(function(x){return x.id===s.getAttribute("data-vid");});
       vv.next=s.value; toast("Next step for "+vv.name+": "+s.value+".","info"); return;
     }
+    if(s.classList.contains("approachsel")){
+      var av=vendors.find(function(x){return x.id===s.getAttribute("data-vid");});
+      av.approach=s.value||null;
+      render();
+      toast(av.name+" → "+s.value+".","success"); return;
+    }
   });
 
   // search
@@ -871,11 +726,10 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
     if(e.target.id==="vsearch"){ applySearch(e.target.value.trim().toLowerCase()); }
   });
 
-  // esc closes dock/menus/inspect
+  // esc closes dock/inspect
   document.addEventListener("keydown", function(e){
     if(e.key==="Escape"){
       el("dock").classList.remove("on"); el("scrim").classList.remove("on");
-      document.querySelectorAll(".menu.show").forEach(function(m){m.classList.remove("show");});
       if(inspecting) setInspecting(false);
     }
     if(e.key==="i" && !inspecting && document.activeElement && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){
@@ -898,26 +752,17 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
   var MATCHERS = [
     [".inspecttoggle, .inspectpanel, .inspectoverlay", function(){ return null; }],
     ["#addVendorBtn", function(){ return {title:"“Add vendor” button (roster header)", ref:"#addVendorBtn"}; }],
-    [".badgebtn.sizeb[data-size]", function(m){ var id=m.getAttribute("data-size"); return {title:"Size badge — "+soLabel(id), ref:'.badgebtn.sizeb[data-size="'+id+'"]'}; }],
-    [".badgebtn.effb[data-effort]", function(m){ var id=m.getAttribute("data-effort"); return {title:"Effort badge — "+soLabel(id), ref:'.badgebtn.effb[data-effort="'+id+'"]'}; }],
-    [".saveband .sv[data-saveband]", function(m){ var id=m.getAttribute("data-saveband"); return {title:"Risk-adjusted savings figure — "+soLabel(id), ref:'.sv[data-saveband="'+id+'"]'}; }],
-    [".saveband .base", function(m){ var g=m.closest(".sogroup"); var id=g?g.getAttribute("data-so"):null; return {title:"Base savings figure — "+(id?soLabel(id):"sub-opp"), ref:".saveband .base (in sub-opp "+id+")"}; }],
-    [".saveband", function(m){ var g=m.closest(".sogroup"); var id=g?g.getAttribute("data-so"):null; return {title:"Savings column — "+(id?soLabel(id):"sub-opp"), ref:'.saveband (sub-opp "'+id+'")'}; }],
-    [".polchip", function(m){ var g=m.closest(".sogroup"); var id=g?g.getAttribute("data-so"):null; return {title:"Spend-threshold policy flag — "+(id?soLabel(id):""), ref:'.polchip (sub-opp "'+id+'")'}; }],
-    [".lever", function(m){ var g=m.closest(".sogroup"); var id=g?g.getAttribute("data-so"):null; return {title:"Lever chip — "+(id?soLabel(id):m.textContent.trim()), ref:'.lever (sub-opp "'+id+'")'}; }],
     [".nssel", function(m){ var vid=m.getAttribute("data-vid"); return {title:"Investigate next-step dropdown — "+vendorName(vid), ref:'.nssel[data-vid="'+vid+'"]'}; }],
     [".nextstep", function(m){ var vid=m.getAttribute("data-ns"); return {title:"Investigate next-step row — "+vendorName(vid), ref:'.nextstep[data-ns="'+vid+'"]'}; }],
     [".scopesel", function(m){ var vid=m.getAttribute("data-vid"); return {title:"Scope dropdown — "+vendorName(vid), ref:'.scopesel[data-vid="'+vid+'"]'}; }],
+    [".approachsel", function(m){ var vid=m.getAttribute("data-vid"); return {title:"Approach dropdown — "+vendorName(vid), ref:'.approachsel[data-vid="'+vid+'"]'}; }],
+    [".subopp", function(m){ var row=m.closest(".vrow"); var vid=row?row.getAttribute("data-vid"):null; return {title:"Sub-Opp. code — "+(vid?vendorName(vid):""), ref:'.subopp (vendor "'+vid+'")'}; }],
     [".vtag", function(m){ var row=m.closest(".vrow"); var vid=row?row.getAttribute("data-vid"):null; return {title:"“Manual” vendor tag — "+(vid?vendorName(vid):""), ref:'.vtag (vendor "'+vid+'")'}; }],
     [".vname", function(m){ var row=m.closest(".vrow"); var vid=row?row.getAttribute("data-vid"):null; return {title:"Vendor name — "+(vid?vendorName(vid):m.textContent.trim()), ref:'.vname (vendor "'+vid+'")'}; }],
-    [".ib[data-menu]", function(m){ var vid=m.getAttribute("data-menu"); return {title:"Move / regroup button — "+vendorName(vid), ref:'.ib[data-menu="'+vid+'"]'}; }],
+    [".ib[data-editvendor]", function(m){ var vid=m.getAttribute("data-editvendor"); return {title:"Edit-vendor button — "+vendorName(vid), ref:'.ib[data-editvendor="'+vid+'"]'}; }],
     [".ib[data-remove]", function(m){ var vid=m.getAttribute("data-remove"); return {title:"Remove-from-roster button — "+vendorName(vid), ref:'.ib[data-remove="'+vid+'"]'}; }],
-    [".menu button[data-move]", function(m){ return {title:"Move-to option — “"+m.textContent.trim()+"”", ref:'.menu button[data-to="'+m.getAttribute("data-to")+'"]'}; }],
     [".vrow", function(m){ var vid=m.getAttribute("data-vid"); return {title:"Vendor row — "+(vid?vendorName(vid):""), ref:'.vrow[data-vid="'+vid+'"]'}; }],
-    ["#newSoBtn", function(){ return {title:"“New sub-opportunity from selected” button", ref:"#newSoBtn"}; }],
-    [".sogroup.unassigned .sohead", function(){ return {title:"Unassigned-vendors group header", ref:".sogroup.unassigned .sohead"}; }],
-    [".sohead .stitle", function(m){ var g=m.closest(".sogroup"); var id=g?g.getAttribute("data-so"):null; return {title:"Sub-opportunity title block — "+(id?soLabel(id):""), ref:'.sohead .stitle (sub-opp "'+id+'")'}; }],
-    [".sogroup", function(m){ var id=m.getAttribute("data-so"); return {title:"Sub-opportunity group — "+(id==="__none"?"Unassigned":soLabel(id)), ref:'.sogroup[data-so="'+id+'"]'}; }],
+    ["tr.grp", function(m){ var b=m.querySelector("b"); return {title:"Group header — "+(b?b.textContent.trim():""), ref:"tr.grp (“"+(b?b.textContent.trim():"")+"”)"}; }],
     [".mstile", function(m){ var lbl=m.querySelector(".l"); return {title:"Mercer summary tile — "+(lbl?lbl.textContent.trim():""), ref:".mstile (“"+(lbl?lbl.textContent.trim():"")+"”)"}; }],
     ["#whyBtn", function(){ return {title:"“Why? · 3 signals” toggle", ref:"#whyBtn"}; }],
     [".signals li", function(m){ return {title:"Signal item — “"+m.textContent.trim().slice(0,60)+"…”", ref:".signals li"}; }],

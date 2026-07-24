@@ -2,7 +2,7 @@
 
 Consolidated findings from CM (Commodity Manager) workflow research, the July 2026 opportunity-review meeting transcript, and the Vendor Roster / Sub-Opportunity Qualification prototype work. This is a handoff doc — read this before picking up design or engineering work on the Feed or Opportunity Detail → Vendor Roster surfaces.
 
-Companion docs: `FEATURE_ROADMAP.md` (features #1–15, engineering-ready specs), `design/README.md` (prototype file index + dev server).
+Companion docs: `FEATURE_ROADMAP.md` (features #1–15, engineering-ready specs), `design/README.md` (documents `navanta_lens_prototype_v2.html` and `vendor_qualification_prototype.html` in detail, plus dev-server usage — the other prototype files in `design/` aren't indexed there).
 
 ---
 
@@ -27,7 +27,7 @@ Before opening an opportunity, the CM screens for:
 - **Credibility** — is the confidence score evidence-derived or benchmark-derived?
 - **Freshness** — timing-aware (is this data current, is a contract window open?)
 - **Fragmentation gap** — ≥2× deeper than baseline is the rough bar
-- **Addressable spend** — ≥$250K is the rough bar for it to be worth the effort
+- **Addressable spend** — ≥$250K is the rough bar for it to be worth the effort (this is a CM triage heuristic, not the same $250K as the company's RFP policy threshold in §5 — the two are unrelated and just happen to share a number)
 - **Vendor roster soundness** — can she tell who the real players are?
 - **Effort-to-savings trade-off** — S/M/L size matched against Med/High effort
 
@@ -72,6 +72,8 @@ Five factors determine which of the playbooks gets selected — Re-negotiate, Co
 
 In-product, **Approach is a per-row, per-vendor field** — not fixed at a group level. Changing it re-groups the vendor into a different Approach section. This mirrors the reference design exactly (see §6).
 
+> **Unreconciled naming gap:** the prototype's selectable Approach options are only four — `Re-negotiate`, `Competitive RFP`, `Consolidate RFP`, `Benchmark / should-cost` — not the five playbooks named above. "Consolidate" has been merged into "Consolidate RFP," and **Supplier Transition and Rate-Card aren't selectable Approach values at all** in the current roster. This was never explicitly decided — it's an artifact of matching the reference screenshot's visible options, not a deliberate scope call. Needs a decision: are Supplier Transition/Rate-Card handled as a different mechanism entirely (e.g. routed straight to Act without an Approach-dropdown step), or missing options that should be added?
+
 ---
 
 ## 5. Meeting transcript findings (July 2026 opportunity-review session)
@@ -95,7 +97,7 @@ Source: Sebastian Irani, Tanuj Gupta, Ashish Sharma, Mahi, Swosti — walkthroug
 **Two other real workflows surfaced:**
 - **System-generated flow** (what the prototype models): Feed → Qualify → Act → Monitor.
 - **Business-owner-driven flow** (not yet modeled in any prototype): a non-procurement stakeholder sole-sources or shortlists a vendor themselves, then hands it to procurement for due diligence/benchmarking/RFP execution. Whether these show up in the same feed as system-generated opportunities, or separately, was left open ("they agreed on flexibility, with options to filter or separate").
-- **Spend thresholds** (real policy, not yet enforced in-product): purchases >$250K require an RFP or a documented sole-source justification; >$50K require benchmarking. Not currently surfaced in the roster (see §7, deferred).
+- **Spend thresholds** (real policy, not yet enforced in-product): purchases >$250K require an RFP or a documented sole-source justification; >$50K require benchmarking. Not currently surfaced in the roster (see §6, Deferred).
 - **Manual vendor addition**: vendor data is predominantly ERP-sourced, but the team needs the ability to add a placeholder vendor manually to run an RFP against a net-new/temporary supplier, before that vendor goes through full onboarding. Full onboarding only triggers if that vendor is actually awarded work.
 
 ---
@@ -105,7 +107,7 @@ Source: Sebastian Irani, Tanuj Gupta, Ashish Sharma, Mahi, Swosti — walkthroug
 File: `design/vendor_qualification_prototype.html` (standalone, no build step, opens via `file://` or the dev server).
 
 ### Structural correction (the big one)
-The first build modeled the meeting transcript's "sub-opportunity" concept as a heavy card: a bordered container per sub-opp with a shaded header holding a code chip, a colored lever chip, a Size badge, an Effort badge, and a stacked savings box. Compared against the actual reference design (a real product screenshot), this read as **cluttered** — the reference uses a single continuous table with plain, minimal group-header rows (bold label + a small grey count pill), and per-row dropdowns for Approach and Scope.
+The first build modeled the meeting transcript's "sub-opportunity" concept as a heavy card: a bordered container per sub-opp with a shaded header holding a code chip, a colored lever chip, a Size badge, an Effort badge, and a stacked savings box. Compared against the reference screenshot you shared (the current in-product design — exact provenance, live app vs. design file, wasn't confirmed), this read as **cluttered** — the reference uses a single continuous table with plain, minimal group-header rows (bold label + a small grey count pill), and per-row dropdowns for Approach and Scope.
 
 **Rebuilt to match the reference exactly:**
 - One `<table>`, not a card per group.
@@ -113,7 +115,7 @@ The first build modeled the meeting transcript's "sub-opportunity" concept as a 
 - **Grouping key changed from sub-opportunity → Approach (lever)** — this matches the reference precisely, and is arguably more correct anyway: the reference groups by *what lever a vendor is currently under*, with the sub-opp code demoted to a plain informational column (`OPP-011A`, or `—` if unassigned).
 - **Approach is now a per-row `<select>`** — changing it re-groups the vendor immediately. This single control replaces what was previously a separate "Move" icon → dropdown menu → checkbox-multi-select → "New sub-opportunity from selected" button flow. That flow is gone entirely; Approach reassignment does the same job with far less UI.
 - Action column simplified to **Edit (stub) + Delete**, matching the reference (no Move icon).
-- The size/effort/risk-adjustted-savings math didn't disappear — it lives on the **Savings Derivation tab**, which was already a plain flat table and was never part of the "too chaotic" complaint. It shows the full two-step calculation: Size → base savings-% band → base savings, then Effort → risk retention factor → risk-adjusted savings, with both a base rollup and a risk-adjusted rollup.
+- The size/effort/risk-adjusted-savings math didn't disappear — it lives on the **Savings Derivation tab**, which was already a plain flat table and was never part of the "too chaotic" complaint. It shows the full two-step calculation: Size → base savings-% band → base savings, then Effort → risk retention factor → risk-adjusted savings, with both a base rollup and a risk-adjusted rollup.
 - The opportunity-level Mercer Summary tiles (top of the page) are **roll-ups**, not single opportunity-wide values: Sub-opportunities count + size mix, Σ risk-adjusted savings (with base kept alongside), and effort mix (Low/Med/High counts). This reflects the earlier finding that size/effort belong at the sub-opp level, not the opportunity level — a single opp-wide T-Shirt Size hides where the real savings live.
 
 ### Other confirmed feature decisions baked into the prototype
@@ -143,6 +145,7 @@ Building this also surfaced a real (if minor) bug: `#toasts` had no `pointer-eve
 
 ## 8. Open questions for next round
 
+- **Approach option list is incomplete relative to the 5-playbook framework** (see §4 callout) — Supplier Transition and Rate-Card need a decision on whether they belong in this same dropdown or are handled a different way entirely.
 - Approach editing: per-vendor dropdown only, or should there also be a group-level bulk reassignment affordance for when many vendors need the same change at once?
 - Where do spend-threshold policy flags resurface — Savings Derivation tab column, a tooltip on Addr. Spend, or elsewhere?
 - Business-owner-driven flow (sole-sourced/shortlisted opportunities entered manually) — same feed as system-generated, or a separate view? Not designed yet.

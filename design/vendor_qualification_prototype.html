@@ -713,10 +713,21 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
       vv.next=s.value; toast("Next step for "+vv.name+": "+s.value+".","info"); return;
     }
     if(s.classList.contains("approachsel")){
+      // Approach is sugar over sub-opportunity assignment — the sub-opp (v.so) is what
+      // actually carries size/effort/savings math (see Savings Derivation tab), so changing
+      // Approach must move the vendor into the sub-opp for that lever, creating one if none
+      // exists yet. Otherwise the roster grouping and the savings math silently drift apart.
       var av=vendors.find(function(x){return x.id===s.getAttribute("data-vid");});
       av.approach=s.value||null;
+      var target=subopps.find(function(x){return x.lever===s.value;});
+      if(!target && s.value){
+        var letter=String.fromCharCode(65+subopps.length);
+        target={ id:letter, code:"OPP-011"+letter, name:s.value+" — new grouping", lever:s.value, size:"S", effort:"Med" };
+        subopps.push(target);
+      }
+      av.so = target ? target.id : null;
       render();
-      toast(av.name+" → "+s.value+".","success"); return;
+      toast(av.name+" → "+s.value+(target?" (sub-opp "+target.code+")":"")+".","success"); return;
     }
   });
 
